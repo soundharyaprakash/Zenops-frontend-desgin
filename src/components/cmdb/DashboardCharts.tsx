@@ -459,11 +459,18 @@ export function DashboardCharts() {
                             ({svc.count} CIs)
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <Lozenge
+                            appearance="bold"
+                            variant={svc.band.lozengeVariant}
+                            size="xs"
+                          >
+                            {svc.band.label}
+                          </Lozenge>
                           <Lozenge
                             appearance={isBelowTarget ? "bold" : "subtle"}
                             variant={svc.targetStatus.variant}
-                            size="sm"
+                            size="xs"
                           >
                             {svc.targetStatus.label}
                           </Lozenge>

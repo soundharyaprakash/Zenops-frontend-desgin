@@ -6,58 +6,18 @@ import {
   AttestationCampaign,
   CIAuditHistory,
 } from "@/types/cmdb";
+import {
+  HEALTH_BANDS,
+  getHealthBand,
+  getTargetStatus,
+  getCanonicalServiceRecords,
+} from "@/lib/services/serviceRecord";
 
-// ============================================================================
-// HEALTH BANDS CONSTANTS (Priority 1, Item 6)
-// >=80 Healthy, 60-79 At risk, <60 Critical
-// ============================================================================
-export const HEALTH_BANDS = {
-  HEALTHY: {
-    min: 80,
-    max: 100,
-    label: "Healthy",
-    targetLabel: "Target met" as const,
-    color: "#1F845A",
-    textColor: "text-success",
-    bgColor: "bg-success",
-    lozengeVariant: "success" as const,
-  },
-  AT_RISK: {
-    min: 60,
-    max: 79,
-    label: "At risk",
-    targetLabel: "Below target" as const,
-    color: "#F5CD47",
-    textColor: "text-warning",
-    bgColor: "bg-warning",
-    lozengeVariant: "warning" as const,
-  },
-  CRITICAL: {
-    min: 0,
-    max: 59,
-    label: "Critical",
-    targetLabel: "Below target" as const,
-    color: "#C9372C",
-    textColor: "text-danger",
-    bgColor: "bg-danger",
-    lozengeVariant: "danger" as const,
-  },
-} as const;
-
-export function getHealthBand(score: number) {
-  if (score >= 80) return HEALTH_BANDS.HEALTHY;
-  if (score >= 60) return HEALTH_BANDS.AT_RISK;
-  return HEALTH_BANDS.CRITICAL;
-}
-
-export function getTargetStatus(score: number): {
-  label: "Target met" | "Below target";
-  variant: "success" | "danger";
-} {
-  return score >= 80
-    ? { label: "Target met", variant: "success" }
-    : { label: "Below target", variant: "danger" };
-}
+export {
+  HEALTH_BANDS,
+  getHealthBand,
+  getTargetStatus,
+};
 
 // ============================================================================
 // ARCHITECTURE CATEGORY SPEC
@@ -122,7 +82,7 @@ export interface BusinessServiceHealth {
   count: number;
   tier: string;
   band: typeof HEALTH_BANDS[keyof typeof HEALTH_BANDS];
-  targetStatus: { label: "Target met" | "Below target"; variant: "success" | "danger" };
+  targetStatus: { label: "Target met" | "Below trust target"; variant: "success" | "danger" };
   color: string;
 }
 
@@ -635,51 +595,18 @@ export function getDashboardMetrics(
 
   const isAllDiscoveryGreen = computedDiscoverySources.every((s) => s.healthStatus === "green");
 
-  // 12. Services by Trust Score (Filtered from active CIs with unified health bands)
-  const baseServiceDefinitions = [
-    { id: "svc-1", name: "Payments API", tier: "Tier 0 - Mission Critical", prefix: "pay" },
-    { id: "svc-2", name: "Customer Web Portal", tier: "Tier 1 - High", prefix: "portal" },
-    { id: "svc-3", name: "Order Processing", tier: "Tier 1 - High", prefix: "order" },
-    { id: "svc-4", name: "Enterprise Data Warehouse", tier: "Tier 2 - Medium", prefix: "data" },
-    { id: "svc-5", name: "Legacy HR System", tier: "Tier 2 - Medium", prefix: "legacy" },
-  ];
-
-  const servicesHealth: BusinessServiceHealth[] = baseServiceDefinitions.map((svc, index) => {
-    // Filter matching CIs for this service or allocate proportionally
-    const matchingCIs = filteredCIs.filter(
-      (c) =>
-        c.name.toLowerCase().includes(svc.prefix) ||
-        (c.attributes?.apiEndpoint && c.attributes.apiEndpoint.toLowerCase().includes(svc.prefix))
-    );
-
-    const count = matchingCIs.length > 0 ? matchingCIs.length : Math.max(2, Math.round(safeTotal / (index + 3)));
-    const avgScore =
-      matchingCIs.length > 0
-        ? Math.round(matchingCIs.reduce((acc, c) => acc + (c.trustScore || 80), 0) / matchingCIs.length)
-        : index === 0
-        ? 94
-        : index === 1
-        ? 88
-        : index === 2
-        ? 82
-        : index === 3
-        ? 74
-        : 42; // Legacy HR is critical
-
-    const band = getHealthBand(avgScore);
-    const targetStatus = getTargetStatus(avgScore);
-
-    return {
-      id: svc.id,
-      name: svc.name,
-      score: avgScore,
-      count,
-      tier: svc.tier,
-      band,
-      targetStatus,
-      color: band.color,
-    };
-  });
+  // 12. Services by Trust Score (Derived from canonical service record model - Priority 1, Item 1 & 3)
+  const canonicalServices = getCanonicalServiceRecords(filteredCIs, relationships);
+  const servicesHealth: BusinessServiceHealth[] = canonicalServices.map((svc) => ({
+    id: svc.id,
+    name: svc.canonicalName,
+    score: svc.trustScore,
+    count: svc.ciCount,
+    tier: svc.tierLabel,
+    band: svc.band,
+    targetStatus: svc.targetStatus,
+    color: svc.band.color,
+  }));
 
   // 13. Remediation Tasks (Priority 4, Item 17)
   // Ensure counts equal KPI tiles exactly (Priority 1, Item 3)
@@ -755,7 +682,7 @@ export function getDashboardMetrics(
     (a, b) => (severityOrder[a.severity] ?? 99) - (severityOrder[b.severity] ?? 99)
   );
 
-  // 14. Score Histogram Bands (Single hue with threshold bands - Priority 4, Item 15)
+  // 14. Score Histogram Bands (Single hue with threshold bands - Priority 1, Item 4 & Priority 4, Item 15)
   const scoreHistogramBands = [
     {
       range: "80–100",
@@ -765,16 +692,16 @@ export function getDashboardMetrics(
       healthBand: HEALTH_BANDS.HEALTHY,
     },
     {
-      range: "60–79",
+      range: "70–79",
       label: "At risk",
-      count: filteredCIs.filter((c) => (c.trustScore || 80) >= 60 && (c.trustScore || 80) < 80).length,
+      count: filteredCIs.filter((c) => (c.trustScore || 80) >= 70 && (c.trustScore || 80) < 80).length,
       pct: 0,
       healthBand: HEALTH_BANDS.AT_RISK,
     },
     {
-      range: "40–59",
+      range: "40–69",
       label: "Needs Attention",
-      count: filteredCIs.filter((c) => (c.trustScore || 80) >= 40 && (c.trustScore || 80) < 60).length,
+      count: filteredCIs.filter((c) => (c.trustScore || 80) >= 40 && (c.trustScore || 80) < 70).length,
       pct: 0,
       healthBand: HEALTH_BANDS.CRITICAL,
     },

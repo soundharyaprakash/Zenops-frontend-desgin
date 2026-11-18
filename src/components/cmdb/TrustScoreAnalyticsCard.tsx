@@ -170,7 +170,7 @@ export function TrustScoreAnalyticsCard() {
                 CI Distribution Across Health Bands
               </span>
               <span className="text-text-muted text-[11px]">
-                Threshold: &ge;80 Healthy &bull; 60–79 At risk &bull; &lt;60 Critical
+                Threshold: &ge;80 Healthy &bull; 70–79 At risk &bull; &lt;70 Critical
               </span>
             </div>
 
@@ -238,11 +238,11 @@ export function TrustScoreAnalyticsCard() {
               </span>
               <span className="flex items-center gap-1.5 text-warning font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-warning" />
-                60–79 At risk ({bands[1].count} CIs)
+                70–79 At risk ({bands[1].count} CIs)
               </span>
               <span className="flex items-center gap-1.5 text-danger font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-danger" />
-                &lt;60 Critical ({bands[2].count + bands[3].count + bands[4].count} CIs)
+                &lt;70 Critical ({bands[2].count + bands[3].count + bands[4].count} CIs)
               </span>
             </div>
           </div>
@@ -311,13 +311,13 @@ export function TrustScoreAnalyticsCard() {
                   <span
                     className={cn(
                       "text-[11px] font-semibold flex items-center justify-center gap-1",
-                      avgScore >= 80 ? "text-success" : avgScore >= 60 ? "text-warning" : "text-danger"
+                      avgScore >= 80 ? "text-success" : avgScore >= 70 ? "text-warning" : "text-danger"
                     )}
                   >
                     <span
                       className={cn(
                         "w-1.5 h-1.5 rounded-full animate-ping",
-                        avgScore >= 80 ? "bg-success" : avgScore >= 60 ? "bg-warning" : "bg-danger"
+                        avgScore >= 80 ? "bg-success" : avgScore >= 70 ? "bg-warning" : "bg-danger"
                       )}
                     />
                     Weighted score: {dashboardData.trustBand.targetLabel}
@@ -451,7 +451,14 @@ export function TrustScoreAnalyticsCard() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Lozenge
+                        appearance="bold"
+                        variant={service.band.lozengeVariant}
+                        size="xs"
+                      >
+                        {service.band.label}
+                      </Lozenge>
                       <Lozenge
                         appearance={isBelowTarget ? "bold" : "subtle"}
                         variant={service.targetStatus.variant}

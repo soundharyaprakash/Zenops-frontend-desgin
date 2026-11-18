@@ -18,7 +18,7 @@
   },
   {
     "id": "BS-002",
-    "name": "Customer Portal",
+    "name": "Customer Web Portal",
     "owner": "David Chen (Enterprise Architect)",
     "technicalOwner": "Sarah Jenkins (Platform Eng)",
     "tier": "Tier 1 - Mission Critical",
@@ -52,7 +52,7 @@
   },
   {
     "id": "BS-004",
-    "name": "Data Warehouse",
+    "name": "Enterprise Data Warehouse",
     "owner": "Priya Sharma (Data Ops)",
     "technicalOwner": "Priya Sharma (Data Ops)",
     "tier": "Tier 2 - High",

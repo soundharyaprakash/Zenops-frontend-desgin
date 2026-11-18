@@ -58,10 +58,8 @@ export interface CIPaginationParams {
 }
 
 export class CMDBService {
-  private static baseUrl = process.env.NEXT_PUBLIC_CMDB_API_URL || "";
-
   // ---------------------------------------------------------------------------
-  // TENANT ISOLATION HELPERS
+  // TENANT ISOLATION HELPERS (Pure In-Memory Mock Datasets)
   // ---------------------------------------------------------------------------
   private static getTenantDataset(tenantName = "ZenDev Software Technologies"): CIItem[] {
     const t = (tenantName || "").toLowerCase();
@@ -320,17 +318,26 @@ export class CMDBService {
   }
 
   static async saveCI(ci: Partial<CIItem>): Promise<CIItem | null> {
-    if (!this.baseUrl) return null;
-    try {
-      const res = await fetch(`${this.baseUrl}/api/v1/cis`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(ci),
-      });
-      if (!res.ok) return null;
-      return await res.json();
-    } catch {
-      return null;
-    }
+    const newCI: CIItem = {
+      id: ci.id || `CI-${Math.floor(1000 + Math.random() * 9000)}`,
+      name: ci.name || "New Configuration Item",
+      ciClass: ci.ciClass || "Server/VM",
+      description: ci.description || "Created in mock demo mode",
+      lifecycleStatus: ci.lifecycleStatus || "In Use",
+      operationalStatus: ci.operationalStatus || "Operational",
+      environment: ci.environment || "Production",
+      businessCriticality: ci.businessCriticality || "Tier 2 - Business Critical",
+      owner: ci.owner || "Demo User",
+      company: ci.company || "ZenDev Software Technologies",
+      trustScore: 90,
+      tags: ci.tags || ["mock-demo"],
+      attributes: ci.attributes || {},
+      relationships: [],
+      relatedITSM: [],
+      lastDiscovered: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...ci,
+    } as CIItem;
+    return newCI;
   }
 }

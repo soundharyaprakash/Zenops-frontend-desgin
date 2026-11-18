@@ -2,90 +2,41 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
-import { Boxes, PieChart, Layers, Server, Cloud, Database, Cpu, Globe, Shield, ArrowUpRight } from "lucide-react";
+import { Boxes, Layers, Server, Cloud, Database, Cpu, ArrowUpRight } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
 import { Lozenge } from "@/components/ui/Lozenge";
 import { useCMDB } from "@/context/cmdb-context";
 import { cn } from "@/lib/utils";
-import { CIClass } from "@/types/cmdb";
-
-interface CategorySegment {
-  name: string;
-  count: number;
-  pct: number;
-  color: string;
-  strokeColor: string;
-  icon: React.ElementType;
-}
+import { getDashboardMetrics } from "@/lib/dashboard/metrics";
 
 export function RadialArchitectureChart() {
-  const { cis } = useCMDB();
+  const { cis, relationships, discoverySources, dataQualityTasks, attestationCampaigns, auditHistory, selectedEnvironment, activeTenant } = useCMDB();
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-  const totalCIs = Math.max(1, cis.length);
+  // Compute metrics from single shared selector
+  const metrics = useMemo(() => {
+    return getDashboardMetrics(
+      cis,
+      relationships,
+      discoverySources,
+      dataQualityTasks,
+      attestationCampaigns,
+      auditHistory,
+      selectedEnvironment,
+      activeTenant
+    );
+  }, [cis, relationships, discoverySources, dataQualityTasks, attestationCampaigns, auditHistory, selectedEnvironment, activeTenant]);
 
-  // Group classes into major architectural domains
-  const categories: CategorySegment[] = useMemo(() => {
-    const rawCategories: { name: string; ciClasses: string[]; color: string; strokeColor: string; icon: React.ElementType }[] = [
-      {
-        name: "Compute & Virtualization",
-        ciClasses: ["Server/VM", "cmdb_ci_server", "cmdb_ci_vm_instance"],
-        color: "bg-brand-blue",
-        strokeColor: "#1F6BFF",
-        icon: Server,
-      },
-      {
-        name: "Kubernetes & Containers",
-        ciClasses: ["Container/Pod", "cmdb_ci_kubernetes_cluster", "cmdb_ci_docker_container"],
-        color: "bg-brand-cyan",
-        strokeColor: "#19C8F0",
-        icon: Cpu,
-      },
-      {
-        name: "Cloud & VPC Infrastructure",
-        ciClasses: ["Cloud Resource", "cmdb_ci_cloud_resource", "cmdb_ci_aws_resource"],
-        color: "bg-brand-mint",
-        strokeColor: "#3EF2B5",
-        icon: Cloud,
-      },
-      {
-        name: "Databases & Storage",
-        ciClasses: ["Database", "cmdb_ci_database"],
-        color: "bg-warning",
-        strokeColor: "#F5CD47",
-        icon: Database,
-      },
-      {
-        name: "Applications & Microservices",
-        ciClasses: ["Application", "cmdb_ci_appl"],
-        color: "bg-primary",
-        strokeColor: "#0C66E4",
-        icon: Layers,
-      },
-      {
-        name: "Network & Perimeters",
-        ciClasses: ["Network Device", "cmdb_ci_network_switch", "cmdb_ci_firewall", "SaaS Subscription"],
-        color: "bg-discovery",
-        strokeColor: "#9F8FEF",
-        icon: Globe,
-      },
-    ];
+  const totalCIs = metrics.totalCIs;
 
-    let accumulated = 0;
-    return rawCategories.map((cat) => {
-      const count = cis.filter((c) => c && c.ciClass && cat.ciClasses.includes(c.ciClass)).length;
-      const pct = Math.max(1, Math.round((count / totalCIs) * 100));
-      accumulated += count;
-      return {
-        name: cat.name,
-        count,
-        pct,
-        color: cat.color,
-        strokeColor: cat.strokeColor,
-        icon: cat.icon,
-      };
-    });
-  }, [cis, totalCIs]);
+  const iconMap: Record<string, React.ElementType> = {
+    compute: Server,
+    k8s: Cpu,
+    cloud: Cloud,
+    databases: Database,
+    microservices: Layers,
+    uncategorized: Boxes,
+  };
 
   // Donut Geometry
   const size = 200;
@@ -96,18 +47,20 @@ export function RadialArchitectureChart() {
   // Calculate cumulative offsets for SVG stroke-dashoffset
   const segmentsWithAngles = useMemo(() => {
     let currentPct = 0;
-    return categories.map((cat, idx) => {
+    return metrics.architectureSegments.map((cat, idx) => {
       const strokeDasharray = `${(cat.pct / 100) * circumference} ${circumference}`;
       const strokeDashoffset = -((currentPct / 100) * circumference);
       currentPct += cat.pct;
+      const Icon = iconMap[cat.id] || Boxes;
       return {
         ...cat,
         idx,
+        icon: Icon,
         strokeDasharray,
         strokeDashoffset,
       };
     });
-  }, [categories, circumference]);
+  }, [metrics.architectureSegments, circumference]);
 
   const activeSegment = hoveredIdx !== null ? segmentsWithAngles[hoveredIdx] : null;
 
@@ -120,11 +73,11 @@ export function RadialArchitectureChart() {
               Architecture & Fleet Composition
             </CardTitle>
             <Lozenge appearance="subtle" variant="info" size="xs">
-              Radial Breakdown
+              100% Breakdown
             </Lozenge>
           </div>
           <CardDescription className="text-xs text-text-secondary">
-            Multi-tier breakdown across compute, container, database, and cloud estates
+            Multi-tier breakdown across compute, container, database, cloud, and uncategorized
           </CardDescription>
         </div>
         <Link
@@ -203,7 +156,7 @@ export function RadialArchitectureChart() {
                   </span>
                   <span className="text-[10px] text-success font-semibold flex items-center justify-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-success animate-ping" />
-                    100% Tracked
+                    100% Accounted
                   </span>
                 </div>
               )}

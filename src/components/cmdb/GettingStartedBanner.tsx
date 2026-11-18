@@ -106,7 +106,8 @@ export function GettingStartedBanner() {
   const completedCount = steps.filter((s) => s.completed).length;
   const progressPct = Math.round((completedCount / steps.length) * 100);
 
-  if (dismissed && progressPct === 100) return null;
+  // Auto-hide the setup checklist once it is 100% complete (Priority 4, Item 14)
+  if (dismissed || progressPct === 100) return null;
 
   return (
     <div className="relative rounded-lg border border-primary/20 dark:border-white/[0.08] bg-gradient-to-r from-primary/5 via-brand-cyan/5 to-brand-mint/5 dark:from-primary/[0.07] dark:via-surface dark:to-surface p-4 sm:p-5 shadow-xs dark:shadow-none transition-all">

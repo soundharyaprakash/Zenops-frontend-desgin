@@ -12,9 +12,12 @@ export interface KpiCardProps {
   subtitle?: string;
   icon: LucideIcon;
   target?: string;
+  targetLabel?: string;
   trend?: {
     value: string;
-    isPositive: boolean;
+    isPositive?: boolean;
+    direction?: "up" | "down" | "neutral";
+    sentiment?: "positive" | "negative" | "neutral";
     label?: string;
   };
   accentColor?: "primary" | "success" | "warning" | "danger" | "neutral" | "blue" | "teal";
@@ -33,6 +36,7 @@ export function KpiCard({
   subtitle,
   icon: Icon,
   target,
+  targetLabel,
   trend,
   accentColor = "primary",
   progressPercent,
@@ -59,19 +63,33 @@ export function KpiCard({
     teal: "bg-brand-cyan",
   };
 
+  // Derive trend direction and color sentiment (Priority 3, Item 11)
+  const direction =
+    trend?.direction ||
+    (trend?.value?.trim().startsWith("-")
+      ? "down"
+      : trend?.value?.trim().startsWith("+")
+      ? "up"
+      : "neutral");
+
+  const sentiment =
+    trend?.sentiment || (trend?.isPositive !== undefined ? (trend.isPositive ? "positive" : "negative") : "neutral");
+
+  const displayTarget = targetLabel || (target ? `Target: ${target}` : null);
+
   return (
     <Card
       hoverEffect
       onClick={onClick}
       className={cn(
-        "p-4 sm:p-5 relative flex flex-col justify-between group hover:-translate-y-1 hover:shadow-raised transition-all duration-200",
+        "p-4 sm:p-5 relative flex flex-col justify-between group hover:-translate-y-1 hover:shadow-raised transition-all duration-200 min-w-0 w-full",
         onClick && "cursor-pointer hover:border-primary/50 dark:hover:border-primary/50"
       )}
     >
       <div>
         <div className="flex items-start justify-between gap-2.5">
           <div className="space-y-1 min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <p className="text-xs font-bold uppercase tracking-wider text-text-secondary truncate">
                 {title}
               </p>
@@ -88,9 +106,9 @@ export function KpiCard({
               <span className="text-2xl sm:text-3xl font-bold text-text-default tracking-tight tabular-nums font-mono group-hover:text-primary transition-colors">
                 {value}
               </span>
-              {target && (
-                <span className="text-xs text-text-secondary font-semibold bg-sunken px-2 py-0.5 rounded border border-border/80 dark:border-white/[0.08]">
-                  Target: {target}
+              {displayTarget && (
+                <span className="text-[11px] text-text-secondary font-semibold bg-sunken px-2 py-0.5 rounded border border-border/80 dark:border-white/[0.08] truncate max-w-full">
+                  {displayTarget}
                 </span>
               )}
             </div>
@@ -110,7 +128,10 @@ export function KpiCard({
           <div className="mt-3 space-y-1">
             <div className="w-full bg-sunken rounded-full h-2 overflow-hidden border border-border/30 dark:border-white/[0.06] relative">
               <div
-                className={cn("h-full rounded-full transition-all duration-700 ease-out relative overflow-hidden", progressColors[accentColor])}
+                className={cn(
+                  "h-full rounded-full transition-all duration-700 ease-out relative overflow-hidden",
+                  progressColors[accentColor]
+                )}
                 style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
@@ -120,19 +141,25 @@ export function KpiCard({
         )}
       </div>
 
-      <div className="mt-3 pt-2.5 border-t border-border/50 dark:border-white/[0.06] flex items-center justify-between text-xs text-text-secondary">
-        {subtitle && <span className="truncate font-medium">{subtitle}</span>}
+      <div className="mt-3 pt-2.5 border-t border-border/50 dark:border-white/[0.06] flex items-center justify-between text-xs text-text-secondary gap-2 flex-wrap">
+        {subtitle && <span className="truncate font-medium min-w-0">{subtitle}</span>}
         {trend && (
           <span
             className={cn(
-              "inline-flex items-center gap-1 font-medium ml-auto flex-shrink-0 tabular-nums",
-              trend.isPositive ? "text-success" : "text-danger"
+              "inline-flex items-center gap-1 font-medium ml-auto flex-shrink-0 tabular-nums text-xs",
+              sentiment === "positive"
+                ? "text-success"
+                : sentiment === "negative"
+                ? "text-danger"
+                : "text-text-muted"
             )}
           >
-            {trend.isPositive ? (
-              <TrendingUp className="w-3.5 h-3.5" />
+            {direction === "down" ? (
+              <TrendingDown className="w-3.5 h-3.5 flex-shrink-0" />
+            ) : direction === "up" ? (
+              <TrendingUp className="w-3.5 h-3.5 flex-shrink-0" />
             ) : (
-              <TrendingDown className="w-3.5 h-3.5" />
+              <Minus className="w-3.5 h-3.5 flex-shrink-0" />
             )}
             <span>{trend.value}</span>
             {trend.label && <span className="text-text-muted ml-0.5">({trend.label})</span>}

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Boxes,
   Activity,
@@ -25,6 +26,8 @@ import {
   Sparkles,
   FileSpreadsheet,
   Upload,
+  Network,
+  Users,
 } from "lucide-react";
 import { KpiCard } from "@/components/cmdb/KpiCard";
 import { DashboardCharts } from "@/components/cmdb/DashboardCharts";
@@ -43,18 +46,21 @@ import {
 import { useCMDB } from "@/context/cmdb-context";
 import { formatDateTime } from "@/utils";
 import { usePermission } from "@/components/rbac/usePermission";
-import { Can } from "@/components/rbac/Can";
 import { PERMISSIONS } from "@/lib/rbac/permissions";
+import { getDashboardMetrics } from "@/lib/dashboard/metrics";
 
 export function CMDBDashboardView() {
+  const router = useRouter();
   const {
     cis,
-    metrics,
+    relationships,
+    discoverySources,
     dataQualityTasks,
+    attestationCampaigns,
     auditHistory,
-    applyDQTask,
     userRole,
     activeTenant,
+    selectedEnvironment,
     showToast,
   } = useCMDB();
 
@@ -64,7 +70,33 @@ export function CMDBDashboardView() {
 
   const { allowed: canViewCI } = usePermission(PERMISSIONS.CI_VIEW);
   const { allowed: canViewAudit } = usePermission(PERMISSIONS.AUDIT_VIEW);
+  const { allowed: canEditCI } = usePermission(PERMISSIONS.CI_EDIT);
+
   const isExecutive = String(userRole).includes("Executive") || String(userRole).includes("Report");
+  const canCreate = canEditCI && userRole !== "Viewer";
+
+  // ONE SHARED SELECTOR MODULE (Priority 1, Item 1)
+  const dashboardData = useMemo(() => {
+    return getDashboardMetrics(
+      cis,
+      relationships,
+      discoverySources,
+      dataQualityTasks,
+      attestationCampaigns,
+      auditHistory,
+      selectedEnvironment,
+      activeTenant
+    );
+  }, [
+    cis,
+    relationships,
+    discoverySources,
+    dataQualityTasks,
+    attestationCampaigns,
+    auditHistory,
+    selectedEnvironment,
+    activeTenant,
+  ]);
 
   // Export as formatted CSV spreadsheet compatible with Microsoft Excel
   const handleExportCSV = () => {
@@ -127,7 +159,6 @@ export function CMDBDashboardView() {
           escapeCSV(c.lastDiscovered || ""),
         ]);
 
-        // UTF-8 BOM (\uFEFF) ensures Microsoft Excel automatically opens with correct UTF-8 encoding
         const csvContent =
           "\uFEFF" +
           [headers.join(","), ...rows.map((row) => row.join(","))].join("\r\n");
@@ -158,12 +189,10 @@ export function CMDBDashboardView() {
     }, 400);
   };
 
-  const recentAudits = auditHistory.slice(0, 5);
-
   return (
     <div className="space-y-6 pb-12 animate-fade-in-up">
       {/* ----------------------------------------------------------------------- */}
-      {/* GETTING STARTED BANNER */}
+      {/* GETTING STARTED BANNER (Auto-hides at 100%, Priority 4, Item 14) */}
       {/* ----------------------------------------------------------------------- */}
       <GettingStartedBanner />
 
@@ -176,13 +205,26 @@ export function CMDBDashboardView() {
             <h1 className="text-xl sm:text-2xl font-bold text-text-default tracking-tight">
               CMDB Health Dashboard
             </h1>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-success-bg dark:bg-success/15 border border-success/30 text-success text-xs font-semibold shadow-2xs">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
+
+            {/* Live Synchronized Badge only when all sources green (Priority 1, Item 4) */}
+            {dashboardData.isAllDiscoveryGreen ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-success-bg dark:bg-success/15 border border-success/30 text-success text-xs font-semibold shadow-2xs">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
+                </span>
+                <span>Live Synchronized</span>
               </span>
-              <span>Live Synchronized</span>
-            </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-warning/15 border border-warning/30 text-warning text-xs font-semibold shadow-2xs">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-warning"></span>
+                </span>
+                <span>Sync delayed</span>
+              </span>
+            )}
+
             <span className="inline-flex items-center gap-1 text-xs text-text-muted bg-sunken px-2 py-0.5 rounded border border-border/60 dark:border-white/[0.08]">
               <Lock className="w-3 h-3 text-text-muted" />
               Isolated to {activeTenant}
@@ -235,18 +277,39 @@ export function CMDBDashboardView() {
             </Button>
           )}
 
-          <Can permission={PERMISSIONS.CI_EDIT}>
+          {/* Primary Create CI Button with Tooltip if Disabled (Priority 4, Item 20) */}
+          {canCreate ? (
             <Link href="/cis/new" className="w-full sm:w-auto">
-              <Button size="sm" variant="primary" leftIcon={<Plus className="w-3.5 h-3.5" />} className="w-full sm:w-auto justify-center">
+              <Button
+                size="sm"
+                variant="primary"
+                leftIcon={<Plus className="w-3.5 h-3.5" />}
+                className="w-full sm:w-auto justify-center"
+              >
                 Create CI
               </Button>
             </Link>
-          </Can>
+          ) : (
+            <div
+              className="w-full sm:w-auto"
+              title="CI creation requires Editor, CMDB Owner, or Admin role privileges"
+            >
+              <Button
+                size="sm"
+                variant="primary"
+                disabled
+                leftIcon={<Plus className="w-3.5 h-3.5" />}
+                className="w-full sm:w-auto justify-center opacity-60 cursor-not-allowed"
+              >
+                Create CI
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
       {/* ----------------------------------------------------------------------- */}
-      {/* SECTION 1: HOW MUCH DO WE HAVE & BASELINE HEALTH */}
+      {/* SECTION 1: INVENTORY VOLUME & TELEMETRY */}
       {/* ----------------------------------------------------------------------- */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -258,7 +321,7 @@ export function CMDBDashboardView() {
               title="Inventory Volume & Telemetry"
               concept="Measures total managed infrastructure volume, algorithmically scored data trust, staleness velocity, ownership accountability, and duplicate collision rates."
               whyItMatters="Accurate, fresh inventory prevents misconfigured deployments, reduces mean time to resolution (MTTR) during incidents, and ensures compliance."
-              target="Target: 80%+ Avg Trust, <5% Stale, >95% Owner Coverage, 0 Duplicates"
+              target="Target: 80%+ Weighted Trust, <5% Stale, >95% Owner Coverage, 0 Duplicates"
             />
           </div>
           <p className="text-xs text-text-muted hidden sm:block italic">
@@ -266,17 +329,18 @@ export function CMDBDashboardView() {
           </p>
         </div>
 
-        {/* Row 1: 5 Primary KPI Tiles */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5 sm:gap-4">
-          {/* Tile 1: Total CIs */}
+        {/* Row 1: 5 Primary KPI Tiles in ONE desktop row without orphan tile (Priority 2, Item 8) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
+          {/* Tile 1: Total CIs (Remove Target: 100%, show Discovery coverage: X% of estate - Priority 3, Item 10) */}
           <KpiCard
             title="Total CIs"
-            value={metrics.totalCIs}
+            value={dashboardData.totalCIs}
             subtitle="Indexed assets"
             icon={Boxes}
-            target="100%"
+            targetLabel={`Discovery coverage: ${dashboardData.discoveryCoveragePct}% of estate`}
             accentColor="primary"
-            trend={{ value: "+12 this week", isPositive: true }}
+            trend={{ value: "+12 this week", direction: "up", sentiment: "positive" }}
+            onClick={() => router.push("/cis")}
             infoHint={{
               concept: "Total number of physical, virtual, cloud, and application configuration items managed in this tenant's CMDB.",
               whyItMatters: "Provides the baseline denominator for IT asset coverage, license forecasting, and security vulnerability scanning.",
@@ -284,38 +348,34 @@ export function CMDBDashboardView() {
             }}
           />
 
-          {/* Tile 2: Average Trust Score */}
+          {/* Tile 2: Weighted Trust Score (Unified weighted formula - Priority 1, Item 5) */}
           <KpiCard
             title="Avg Trust Score"
-            value={`${metrics.averageTrustScore}%`}
-            subtitle="Composite health"
+            value={`${dashboardData.weightedTrustScore}%`}
+            subtitle="Weighted score"
             icon={Award}
             target="80%+"
-            accentColor={
-              metrics.averageTrustScore >= 80
-                ? "success"
-                : metrics.averageTrustScore >= 60
-                ? "warning"
-                : "danger"
-            }
-            trend={{ value: "+2.4% vs last week", isPositive: true }}
-            progressPercent={metrics.averageTrustScore}
+            accentColor={dashboardData.trustBand.lozengeVariant}
+            trend={{ value: "+2.4% vs last week", direction: "up", sentiment: "positive" }}
+            progressPercent={dashboardData.weightedTrustScore}
+            onClick={() => router.push("/settings/trust-score")}
             infoHint={{
-              concept: "Automated 0-100 score weighted across Freshness (30), Completeness (25), Consistency (20), Relationships (15), and Ownership (10).",
+              concept: "Automated 0-100 score weighted across Freshness (30), Completeness (25), Consistency (20), Topology (15), and Ownership (10).",
               whyItMatters: "High trust scores mean engineers and automation can reliably depend on CMDB data for incident triage and change risk validation.",
-              target: "80%+ Enterprise SLA; no critical service below 70",
+              target: "80%+ Enterprise SLA; no critical service below 60",
             }}
           />
 
-          {/* Tile 3: Stale CIs % */}
+          {/* Tile 3: Stale CIs % (Click-through to filtered list, down arrow green - Priority 1, Item 3 & Priority 3, Item 11) */}
           <KpiCard
             title="Stale CIs"
-            value={`${metrics.staleCIPercentage}%`}
-            subtitle={`${metrics.staleCount || 0} CIs >14d quiet`}
+            value={`${dashboardData.stalePercent}%`}
+            subtitle={`${dashboardData.staleCount} CIs >14d quiet`}
             icon={Clock}
             target="< 5%"
-            accentColor={metrics.staleCIPercentage <= 5 ? "success" : "danger"}
-            trend={{ value: "-1.1% vs last week", isPositive: true }}
+            accentColor={dashboardData.stalePercent <= 5 ? "success" : "danger"}
+            trend={{ value: "-1.1% vs last week", direction: "down", sentiment: "positive" }}
+            onClick={() => router.push("/cis?view=stale")}
             infoHint={{
               concept: "Percentage of active configuration items whose telemetry or discovery timestamps have not been refreshed in the past 14 days.",
               whyItMatters: "Stale CIs often represent decommissioned ghost servers still incurring cloud costs or unpatched security vectors.",
@@ -323,15 +383,16 @@ export function CMDBDashboardView() {
             }}
           />
 
-          {/* Tile 4: Missing Owner */}
+          {/* Tile 4: Missing Owner (Click-through to filtered list, down arrow green - Priority 1, Item 3 & Priority 3, Item 11) */}
           <KpiCard
             title="Missing Owner"
-            value={`${metrics.missingOwnerPercent || 0}%`}
-            subtitle={`${metrics.missingOwnerCount || 0} unassigned CIs`}
+            value={`${dashboardData.missingOwnerPercent}%`}
+            subtitle={`${dashboardData.missingOwnerCount} unassigned CIs`}
             icon={UserCheck}
             target="< 5%"
-            accentColor={(metrics.missingOwnerPercent || 0) <= 5 ? "success" : "danger"}
-            trend={{ value: "-4 resolved", isPositive: true }}
+            accentColor={dashboardData.missingOwnerPercent <= 5 ? "success" : "danger"}
+            trend={{ value: "-4 resolved", direction: "down", sentiment: "positive" }}
+            onClick={() => router.push("/cis?view=missing-owner")}
             infoHint={{
               concept: "Percentage and count of Live/In-Use CIs lacking an assigned technical engineer or service ownership group.",
               whyItMatters: "Without explicit owners, critical security alerts and change approval requests stall, creating governance bottlenecks.",
@@ -339,63 +400,101 @@ export function CMDBDashboardView() {
             }}
           />
 
-          {/* Tile 5: Duplicate Suspects */}
+          {/* Tile 5: Duplicate Suspects (Click-through to IRE Console - Priority 1, Item 3) */}
           <KpiCard
             title="Duplicate Suspects"
-            value={metrics.duplicateSuspects || 0}
-            subtitle={`${metrics.duplicateRate}% collision rate`}
+            value={dashboardData.duplicateSuspectsCount}
+            subtitle={`${dashboardData.duplicateRate}% collision rate`}
             icon={Copy}
             target="0"
-            accentColor={(metrics.duplicateSuspects || 0) === 0 ? "success" : "danger"}
-            trend={{ value: "1 pending review", isPositive: false }}
+            accentColor={dashboardData.duplicateSuspectsCount === 0 ? "success" : "danger"}
+            trend={{
+              value: dashboardData.duplicateSuspectsCount === 0 ? "0 pending" : "1 pending review",
+              direction: "neutral",
+              sentiment: dashboardData.duplicateSuspectsCount === 0 ? "positive" : "negative",
+            }}
+            onClick={() => router.push("/ire-console")}
             infoHint={{
-              concept: "Discovered entities with conflicting or overlapping MAC addresses, serial numbers, or FQDNs flagged by the IRE Engine.",
+              concept: "Discovered entities with conflicting or overlapping MAC addresses, serial numbers, or FQDNs flagged by the Reconciliation engine.",
               whyItMatters: "Duplicates fragment telemetry and hide true dependency topologies, corrupting blast-radius incident impact calculation.",
               target: "0 duplicate suspects (100% IRE reconciliation)",
             }}
           />
         </div>
 
-        {/* Collapsible Secondary Row (Existing 7 KPIs + Completeness) */}
+        {/* Collapsible Secondary Row with NEW TILES / METRICS (Requirement 22) */}
         {showSecondaryMetrics && (
           <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 animate-in fade-in-50 duration-200">
+            {/* New Metric 1: Relationship coverage + orphan CI count */}
             <KpiCard
-              title="Operational CIs"
-              value={metrics.operationalCIs}
-              subtitle="Healthy active nodes"
-              icon={Activity}
-              target="90%+"
-              accentColor="success"
-              trend={{ value: "92% availability", isPositive: true }}
-            />
-            <KpiCard
-              title="Non-Operational CIs"
-              value={metrics.nonOperationalCIs}
-              subtitle="Retired / Maintenance"
-              icon={AlertOctagon}
-              target="< 15%"
-              accentColor="neutral"
-              trend={{ value: "3 in maintenance", isPositive: true }}
-            />
-            <KpiCard
-              title="Attestation Completion"
-              value={`${metrics.attestationCompletion}%`}
-              subtitle="Quarterly sign-off"
-              icon={CheckCircle}
+              title="Relationship Coverage"
+              value={`${dashboardData.relationshipCoveragePct}%`}
+              subtitle={`${dashboardData.orphanCICount} orphan CIs without links`}
+              icon={Network}
               target="90%+"
               accentColor="teal"
-              trend={{ value: "+12% this month", isPositive: true }}
-              progressPercent={metrics.attestationCompletion}
+              trend={{ value: "+4% mapped", direction: "up", sentiment: "positive" }}
+              progressPercent={dashboardData.relationshipCoveragePct}
+              onClick={() => router.push("/relationships")}
+              infoHint={{
+                concept: "Percentage of CIs mapped into topological dependencies plus count of isolated orphan CIs.",
+                whyItMatters: "Unmapped orphan CIs create blind spots in outage blast-radius calculation.",
+                target: "90%+ mapped dependencies",
+              }}
             />
+
+            {/* New Metric 2: Attestation completion */}
             <KpiCard
-              title="Completeness Score"
-              value={`${metrics.completenessScore || 90}%`}
-              subtitle="Required fields filled"
-              icon={Server}
+              title="Attestation Completion"
+              value={`${dashboardData.attestationCompletionPct}%`}
+              subtitle="Confirmed this quarter"
+              icon={CheckCircle}
+              target="90%+"
+              accentColor="success"
+              trend={{ value: "+12% this month", direction: "up", sentiment: "positive" }}
+              progressPercent={dashboardData.attestationCompletionPct}
+              onClick={() => router.push("/attestation-campaigns")}
+              infoHint={{
+                concept: "Quarterly certification campaign completion rate by designated infrastructure owners.",
+                whyItMatters: "Ensures compliance and keeps ghost infrastructure out of production.",
+                target: "90%+ quarterly completion",
+              }}
+            />
+
+            {/* New Metric 3: Discovery coverage */}
+            <KpiCard
+              title="Discovery Coverage"
+              value={`${dashboardData.discoveryCoveragePct}%`}
+              subtitle="Estate actively monitored"
+              icon={Boxes}
+              target="95%+"
+              accentColor="primary"
+              trend={{ value: "94% indexed", direction: "neutral", sentiment: "positive" }}
+              progressPercent={dashboardData.discoveryCoveragePct}
+              onClick={() => router.push("/discovery-sources")}
+              infoHint={{
+                concept: "Total discovered estate relative to CMDB inventory across connectors.",
+                whyItMatters: "Confirms automated sensors cover bare-metal, containers, and cloud VPCs.",
+                target: "95%+ discovery coverage",
+              }}
+            />
+
+            {/* New Metric 4: Owner coverage by team */}
+            <KpiCard
+              title="Owner Coverage"
+              value={`${100 - dashboardData.missingOwnerPercent}%`}
+              subtitle={`Across ${dashboardData.teamOwnerCoverage.length} teams`}
+              icon={Users}
               target="95%+"
               accentColor="blue"
-              trend={{ value: "+3% improved", isPositive: true }}
-              progressPercent={metrics.completenessScore || 90}
+              trend={{ value: "+3% assigned", direction: "up", sentiment: "positive" }}
+              progressPercent={100 - dashboardData.missingOwnerPercent}
+              onClick={() => router.push("/cis?view=missing-owner")}
+              infoHint={{
+                concept: "Proportion of active CIs assigned to recognized support groups and engineers.",
+                whyItMatters: "Prevents critical alerts being routed to unmonitored queues.",
+                target: "95%+ ownership coverage",
+              }}
             />
           </div>
         )}
@@ -407,10 +506,10 @@ export function CMDBDashboardView() {
       <DashboardCharts />
 
       {/* ----------------------------------------------------------------------- */}
-      {/* RECENT AUDIT TRAIL STREAM (Hidden for Executive / Report Viewer) */}
+      {/* RECENT AUDIT TRAIL STREAM (Fixed overlapping values & shows CI names - Priority 2, Item 7 & Priority 4, Item 19) */}
       {/* ----------------------------------------------------------------------- */}
       {canViewAudit && !isExecutive && (
-        <Card className="bg-surface">
+        <Card className="bg-surface shadow-card">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <div>
               <div className="flex items-center gap-2">
@@ -422,7 +521,7 @@ export function CMDBDashboardView() {
                 </Lozenge>
               </div>
               <CardDescription className="text-sm text-text-secondary">
-                Latest field-level configuration updates and governance actions
+                Latest field-level configuration updates and governance actions with CI names
               </CardDescription>
             </div>
             <Link
@@ -434,27 +533,40 @@ export function CMDBDashboardView() {
           </CardHeader>
           <CardContent>
             <div className="divide-y divide-border/60 dark:divide-white/[0.05]">
-              {recentAudits.map((item) => (
+              {dashboardData.enrichedAudits.map((item) => (
                 <div
                   key={item.id}
                   className="py-3 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-sm"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0 flex-wrap sm:flex-nowrap">
+                  {/* CI Identifiers & Changed Field */}
+                  <div className="flex items-center gap-2 min-w-0 flex-wrap">
                     <span className="font-mono text-xs text-text-muted bg-sunken px-2 py-0.5 rounded border border-border/60 dark:border-white/[0.08]">
                       {item.ciId}
                     </span>
-                    <span className="font-semibold text-text-default truncate">
+                    <span className="font-semibold text-text-default truncate max-w-[200px]" title={item.ciName}>
                       {item.ciName}
                     </span>
-                    <span className="text-text-muted">changed</span>
-                    <span className="font-mono text-primary font-medium">{item.fieldChanged}</span>
+                    <span className="text-text-muted text-xs">field</span>
+                    <span className="font-mono text-primary font-medium text-xs bg-primary/10 px-1.5 py-0.5 rounded">
+                      {item.fieldChanged}
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-3 text-text-muted flex-shrink-0 text-xs flex-wrap sm:flex-nowrap">
-                    <span className="font-mono bg-sunken/80 px-1.5 py-0.5 rounded truncate max-w-[160px]">
-                      <span className="text-danger line-through mr-1">{item.beforeValue}</span>
-                      <span className="text-success">{item.afterValue}</span>
-                    </span>
+                  {/* Non-overlapping Before & After Values with arrow separation */}
+                  <div className="flex items-center gap-2.5 text-text-muted flex-shrink-0 text-xs flex-wrap sm:flex-nowrap">
+                    <div
+                      className="flex items-center gap-1.5 font-mono bg-sunken/80 px-2 py-0.5 rounded border border-border/60 max-w-[260px] truncate"
+                      title={`${item.beforeValue} → ${item.afterValue}`}
+                    >
+                      <span className="text-danger line-through truncate max-w-[110px]">
+                        {item.beforeValue}
+                      </span>
+                      <span className="text-text-muted">&rarr;</span>
+                      <span className="text-success font-medium truncate max-w-[110px]">
+                        {item.afterValue}
+                      </span>
+                    </div>
+
                     <Lozenge appearance="subtle" variant="info">
                       {item.changedBy}
                     </Lozenge>

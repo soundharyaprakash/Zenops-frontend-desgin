@@ -1,0 +1,310 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* =========================================================================
+     LIGHT THEME (High Contrast & Sharp Typography)
+     ========================================================================= */
+  --bg-app: #F7F8F9;
+  --surface: #FFFFFF;
+  --raised: #FFFFFF;
+  --sunken: #F1F2F4;
+  --border: #CBD5E1;
+  --border-strong: #94A3B8;
+  --text-default: #070A12;
+  --text-secondary: #1E293B;
+  --text-muted: #334155;
+  --primary: #0C66E4;
+  --primary-hover: #0055CC;
+  --selected-bg: #E9F2FF;
+
+  /* Semantic Lozenges & Status (Light) */
+  --success: #1F845A;
+  --success-bg: #E3FCEF;
+  --warning: #B38600;
+  --warning-bg: #FFF0B3;
+  --danger: #C9372C;
+  --danger-bg: #FFEBE6;
+  --info: #0C66E4;
+  --info-bg: #DEEBFF;
+  --discovery: #6E5DC6;
+  --discovery-bg: #EAE6FF;
+  --neutral: #334155;
+  --neutral-bg: #E2E8F0;
+
+  /* Brand Accents */
+  --brand-blue: #1F6BFF;
+  --brand-cyan: #19C8F0;
+  --brand-mint: #3EF2B5;
+  --brand-gradient: linear-gradient(135deg, #1F6BFF 0%, #19C8F0 50%, #3EF2B5 100%);
+}
+
+.dark {
+  /* =========================================================================
+     DARK THEME (Deep Navy & Clear High-Contrast Text)
+     ========================================================================= */
+  --bg-app: #060A14;
+  --surface: #0C1220;
+  --raised: #111A2B;
+  --sunken: #080D18;
+  --border: #1E293B;
+  --border-strong: #334155;
+  --text-default: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --primary: #579DFF;
+  --primary-hover: #85B8FF;
+  --selected-bg: #12294A;
+
+  /* Semantic Lozenges & Status (Dark Tinted - Softened) */
+  --success: #4BCE97;
+  --success-bg: #12261C;
+  --warning: #F5CD47;
+  --warning-bg: #261F0A;
+  --danger: #F87168;
+  --danger-bg: #2B1514;
+  --info: #579DFF;
+  --info-bg: #11233D;
+  --discovery: #9F8FEF;
+  --discovery-bg: #1E1838;
+  --neutral: #94A3B8;
+  --neutral-bg: #131A26;
+
+  /* Brand Accents */
+  --brand-blue: #1F6BFF;
+  --brand-cyan: #19C8F0;
+  --brand-mint: #3EF2B5;
+  --brand-gradient: linear-gradient(135deg, #1F6BFF 0%, #19C8F0 50%, #3EF2B5 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-default);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (min-width: 1440px) {
+  html {
+    font-size: 15.5px;
+  }
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-app);
+  color: var(--text-default);
+  min-height: 100vh;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Monospace fonts for identifiers, IPs, hashes */
+.font-mono, code, pre, kbd {
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+}
+
+/* Typography & High-Contrast Readability */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-default);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+p {
+  color: var(--text-secondary);
+}
+
+label {
+  color: var(--text-default);
+}
+
+/* Tabular numbers for clean numeric alignment */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Touch-friendly smooth mobile horizontal scroll */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom crisp Jira scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Accessible standard 2px primary focus ring */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* =========================================================================
+   ANIMATIONS & MICRO-INTERACTIONS
+   ========================================================================= */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes shimmerEffect {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmerEffect 2.5s infinite;
+}
+
+@keyframes chartLineDraw {
+  from {
+    stroke-dashoffset: 2000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes flowDash {
+  to {
+    stroke-dashoffset: -32px;
+  }
+}
+
+@keyframes pulseRipple {
+  0% {
+    transform: scale(0.97);
+    box-shadow: 0 0 0 0 rgba(12, 102, 228, 0.5);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(12, 102, 228, 0);
+  }
+  100% {
+    transform: scale(0.97);
+    box-shadow: 0 0 0 0 rgba(12, 102, 228, 0);
+  }
+}
+
+@keyframes barGrowUp {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.animate-chart-line {
+  stroke-dasharray: 2000;
+  animation: chartLineDraw 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-flow-dash {
+  animation: flowDash 1s linear infinite;
+}
+
+.animate-pulse-ripple {
+  animation: pulseRipple 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+.animate-bar-grow {
+  transform-origin: bottom;
+  animation: barGrowUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

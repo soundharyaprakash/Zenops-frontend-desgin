@@ -1,0 +1,30 @@
+{
+  "name": "zenops-cmdb",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "node --max-old-space-size=4096 ./node_modules/next/dist/bin/next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "node ./node_modules/typescript/bin/tsc tests/rbac.test.ts --outDir .dist-test --module commonjs --target es2020 --moduleResolution node --skipLibCheck --esModuleInterop && node .dist-test/tests/rbac.test.js && powershell -Command \"Remove-Item -Recurse -Force .dist-test -ErrorAction SilentlyContinue\""
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.453.0",
+    "next": "^14.2.15",
+    "next-themes": "^0.4.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.3"
+  }
+}

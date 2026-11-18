@@ -1,0 +1,87 @@
+[
+  {
+    "id": "CI-002001",
+    "sys_id": "SYS_CI_SPACE_01",
+    "name": "spacezen-telemetry-gateway-01",
+    "sys_class_name": "cmdb_ci_server",
+    "sys_class_path": "cmdb > cmdb_ci > cmdb_ci_hardware > cmdb_ci_server",
+    "company": "SpaceZen LLC",
+    "company_id": "CMP_1015_SPACEZEN",
+    "sys_domain": "spacezen.zenops.io",
+    "department": "Mission Operations",
+    "ciClass": "Server/VM",
+    "description": "Orbital telemetry packet ingestion gateway with real-time Doppler shift processing",
+    "lifecycleStatus": "In Use",
+    "install_status": "1 - Installed",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Dr. Vikram Seth (Chief Scientist)",
+    "owned_by": "Dr. Vikram Seth (Chief Scientist)",
+    "managed_by": "Dr. Vikram Seth (Chief Scientist)",
+    "supported_by": "Satellite Ground Ops",
+    "supportGroup": "Core Infrastructure & Cloud Ops",
+    "support_group": "Core Infrastructure & Cloud Ops",
+    "assignment_group": "Core Infrastructure & Cloud Ops",
+    "vendor": "Hewlett Packard Enterprise",
+    "manufacturer": "HPE ProLiant DL380 Gen10",
+    "model": "ProLiant DL380",
+    "model_id": "HPE-DL380-G10",
+    "serialNumber": "SN-HPE-SPZ-0091",
+    "serial_number": "SN-HPE-SPZ-0091",
+    "assetTag": "AST-SPZ-001",
+    "asset_tag": "AST-SPZ-001",
+    "location": "Colorado Ground Station DC",
+    "costCenter": "CC-SPZ-MISSION-01",
+    "cost_center": "CC-SPZ-MISSION-01",
+    "installDate": "2023-01-20",
+    "warrantyEnd": "2028-01-20",
+    "warranty_expiration": "2028-01-20",
+    "dataClassification": "Restricted",
+    "complianceFlags": [
+      "ITAR",
+      "ISO27001"
+    ],
+    "identificationKeys": {
+      "ipAddress": "192.168.100.12",
+      "macAddress": "00:1E:67:89:AB:CD",
+      "fqdn": "telemetry-gw-01.ground.spacezen.io"
+    },
+    "maintenance_schedule": "Planned Orbital Gaps Only",
+    "skip_sync": false,
+    "unverified": false,
+    "fault_count": 0,
+    "hardware_status": "Operational",
+    "tags": [
+      "satellite",
+      "telemetry",
+      "itar-restricted"
+    ],
+    "watch_list": [
+      "vikram@spacezen.io"
+    ],
+    "discoverySource": "Agent-based (osquery)",
+    "firstDiscovered": "2026-04-20T09:31:23.154Z",
+    "lastDiscovered": "2026-11-15T09:31:23.154Z",
+    "lastVerified": "2026-11-15T09:31:23.154Z",
+    "sourceRanking": 5,
+    "trustScore": 98,
+    "scoreComponents": {
+      "completeness": 100,
+      "freshness": 100,
+      "accuracy": 96,
+      "reconciliation": 96
+    },
+    "scoreReasons": [
+      "ITAR compliant hardware attestation",
+      "Active ground station agent"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "osName": "Rocky Linux 9",
+      "ipAddress": "192.168.100.12"
+    },
+    "createdAt": "2026-04-20T09:31:23.154Z",
+    "updatedAt": "2026-11-15T09:31:23.154Z"
+  }
+]

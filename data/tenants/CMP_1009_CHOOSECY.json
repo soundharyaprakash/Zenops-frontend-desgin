@@ -1,0 +1,172 @@
+[
+  {
+    "id": "CI-001001",
+    "sys_id": "SYS_CI_CHOOSE_01",
+    "name": "choosecy-career-portal-web",
+    "sys_class_name": "cmdb_ci_appl",
+    "sys_class_path": "cmdb > cmdb_ci > cmdb_ci_appl",
+    "company": "Choose My Career",
+    "company_id": "CMP_1009_CHOOSECY",
+    "sys_domain": "choosecy.zenops.io",
+    "department": "Product Engineering",
+    "ciClass": "Application",
+    "description": "Next.js public student career guidance and psychometric testing portal",
+    "lifecycleStatus": "In Use",
+    "install_status": "1 - Installed",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Kavitha R (Lead Architect)",
+    "owned_by": "Kavitha R (Lead Architect)",
+    "managed_by": "Kavitha R (Lead Architect)",
+    "supported_by": "DevOps Tier 2",
+    "supportGroup": "Core Infrastructure & Cloud Ops",
+    "support_group": "Core Infrastructure & Cloud Ops",
+    "assignment_group": "Core Infrastructure & Cloud Ops",
+    "vendor": "Vercel / AWS",
+    "manufacturer": "Next.js",
+    "model": "Enterprise Web App",
+    "model_id": "APP-NEXT-14",
+    "serialNumber": "CHOOSECY-APP-001",
+    "serial_number": "CHOOSECY-APP-001",
+    "assetTag": "AST-CCY-001",
+    "asset_tag": "AST-CCY-001",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-CCY-PROD",
+    "cost_center": "CC-CCY-PROD",
+    "installDate": "2023-03-01",
+    "warrantyEnd": "2027-03-01",
+    "warranty_expiration": "2027-03-01",
+    "dataClassification": "PII / PCI",
+    "complianceFlags": [
+      "SOC2",
+      "GDPR"
+    ],
+    "identificationKeys": {
+      "fqdn": "portal.choosemycareer.com"
+    },
+    "maintenance_schedule": "Sunday 01:00-03:00",
+    "skip_sync": false,
+    "unverified": false,
+    "fault_count": 0,
+    "hardware_status": "Healthy",
+    "tags": [
+      "career-portal",
+      "choosecy",
+      "production"
+    ],
+    "watch_list": [
+      "kavitha@choosemycareer.com"
+    ],
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2026-06-19T09:31:23.154Z",
+    "lastDiscovered": "2026-11-15T09:31:23.154Z",
+    "lastVerified": "2026-11-15T09:31:23.154Z",
+    "sourceRanking": 5,
+    "trustScore": 95,
+    "scoreComponents": {
+      "completeness": 95,
+      "freshness": 100,
+      "accuracy": 95,
+      "reconciliation": 90
+    },
+    "scoreReasons": [
+      "Active AWS CloudFront and ALB integration",
+      "Owner assigned"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "appVersion": "v2.8.4",
+      "runtimeStack": "Node.js 20 LTS",
+      "apiEndpoint": "https://portal.choosemycareer.com/api"
+    },
+    "createdAt": "2026-06-19T09:31:23.154Z",
+    "updatedAt": "2026-11-15T09:31:23.154Z"
+  },
+  {
+    "id": "CI-001002",
+    "sys_id": "SYS_CI_CHOOSE_02",
+    "name": "choosecy-candidate-postgres",
+    "sys_class_name": "cmdb_ci_database",
+    "sys_class_path": "cmdb > cmdb_ci > cmdb_ci_appl > cmdb_ci_database",
+    "company": "Choose My Career",
+    "company_id": "CMP_1009_CHOOSECY",
+    "sys_domain": "choosecy.zenops.io",
+    "department": "Data Engineering",
+    "ciClass": "Database",
+    "description": "PostgreSQL database containing student assessment responses and career profiles",
+    "lifecycleStatus": "In Use",
+    "install_status": "1 - Installed",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Kavitha R (Lead Architect)",
+    "owned_by": "Kavitha R (Lead Architect)",
+    "managed_by": "Kavitha R (Lead Architect)",
+    "supported_by": "DBA Team",
+    "supportGroup": "Database Administration (DBA)",
+    "support_group": "Database Administration (DBA)",
+    "assignment_group": "Database Administration (DBA)",
+    "vendor": "AWS RDS",
+    "manufacturer": "PostgreSQL Aurora",
+    "model": "db.r6g.2xlarge",
+    "model_id": "RDS-R6G-2XL",
+    "serialNumber": "SN-RDS-CCY-8819",
+    "serial_number": "SN-RDS-CCY-8819",
+    "assetTag": "AST-CCY-002",
+    "asset_tag": "AST-CCY-002",
+    "location": "AWS us-east-1a",
+    "costCenter": "CC-CCY-DATA",
+    "cost_center": "CC-CCY-DATA",
+    "installDate": "2023-03-01",
+    "warrantyEnd": "2027-03-01",
+    "warranty_expiration": "2027-03-01",
+    "dataClassification": "Restricted",
+    "complianceFlags": [
+      "SOC2",
+      "GDPR",
+      "FERPA"
+    ],
+    "identificationKeys": {
+      "ipAddress": "10.250.4.12",
+      "fqdn": "db-primary.choosemycareer.internal"
+    },
+    "maintenance_schedule": "Sunday 02:00-04:00",
+    "skip_sync": false,
+    "unverified": false,
+    "fault_count": 0,
+    "hardware_status": "Healthy",
+    "tags": [
+      "student-data",
+      "aurora",
+      "ferpa"
+    ],
+    "watch_list": [
+      "kavitha@choosemycareer.com"
+    ],
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2026-06-19T09:31:23.154Z",
+    "lastDiscovered": "2026-11-15T09:31:23.154Z",
+    "lastVerified": "2026-11-15T09:31:23.154Z",
+    "sourceRanking": 5,
+    "trustScore": 92,
+    "scoreComponents": {
+      "completeness": 92,
+      "freshness": 100,
+      "accuracy": 92,
+      "reconciliation": 90
+    },
+    "scoreReasons": [
+      "Telemetry live",
+      "Support group mapped"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "dbEngine": "PostgreSQL",
+      "dbVersion": "15.4",
+      "port": 5432
+    },
+    "createdAt": "2026-06-19T09:31:23.154Z",
+    "updatedAt": "2026-11-15T09:31:23.154Z"
+  }
+]

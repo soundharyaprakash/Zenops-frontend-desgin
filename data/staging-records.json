@@ -1,0 +1,70 @@
+[
+  {
+    "id": "STG-AWS-99120",
+    "source": "AWS Discovery Connector",
+    "rawPayload": {
+      "resourceId": "i-088192839128ab",
+      "instanceType": "m6i.2xlarge",
+      "privateIp": "10.240.8.24",
+      "mac": "00:1B:44:88:9C:14",
+      "tags": {
+        "Name": "prod-pubsub-kafka-04",
+        "Environment": "Production"
+      }
+    },
+    "receivedAt": "2026-11-16T07:07:23.154Z",
+    "reconcileStatus": "Matched",
+    "matchedCiId": "CI-000619",
+    "companyId": "CMP_1001_ZENDEV",
+    "companyName": "ZenDev Software Technologies"
+  },
+  {
+    "id": "STG-DATADOG-1092",
+    "source": "Datadog APM Agent",
+    "rawPayload": {
+      "service": "checkout-service",
+      "version": "v3.4.1",
+      "containerId": "eks-pod-checkout-prod-77a8b",
+      "host": "ip-10-242-3-18.ec2.internal",
+      "status": "healthy"
+    },
+    "receivedAt": "2026-11-16T04:43:23.154Z",
+    "reconcileStatus": "Matched",
+    "matchedCiId": "CI-000103",
+    "companyId": "CMP_1001_ZENDEV",
+    "companyName": "ZenDev Software Technologies"
+  },
+  {
+    "id": "STG-NMAP-44819",
+    "source": "Nmap Network Scanner",
+    "rawPayload": {
+      "ip": "192.168.10.88",
+      "mac": "00:14:22:98:A2:11",
+      "openPorts": [
+        22,
+        80,
+        443
+      ],
+      "osMatch": "CentOS 7 Linux"
+    },
+    "receivedAt": "2026-11-14T09:31:23.154Z",
+    "reconcileStatus": "Needs review",
+    "matchedCiId": "CI-000305",
+    "companyId": "CMP_1001_ZENDEV",
+    "companyName": "ZenDev Software Technologies"
+  },
+  {
+    "id": "STG-NEW-AZURE-01",
+    "source": "Azure Resource Graph",
+    "rawPayload": {
+      "vmId": "az-vm-fin-accounting-weu",
+      "ip": "10.100.2.19",
+      "resourceGroup": "rg-fin-prod",
+      "subscription": "sub-zendev-fin-01"
+    },
+    "receivedAt": "2026-11-15T21:31:23.154Z",
+    "reconcileStatus": "New",
+    "companyId": "CMP_1001_ZENDEV",
+    "companyName": "ZenDev Software Technologies"
+  }
+]

@@ -382,6 +382,28 @@ export interface ReconciliationRule {
   matchCount?: number;
 }
 
+export type DataQualityStatus =
+  | "Pending"
+  | "Approved"
+  | "Rejected"
+  | "Applied"
+  | "Awaiting owner acceptance"
+  | "Dismissed";
+
+export interface DataQualityDiff {
+  field: string;
+  before: string;
+  after: string;
+}
+
+export interface AlternativeFixOption {
+  id: string;
+  label: string;
+  description: string;
+  actionType: "remediate" | "retire";
+  isDestructive?: boolean;
+}
+
 export interface DataQualityTask {
   id: string;
   ciId: string;
@@ -396,10 +418,25 @@ export interface DataQualityTask {
     | "Unassigned Support Group";
   proposedFix: string;
   confidence: number;
+  confidenceBasis?: string;
   approver: string;
-  status: "Pending" | "Approved" | "Rejected" | "Applied";
+  approverRole?: string;
+  status: DataQualityStatus;
   severity: "Critical" | "High" | "Medium" | "Low";
   createdAt: string;
+  dueDate?: string;
+  decidedAt?: string;
+  dismissReason?: string;
+  dismissCategory?: string;
+  evidenceRef?: string;
+  diff?: DataQualityDiff;
+  scoreGain?: number;
+  alternativeFixes?: AlternativeFixOption[];
+  proposedOwner?: {
+    name: string;
+    team: string;
+    email?: string;
+  };
 }
 
 export interface AttestationCampaign {

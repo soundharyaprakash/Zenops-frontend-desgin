@@ -157,6 +157,7 @@ export interface DashboardMetricsResult {
     missingOwner: number;
     duplicate: number;
     conflicts: number;
+    compliance?: number;
     unassignedSupport: number;
   };
 
@@ -260,7 +261,11 @@ export function getDashboardMetrics(
 
   // 5. Duplicate Suspects (Counted from DQ tasks or identified collisions)
   const duplicateTasks = dataQualityTasks.filter(
-    (t) => t.issueType === "Duplicate Suspect" && t.status !== "Applied"
+    (t) =>
+      t.issueType === "Duplicate Suspect" &&
+      t.status !== "Applied" &&
+      t.status !== "Dismissed" &&
+      t.status !== "Rejected"
   );
   const duplicateSuspectsCount = duplicateTasks.length;
   const duplicateRate = Number(((duplicateSuspectsCount / safeTotal) * 100).toFixed(1));
@@ -614,7 +619,8 @@ export function getDashboardMetrics(
     stale: staleCount,
     missingOwner: missingOwnerCount,
     duplicate: duplicateSuspectsCount,
-    conflicts: dataQualityTasks.filter((t) => t.issueType === "Attribute Conflict").length || 3,
+    conflicts: dataQualityTasks.filter((t) => t.issueType === "Attribute Conflict" && t.status !== "Applied" && t.status !== "Dismissed").length || 1,
+    compliance: dataQualityTasks.filter((t) => t.issueType === "Compliance Mismatch" && t.status !== "Applied" && t.status !== "Dismissed").length || 1,
     unassignedSupport: filteredCIs.filter((c) => !c.supportGroup || c.supportGroup === "Unassigned").length || 2,
   };
 

@@ -21,6 +21,11 @@ import {
   INITIAL_AUDIT_HISTORY,
 } from "@/services/mock-data";
 import { CMDBService } from "@/services/cmdb-service";
+import {
+  enrichAndReconcileTasks,
+  createDataQualityAuditRecord,
+  evaluateBulkApply,
+} from "@/lib/governance/dataQuality";
 
 export interface ToastMessage {
   id: string;
@@ -78,8 +83,13 @@ interface CMDBContextType {
 
   // Data Quality
   approveDQTask: (taskId: string, actor?: string) => void;
-  rejectDQTask: (taskId: string, actor?: string) => void;
-  applyDQTask: (taskId: string, actor?: string) => void;
+  rejectDQTask: (taskId: string, actor?: string, reason?: string) => void;
+  dismissDQTask: (taskId: string, category: string, reason: string, actor?: string) => void;
+  applyDQTask: (taskId: string, actor?: string, fixOptionId?: string) => void;
+  requestOwnerAcceptance: (taskId: string, actor?: string) => void;
+  acceptOwnerAssignment: (taskId: string, actor?: string) => void;
+  applyComplianceWithEvidence: (taskId: string, evidenceDoc: string, humanApprover: string, actor?: string) => void;
+  bulkApplyEligibleTasks: (threshold?: number, actor?: string) => { count: number; appliedIds: string[] };
 
   // Discovery Sources
   triggerDiscoveryRun: (sourceId: string) => void;
@@ -117,7 +127,9 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
   const [relationships, setRelationships] = useState<CIRelationship[]>(INITIAL_RELATIONSHIPS);
   const [discoverySources, setDiscoverySources] = useState<DiscoverySource[]>(INITIAL_DISCOVERY_SOURCES);
   const [reconciliationRules, setReconciliationRules] = useState<ReconciliationRule[]>(INITIAL_RECONCILIATION_RULES);
-  const [dataQualityTasks, setDataQualityTasks] = useState<DataQualityTask[]>(INITIAL_DATA_QUALITY_TASKS);
+  const [dataQualityTasks, setDataQualityTasks] = useState<DataQualityTask[]>(() =>
+    enrichAndReconcileTasks(INITIAL_DATA_QUALITY_TASKS, INITIAL_CIS)
+  );
   const [attestationCampaigns, setAttestationCampaigns] = useState<AttestationCampaign[]>(INITIAL_ATTESTATION_CAMPAIGNS);
   const [auditHistory, setAuditHistory] = useState<CIAuditHistory[]>(INITIAL_AUDIT_HISTORY);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -194,7 +206,10 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
       if (storedRels) setRelationships(JSON.parse(storedRels));
 
       const storedDQ = localStorage.getItem(`${STORAGE_KEY_PREFIX}dq`);
-      if (storedDQ) setDataQualityTasks(JSON.parse(storedDQ));
+      if (storedDQ) {
+        const parsed = JSON.parse(storedDQ);
+        setDataQualityTasks(enrichAndReconcileTasks(parsed, INITIAL_CIS));
+      }
 
       const storedAud = localStorage.getItem(`${STORAGE_KEY_PREFIX}aud`);
       if (storedAud) setAuditHistory(JSON.parse(storedAud));
@@ -220,6 +235,13 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
       // Handle storage quota or private mode
     }
   }, [cis, activeTenant, relationships, dataQualityTasks, auditHistory, attestationCampaigns, isLoaded]);
+
+  // Reconcile Data Quality tasks whenever CIs change
+  useEffect(() => {
+    if (cis.length > 0) {
+      setDataQualityTasks((prev) => enrichAndReconcileTasks(prev, cis));
+    }
+  }, [cis]);
 
   const showToast = (type: ToastMessage["type"], title: string, message?: string) => {
     const id = Math.random().toString(36).substring(2, 9);
@@ -819,51 +841,314 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
 
   // Data Quality Tasks Actions
   const approveDQTask = (taskId: string, actor = "Platform Governance") => {
-    setDataQualityTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: "Approved" } : t))
-    );
-    showToast("success", "Task Approved", `Data Quality Task ${taskId} has been approved.`);
-  };
-
-  const rejectDQTask = (taskId: string, actor = "Platform Governance") => {
-    setDataQualityTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: "Rejected" } : t))
-    );
-    showToast("info", "Task Rejected", `Data Quality Task ${taskId} was marked as rejected.`);
-  };
-
-  const applyDQTask = (taskId: string, actor = "Platform Governance") => {
     const task = dataQualityTasks.find((t) => t.id === taskId);
     if (!task) return;
 
-    // Apply remediation to the target CI
+    setDataQualityTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, status: "Approved", decidedAt: new Date().toISOString() } : t))
+    );
+
+    const auditEntry = createDataQualityAuditRecord({
+      who: actor,
+      role: userRole,
+      taskId,
+      ciId: task.ciId,
+      ciName: task.ciName,
+      fieldChanged: "Governance Task Approval",
+      beforeValue: task.status,
+      afterValue: "Approved",
+      action: "Approve",
+    });
+    setAuditHistory((prev) => [auditEntry, ...prev]);
+
+    showToast("success", "Task Approved", `Data Quality Task ${taskId} for ${task.ciName} has been approved.`);
+  };
+
+  const rejectDQTask = (taskId: string, actor = "Platform Governance", reason = "Rejected by governance lead") => {
+    const task = dataQualityTasks.find((t) => t.id === taskId);
+    if (!task) return;
+
+    setDataQualityTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, status: "Rejected", decidedAt: new Date().toISOString() } : t))
+    );
+
+    const auditEntry = createDataQualityAuditRecord({
+      who: actor,
+      role: userRole,
+      taskId,
+      ciId: task.ciId,
+      ciName: task.ciName,
+      fieldChanged: "Governance Task Decision",
+      beforeValue: task.status,
+      afterValue: "Rejected",
+      action: "Dismiss",
+      reason,
+    });
+    setAuditHistory((prev) => [auditEntry, ...prev]);
+
+    showToast("info", "Task Rejected", `Data Quality Task ${taskId} was marked as rejected.`);
+  };
+
+  const dismissDQTask = (
+    taskId: string,
+    category: string,
+    reason: string,
+    actor = "Platform Governance"
+  ) => {
+    const task = dataQualityTasks.find((t) => t.id === taskId);
+    if (!task) return;
+
+    setDataQualityTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId
+          ? {
+              ...t,
+              status: "Dismissed",
+              dismissCategory: category,
+              dismissReason: reason,
+              decidedAt: new Date().toISOString(),
+            }
+          : t
+      )
+    );
+
+    const auditEntry = createDataQualityAuditRecord({
+      who: actor,
+      role: userRole,
+      taskId,
+      ciId: task.ciId,
+      ciName: task.ciName,
+      fieldChanged: "Data Quality Exception",
+      beforeValue: task.status,
+      afterValue: `Dismissed (${category})`,
+      action: "Dismiss",
+      reason,
+    });
+    setAuditHistory((prev) => [auditEntry, ...prev]);
+
+    showToast("info", "Task Dismissed", `Task ${taskId} dismissed (${category}). Reason recorded in audit trail.`);
+  };
+
+  const requestOwnerAcceptance = (taskId: string, actor = "Platform Governance") => {
+    const task = dataQualityTasks.find((t) => t.id === taskId);
+    if (!task) return;
+
+    const proposedOwnerName = task.proposedOwner?.name || "David Chen (Enterprise Architect)";
+
+    setDataQualityTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId
+          ? { ...t, status: "Awaiting owner acceptance" }
+          : t
+      )
+    );
+
+    const auditEntry = createDataQualityAuditRecord({
+      who: actor,
+      role: userRole,
+      taskId,
+      ciId: task.ciId,
+      ciName: task.ciName,
+      fieldChanged: "Proposed Ownership Assignment",
+      beforeValue: "Unassigned",
+      afterValue: `Awaiting acceptance by ${proposedOwnerName}`,
+      action: "Approve",
+      reason: "Sent proposed ownership assignment to designated owner",
+    });
+    setAuditHistory((prev) => [auditEntry, ...prev]);
+
+    showToast(
+      "info",
+      "Owner Acceptance Requested",
+      `Assignment dispatched to ${proposedOwnerName}. Awaiting owner confirmation.`
+    );
+  };
+
+  const acceptOwnerAssignment = (taskId: string, actor = "David Chen") => {
+    const task = dataQualityTasks.find((t) => t.id === taskId);
+    if (!task) return;
+
+    const target = cis.find((c) => c.id === task.ciId);
+    const ownerName = task.proposedOwner?.name || "David Chen (Enterprise Architect)";
+    const teamName = task.proposedOwner?.team || "Core Infrastructure & Cloud Ops";
+
+    if (target) {
+      updateCI(
+        target.id,
+        {
+          owner: ownerName,
+          supportGroup: teamName,
+          trustScore: Math.min(95, (target.trustScore || 45) + 25),
+        },
+        actor
+      );
+    }
+
+    setDataQualityTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId
+          ? { ...t, status: "Applied", decidedAt: new Date().toISOString() }
+          : t
+      )
+    );
+
+    const auditEntry = createDataQualityAuditRecord({
+      who: actor,
+      role: "CI Owner",
+      taskId,
+      ciId: task.ciId,
+      ciName: task.ciName,
+      fieldChanged: "Technical Ownership & Support Group",
+      beforeValue: "Unassigned",
+      afterValue: `${ownerName} (${teamName})`,
+      action: "AcceptOwnership",
+      reason: "Owner accepted technical stewardship and support group assignment",
+    });
+    setAuditHistory((prev) => [auditEntry, ...prev]);
+
+    showToast(
+      "success",
+      "Ownership Accepted & Applied",
+      `Ownership confirmed by ${ownerName}. Trust score restored (+25 pts).`
+    );
+  };
+
+  const applyComplianceWithEvidence = (
+    taskId: string,
+    evidenceDoc: string,
+    humanApprover: string,
+    actor = "Amara Okafor"
+  ) => {
+    const task = dataQualityTasks.find((t) => t.id === taskId);
+    if (!task) return;
+
     const target = cis.find((c) => c.id === task.ciId);
     if (target) {
-      if (task.issueType === "Missing Required Ownership") {
-        updateCI(
+      updateCI(
+        target.id,
+        {
+          complianceFlags: Array.from(new Set([...(target.complianceFlags || []), "NIST-800-53"])),
+          trustScore: Math.min(100, (target.trustScore || 80) + 10),
+        },
+        humanApprover
+      );
+    }
+
+    setDataQualityTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId
+          ? {
+              ...t,
+              status: "Applied",
+              evidenceRef: evidenceDoc,
+              approver: humanApprover,
+              decidedAt: new Date().toISOString(),
+            }
+          : t
+      )
+    );
+
+    const auditEntry = createDataQualityAuditRecord({
+      who: humanApprover,
+      role: "Compliance Officer",
+      taskId,
+      ciId: task.ciId,
+      ciName: task.ciName,
+      fieldChanged: "Compliance Certification",
+      beforeValue: "None (Uncertified)",
+      afterValue: "NIST-800-53",
+      action: "Apply",
+      reason: `Attested by ${humanApprover} with linked audit evidence`,
+      evidenceRef: evidenceDoc,
+    });
+    setAuditHistory((prev) => [auditEntry, ...prev]);
+
+    showToast(
+      "success",
+      "Compliance Flag Applied",
+      `NIST-800-53 certification applied for ${task.ciName}. Linked evidence: ${evidenceDoc}`
+    );
+  };
+
+  const applyDQTask = (taskId: string, actor = "Platform Governance", fixOptionId?: string) => {
+    const task = dataQualityTasks.find((t) => t.id === taskId);
+    if (!task) return;
+
+    const target = cis.find((c) => c.id === task.ciId);
+
+    // If an alternative fix option was selected: "retire"
+    if (fixOptionId === "retire") {
+      if (target) {
+        retireCI(
           target.id,
-          {
-            owner: "David Chen (Enterprise Architect)",
-            supportGroup: "Core Infrastructure & Cloud Ops",
-            trustScore: 86,
-          },
+          "DQ-DECOM-CHOSEN",
+          "Decommissioned via Data Quality Staleness alternative choice",
           actor
         );
+      }
+
+      setDataQualityTasks((prev) =>
+        prev.map((t) =>
+          t.id === taskId ? { ...t, status: "Applied", decidedAt: new Date().toISOString() } : t
+        )
+      );
+
+      const auditEntry = createDataQualityAuditRecord({
+        who: actor,
+        role: userRole,
+        taskId,
+        ciId: task.ciId,
+        ciName: task.ciName,
+        fieldChanged: "Lifecycle Status",
+        beforeValue: target?.operationalStatus || "Operational",
+        afterValue: "Retired (End of Life)",
+        action: "Apply",
+        reason: "Asset retired per Data Quality staleness review",
+      });
+      setAuditHistory((prev) => [auditEntry, ...prev]);
+
+      showToast("warning", "CI Retired", `${task.ciName} has been decommissioned and marked as Retired.`);
+      return;
+    }
+
+    // Default remediation
+    if (target) {
+      if (task.issueType === "Missing Required Ownership" || task.issueType === "Unassigned Support Group") {
+        // Ownership requires acceptance first
+        requestOwnerAcceptance(taskId, actor);
+        return;
+      } else if (task.issueType === "Compliance Mismatch") {
+        // Compliance requires evidence
+        applyComplianceWithEvidence(
+          taskId,
+          task.evidenceRef || "https://vault.zenops.io/compliance/SOC2_Equinix_DC1_Certification_2026.pdf",
+          task.approver || "Amara Okafor",
+          actor
+        );
+        return;
       } else if (task.issueType === "Stale Discovery") {
         updateCI(
           target.id,
           {
             lastDiscovered: new Date().toISOString(),
-            trustScore: Math.min(100, target.trustScore + 25),
+            trustScore: Math.min(100, (target.trustScore || 50) + 30),
           },
           actor
         );
-      } else if (task.issueType === "Compliance Mismatch") {
+      } else if (task.issueType === "Attribute Conflict") {
         updateCI(
           target.id,
           {
-            complianceFlags: Array.from(new Set([...target.complianceFlags, "NIST-800-53"])),
-            trustScore: Math.min(100, target.trustScore + 10),
+            trustScore: Math.min(100, (target.trustScore || 70) + 20),
+          },
+          actor
+        );
+      } else if (task.issueType === "Duplicate Suspect") {
+        updateCI(
+          target.id,
+          {
+            lifecycleStatus: "In Use",
+            trustScore: Math.min(100, (target.trustScore || 70) + 20),
           },
           actor
         );
@@ -871,9 +1156,84 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
     }
 
     setDataQualityTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: "Applied" } : t))
+      prev.map((t) => (t.id === taskId ? { ...t, status: "Applied", decidedAt: new Date().toISOString() } : t))
     );
+
+    const auditEntry = createDataQualityAuditRecord({
+      who: actor,
+      role: userRole,
+      taskId,
+      ciId: task.ciId,
+      ciName: task.ciName,
+      fieldChanged: task.diff?.field || "Configuration Item Remediation",
+      beforeValue: task.diff?.before || "Degraded",
+      afterValue: task.diff?.after || "Restored",
+      action: "Apply",
+      reason: task.proposedFix,
+    });
+    setAuditHistory((prev) => [auditEntry, ...prev]);
+
     showToast("success", "Remediation Applied", `Proposed fix for ${task.ciName} applied. CI trust score restored.`);
+  };
+
+  const bulkApplyEligibleTasks = (threshold = 85, actor = "Bulk Auto-Remediator") => {
+    const evaluation = evaluateBulkApply(dataQualityTasks, threshold);
+    const eligible = evaluation.eligibleTasks;
+
+    eligible.forEach((task) => {
+      const target = cis.find((c) => c.id === task.ciId);
+      if (target) {
+        if (task.issueType === "Stale Discovery") {
+          updateCI(
+            target.id,
+            {
+              lastDiscovered: new Date().toISOString(),
+              trustScore: Math.min(100, (target.trustScore || 50) + 30),
+            },
+            actor
+          );
+        } else if (task.issueType === "Attribute Conflict" || task.issueType === "Duplicate Suspect") {
+          updateCI(
+            target.id,
+            {
+              trustScore: Math.min(100, (target.trustScore || 70) + 20),
+            },
+            actor
+          );
+        }
+      }
+
+      const auditEntry = createDataQualityAuditRecord({
+        who: actor,
+        role: "Automation",
+        taskId: task.id,
+        ciId: task.ciId,
+        ciName: task.ciName,
+        fieldChanged: task.diff?.field || "Bulk Remediation",
+        beforeValue: task.diff?.before || "Degraded",
+        afterValue: task.diff?.after || "Restored",
+        action: "BulkApply",
+        reason: `Auto-applied high-confidence (${task.confidence}%) low-risk remediation`,
+      });
+      setAuditHistory((prev) => [auditEntry, ...prev]);
+    });
+
+    const appliedIds = eligible.map((t) => t.id);
+    const appliedIdSet = new Set(appliedIds);
+
+    setDataQualityTasks((prev) =>
+      prev.map((t) =>
+        appliedIdSet.has(t.id) ? { ...t, status: "Applied", decidedAt: new Date().toISOString() } : t
+      )
+    );
+
+    showToast(
+      "success",
+      "Bulk Remediations Applied",
+      `Successfully applied ${eligible.length} safe high-confidence remediations across ${activeTenant}.`
+    );
+
+    return { count: eligible.length, appliedIds };
   };
 
   // Discovery Run
@@ -960,7 +1320,12 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
         getImpactAnalysis,
         approveDQTask,
         rejectDQTask,
+        dismissDQTask,
         applyDQTask,
+        requestOwnerAcceptance,
+        acceptOwnerAssignment,
+        applyComplianceWithEvidence,
+        bulkApplyEligibleTasks,
         triggerDiscoveryRun,
         certifyCampaignCI,
         showToast,

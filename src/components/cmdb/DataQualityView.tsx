@@ -41,19 +41,21 @@ import { Lozenge } from "@/components/ui/Lozenge";
 import { Button } from "@/components/ui/Button";
 import { useCMDB } from "@/context/cmdb-context";
 import { formatDateTime, cn } from "@/lib/utils";
-import { Can } from "@/components/rbac/Can";
-import { PERMISSIONS } from "@/lib/rbac";
+import { canApproveTask } from "@/lib/rbac-lite/canApproveTask";
 import {
   DQ_SEVERITY_LEVELS,
   DQ_CATEGORIES,
   CANONICAL_CATEGORY_LIST,
   DQCategoryTab,
   calculateTaskScoreGain,
+  getTaskScoreGainDetail,
   calculateCombinedCIEffect,
   evaluateBulkApply,
   DEFAULT_BULK_CONFIDENCE_THRESHOLD,
   DISMISSAL_REASONS,
   DismissalReasonCategory,
+  HEALTH_BANDS,
+  getHealthBand,
 } from "@/lib/governance/dataQuality";
 import { DataQualityTask } from "@/types/cmdb";
 
@@ -79,15 +81,18 @@ export function DataQualityView() {
   const [viewScope, setViewScope] = useState<"open" | "resolved">("open");
   const [isGroupedByCI, setIsGroupedByCI] = useState<boolean>(false);
 
-  // Search, Sort & Multi-Filter state (Priority 4, Item 18)
+  // Search, Sort & Multi-Filter state (Follow-up Item 2: Added Owner & Category filters)
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSeverity, setSelectedSeverity] = useState<string>("All");
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>("All");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
+  const [selectedOwner, setSelectedOwner] = useState<string>("All");
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [sortBy, setSortBy] = useState<"severity" | "age" | "confidence" | "name">("severity");
 
   // Selection state for multi-action
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+  const [showSkippedNotice, setShowSkippedNotice] = useState(false);
 
   // Modals & Safety Dialogs state
   const [isSweeping, setIsSweeping] = useState(false);
@@ -110,6 +115,22 @@ export function DataQualityView() {
 
   // Confidence explanation popover/tooltip state (Priority 4, Item 20)
   const [activeConfidenceInfo, setActiveConfidenceInfo] = useState<string | null>(null);
+  const [activeScoreGainInfo, setActiveScoreGainInfo] = useState<string | null>(null);
+
+  // Central isolated RBAC check for bulk action (Follow-up Item 5)
+  const globalApprovalCheck = useMemo(() => canApproveTask(userRole), [userRole]);
+
+  // Distinct Owners for Owner Filter dropdown (Follow-up Item 2)
+  const distinctOwners = useMemo(() => {
+    const set = new Set<string>();
+    dataQualityTasks.forEach((t) => {
+      if (t.proposedOwner?.name) set.add(t.proposedOwner.name);
+      if (t.approver) set.add(t.approver);
+      const ci = cis.find((c) => c.id === t.ciId);
+      if (ci?.owner && ci.owner !== "Unassigned") set.add(ci.owner);
+    });
+    return Array.from(set).sort();
+  }, [dataQualityTasks, cis]);
 
   // ---------------------------------------------------------------------------
   // 1. ACTION HANDLERS
@@ -135,7 +156,7 @@ export function DataQualityView() {
       task.issueType === "Missing Required Ownership" ||
       task.issueType === "Unassigned Support Group"
     ) {
-      requestOwnerAcceptance(task.id, "Governance Lead");
+      requestOwnerAcceptance(task.id, "Elena Rostova");
       return;
     }
 
@@ -149,7 +170,7 @@ export function DataQualityView() {
 
     // Check if task has alternative choices (e.g. DQ-202 sync vs retire)
     const choice = alternativeChoices[task.id] || "sync";
-    applyDQTask(task.id, "Governance Lead", choice);
+    applyDQTask(task.id, "Marcus Vance", choice);
   };
 
   // Submit Compliance Evidence Fix
@@ -159,7 +180,7 @@ export function DataQualityView() {
       showToast("error", "Missing Information", "Linked evidence reference and human approver name are required.");
       return;
     }
-    applyComplianceWithEvidence(complianceTask.id, evidenceDocUrl.trim(), humanApproverName.trim(), "Compliance Officer");
+    applyComplianceWithEvidence(complianceTask.id, evidenceDocUrl.trim(), humanApproverName.trim(), "Amara Okafor");
     setComplianceTask(null);
   };
 
@@ -171,13 +192,13 @@ export function DataQualityView() {
       return;
     }
 
-    dismissDQTask(dismissingTask.id, dismissCategory, dismissReasonText.trim(), "Governance Lead");
+    dismissDQTask(dismissingTask.id, dismissCategory, dismissReasonText.trim(), "Elena Rostova");
     setDismissingTask(null);
     setDismissReasonText("");
     setDismissError("");
   };
 
-  // Execute Bulk Apply from Confirmation Modal (Priority 2, Item 3)
+  // Execute Bulk Apply from Confirmation Modal (Priority 2, Item 3 & Follow-up Item 3)
   const handleExecuteBulkApply = () => {
     bulkApplyEligibleTasks(bulkThreshold, "Bulk Auto-Remediator");
     setShowBulkConfirmModal(false);
@@ -201,7 +222,7 @@ export function DataQualityView() {
   };
 
   // ---------------------------------------------------------------------------
-  // 2. FILTERING & SORTING LOGIC
+  // 2. FILTERING & SORTING LOGIC (Follow-up Item 2: Added Owner & Category)
   // ---------------------------------------------------------------------------
 
   const filteredTasks = useMemo(() => {
@@ -229,17 +250,35 @@ export function DataQualityView() {
         }
       }
 
-      // 3. Status filter
+      // 3. Category Filter Dropdown (Follow-up Item 2)
+      if (selectedCategory !== "All") {
+        const matchedCategory = CANONICAL_CATEGORY_LIST.find((c) => c.canonicalName === selectedCategory);
+        if (matchedCategory && !matchedCategory.issueTypes.includes(task.issueType)) {
+          return false;
+        }
+      }
+
+      // 4. Owner Filter Dropdown (Follow-up Item 2)
+      if (selectedOwner !== "All") {
+        const ci = cis.find((c) => c.id === task.ciId);
+        const hasOwner =
+          task.proposedOwner?.name === selectedOwner ||
+          task.approver === selectedOwner ||
+          ci?.owner === selectedOwner;
+        if (!hasOwner) return false;
+      }
+
+      // 5. Status filter
       if (selectedStatus !== "All" && task.status !== selectedStatus) {
         return false;
       }
 
-      // 4. Severity filter
+      // 6. Severity filter
       if (selectedSeverity !== "All" && task.severity !== selectedSeverity) {
         return false;
       }
 
-      // 5. Environment filter (via CI)
+      // 7. Environment filter (via CI)
       if (selectedEnvironment !== "All") {
         const ci = cis.find((c) => c.id === task.ciId);
         if (ci && ci.environment !== selectedEnvironment) {
@@ -247,7 +286,7 @@ export function DataQualityView() {
         }
       }
 
-      // 6. Search query
+      // 8. Search query
       if (searchQuery.trim()) {
         const q = searchQuery.trim().toLowerCase();
         const matchName = task.ciName.toLowerCase().includes(q);
@@ -266,6 +305,8 @@ export function DataQualityView() {
     dataQualityTasks,
     viewScope,
     activeTab,
+    selectedCategory,
+    selectedOwner,
     selectedStatus,
     selectedSeverity,
     selectedEnvironment,
@@ -317,6 +358,35 @@ export function DataQualityView() {
     return Array.from(map.values());
   }, [sortedTasks]);
 
+  // Selected Tasks Safety Breakdown (Follow-up Item 2)
+  const selectedTasksBreakdown = useMemo(() => {
+    const selectedTasks = dataQualityTasks.filter((t) => selectedTaskIds.includes(t.id));
+    const safeToApply: DataQualityTask[] = [];
+    const skipped: { task: DataQualityTask; reason: string }[] = [];
+
+    selectedTasks.forEach((t) => {
+      const targetCI = cis.find((c) => c.id === t.ciId);
+      const env = (targetCI?.environment || "").toLowerCase();
+      const isProduction = env === "production" || env === "prod";
+
+      if (t.status !== "Pending") {
+        skipped.push({ task: t, reason: `Status is '${t.status}' (only Pending tasks can be applied)` });
+      } else if (t.issueType.includes("Ownership")) {
+        skipped.push({ task: t, reason: "Requires explicit proposed owner acceptance ('Awaiting owner acceptance')" });
+      } else if (t.issueType === "Compliance Mismatch") {
+        skipped.push({ task: t, reason: "Requires linked audit evidence document and human approver sign-off" });
+      } else if (t.issueType === "Duplicate Suspect" && isProduction) {
+        skipped.push({ task: t, reason: "Production duplicate suspect requires dual-custody approval" });
+      } else if (t.alternativeFixes?.some((f) => f.actionType === "retire")) {
+        skipped.push({ task: t, reason: "Alternative retirement choice requires explicit operator confirmation" });
+      } else {
+        safeToApply.push(t);
+      }
+    });
+
+    return { selectedTasks, safeToApply, skipped };
+  }, [selectedTaskIds, dataQualityTasks, cis]);
+
   // ---------------------------------------------------------------------------
   // 3. HEADER METRICS COMPUTATION (Priority 3, Items 10 & 11)
   // ---------------------------------------------------------------------------
@@ -341,7 +411,7 @@ export function DataQualityView() {
     0
   );
 
-  // Average confidence across pending tasks (Priority 3, Item 11)
+  // Average confidence across pending tasks ONLY (Follow-up Item 8c)
   const avgFixConfidence =
     pendingTasksList.length > 0
       ? (
@@ -366,10 +436,10 @@ export function DataQualityView() {
       ? Math.round((appliedTasksList.length / Math.max(1, appliedTasksList.length + dismissedTasksCount)) * 100)
       : 80;
 
-  // Bulk Apply Safety Evaluation (Priority 2, Item 3)
+  // Bulk Apply Safety Evaluation (Follow-up Item 3)
   const bulkEvaluation = useMemo(() => {
-    return evaluateBulkApply(dataQualityTasks, bulkThreshold);
-  }, [dataQualityTasks, bulkThreshold]);
+    return evaluateBulkApply(dataQualityTasks, bulkThreshold, cis);
+  }, [dataQualityTasks, bulkThreshold, cis]);
 
   // Helper for task age string
   const formatAge = (dateStr: string) => {
@@ -422,26 +492,30 @@ export function DataQualityView() {
             </span>
           </div>
 
-          {/* Bulk Apply Button with Strong Contrast & Safety Guardrails (Priority 1, Item 1 & Priority 2, Item 3) */}
-          <Can
-            permission={PERMISSIONS.TASK_APPROVE}
-            disableOnly
-            tooltipText="Administrators cannot approve data fixes (SoD rule: admin_cannot_approve)"
-          >
+          {/* Bulk Apply Button with Isolated RBAC Check (Follow-up Item 5) */}
+          <div className="relative group inline-block">
             <Button
               size="sm"
               variant="primary"
               leftIcon={<Sparkles className="w-3.5 h-3.5 text-white" />}
               onClick={() => setShowBulkConfirmModal(true)}
-              disabled={!bulkEvaluation.canBulkApply}
+              disabled={!globalApprovalCheck.canApprove || !bulkEvaluation.canBulkApply}
               className={cn(
                 "font-semibold text-xs border border-primary/60 shadow-sm",
-                !bulkEvaluation.canBulkApply && "opacity-60 cursor-not-allowed"
+                (!globalApprovalCheck.canApprove || !bulkEvaluation.canBulkApply) &&
+                  "opacity-50 cursor-not-allowed"
               )}
             >
               Apply All &ge;{bulkThreshold}% Confident ({bulkEvaluation.eligibleTasks.length})
             </Button>
-          </Can>
+
+            {!globalApprovalCheck.canApprove && (
+              <div className="absolute bottom-full right-0 mb-2 hidden group-hover:flex items-center gap-1.5 px-2.5 py-1.5 bg-neutral-900 text-neutral-100 text-[11px] font-medium rounded shadow-lg pointer-events-none max-w-xs text-center z-50">
+                <Lock className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                <span>{globalApprovalCheck.tooltipText}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -539,10 +613,10 @@ export function DataQualityView() {
       </div>
 
       {/* ----------------------------------------------------------------------- */}
-      {/* SCOPE TOGGLE & CATEGORY TABS (Priority 4, Items 13 & 17) */}
+      {/* SCOPE TOGGLE & CATEGORY TABS (Canonical: Missing Owner, Stale Discovery, etc.) */}
       {/* ----------------------------------------------------------------------- */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-2">
-        {/* Category Tabs: Exactly 5 categories + All, text never clips */}
+        {/* Category Tabs: Exactly 5 canonical categories + All */}
         <div className="flex items-center gap-1 overflow-x-auto pb-1 max-w-full">
           {[
             { id: "all" as const, label: "All Tasks", count: dataQualityTasks.length },
@@ -620,11 +694,12 @@ export function DataQualityView() {
       </div>
 
       {/* ----------------------------------------------------------------------- */}
-      {/* SEARCH, SORT, AND MULTI-FILTERS BAR (Priority 4, Item 18) */}
+      {/* SEARCH, SORT, AND MULTI-FILTERS BAR (Follow-up Item 2: Added Owner & Category) */}
       {/* ----------------------------------------------------------------------- */}
-      <div className="p-3 bg-surface rounded-lg border border-border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 flex-1">
-          <div className="relative flex-1 max-w-sm">
+      <div className="p-3 bg-surface rounded-lg border border-border flex flex-col gap-2.5 text-xs">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Search Bar */}
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-text-muted pointer-events-none" />
             <input
               type="text"
@@ -634,6 +709,34 @@ export function DataQualityView() {
               className="w-full pl-8 pr-3 py-1.5 bg-sunken rounded border border-border text-xs text-text-default focus:outline-none focus:border-primary placeholder:text-text-muted"
             />
           </div>
+
+          {/* Category Filter Dropdown (Follow-up Item 2) */}
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-2 py-1.5 bg-sunken rounded border border-border text-xs text-text-default focus:outline-none focus:border-primary"
+          >
+            <option value="All">All Categories</option>
+            {CANONICAL_CATEGORY_LIST.map((c) => (
+              <option key={c.id} value={c.canonicalName}>
+                {c.canonicalName}
+              </option>
+            ))}
+          </select>
+
+          {/* Owner Filter Dropdown (Follow-up Item 2) */}
+          <select
+            value={selectedOwner}
+            onChange={(e) => setSelectedOwner(e.target.value)}
+            className="px-2 py-1.5 bg-sunken rounded border border-border text-xs text-text-default focus:outline-none focus:border-primary"
+          >
+            <option value="All">All Owners</option>
+            {distinctOwners.map((owner) => (
+              <option key={owner} value={owner}>
+                {owner}
+              </option>
+            ))}
+          </select>
 
           {/* Severity Filter */}
           <select
@@ -652,12 +755,26 @@ export function DataQualityView() {
           <select
             value={selectedEnvironment}
             onChange={(e) => setSelectedEnvironment(e.target.value)}
-            className="px-2 py-1.5 bg-sunken rounded border border-border text-xs text-text-default focus:outline-none focus:border-primary hidden sm:block"
+            className="px-2 py-1.5 bg-sunken rounded border border-border text-xs text-text-default focus:outline-none focus:border-primary"
           >
             <option value="All">All Environments</option>
             <option value="Production">Production</option>
             <option value="Staging">Staging</option>
             <option value="Development">Development</option>
+          </select>
+
+          {/* Status Filter */}
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="px-2 py-1.5 bg-sunken rounded border border-border text-xs text-text-default focus:outline-none focus:border-primary"
+          >
+            <option value="All">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="Awaiting owner acceptance">Awaiting acceptance</option>
+            <option value="Approved">Approved</option>
+            <option value="Applied">Applied</option>
+            <option value="Dismissed">Dismissed</option>
           </select>
 
           {/* Sort Dropdown */}
@@ -671,10 +788,8 @@ export function DataQualityView() {
             <option value="confidence">Sort: Confidence (Highest first)</option>
             <option value="name">Sort: CI Name</option>
           </select>
-        </div>
 
-        {/* Selection & Multi-Apply Toolbar */}
-        <div className="flex items-center gap-2 justify-between md:justify-end">
+          {/* Select All Button */}
           <Button
             size="xs"
             variant="outline"
@@ -689,13 +804,73 @@ export function DataQualityView() {
           >
             Select All ({sortedTasks.length})
           </Button>
-
-          {selectedTaskIds.length > 0 && (
-            <Lozenge appearance="bold" variant="info">
-              {selectedTaskIds.length} Selected
-            </Lozenge>
-          )}
         </div>
+
+        {/* Selected Tasks Banner & Safety Actions (Follow-up Item 2) */}
+        {selectedTaskIds.length > 0 && (
+          <div className="p-2.5 bg-sunken/80 rounded border border-border flex flex-wrap items-center justify-between gap-2 animate-in fade-in duration-100">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Lozenge appearance="bold" variant="info">
+                {selectedTaskIds.length} Tasks Selected
+              </Lozenge>
+              <span className="text-xs text-text-secondary">
+                {selectedTasksBreakdown.safeToApply.length} safe for bulk apply &bull;{" "}
+                <strong className="text-amber-600">{selectedTasksBreakdown.skipped.length} excluded</strong>
+              </span>
+              {selectedTasksBreakdown.skipped.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowSkippedNotice(!showSkippedNotice)}
+                  className="text-xs text-primary hover:underline font-semibold"
+                >
+                  {showSkippedNotice ? "Hide reasons" : "View skipped reasons"}
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                size="xs"
+                variant="primary"
+                leftIcon={<Sparkles className="w-3 h-3" />}
+                disabled={!globalApprovalCheck.canApprove || selectedTasksBreakdown.safeToApply.length === 0}
+                onClick={() => {
+                  selectedTasksBreakdown.safeToApply.forEach((t) => applyDQTask(t.id, "Bulk Operator"));
+                  setSelectedTaskIds([]);
+                  showToast(
+                    "success",
+                    "Bulk Actions Executed",
+                    `Applied ${selectedTasksBreakdown.safeToApply.length} selected safe tasks.`
+                  );
+                }}
+              >
+                Apply Selected Safe Tasks ({selectedTasksBreakdown.safeToApply.length})
+              </Button>
+              <Button size="xs" variant="outline" onClick={() => setSelectedTaskIds([])}>
+                Clear
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Skipped Tasks Explanations Accordion (Follow-up Item 2) */}
+        {showSkippedNotice && selectedTasksBreakdown.skipped.length > 0 && (
+          <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded text-xs space-y-1.5 animate-in fade-in duration-150">
+            <p className="font-bold text-amber-700 dark:text-amber-400">
+              Selected Tasks Excluded from Bulk Apply ({selectedTasksBreakdown.skipped.length}):
+            </p>
+            <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+              {selectedTasksBreakdown.skipped.map(({ task, reason }) => (
+                <div key={task.id} className="flex items-start justify-between gap-2 border-b border-amber-500/20 pb-1 last:border-0">
+                  <span className="font-semibold text-text-default">
+                    {task.id}: {task.ciName} ({task.issueType})
+                  </span>
+                  <span className="text-amber-700 dark:text-amber-400 font-medium text-right">{reason}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ----------------------------------------------------------------------- */}
@@ -730,13 +905,40 @@ export function DataQualityView() {
                     </span>
                   </div>
 
-                  {/* Combined Score Gain Effect (Priority 3, Item 9) */}
+                  {/* Combined Score Gain Effect with 5-Pillar Breakdown Tooltip (Follow-up Item 7) */}
                   {group.tasks.length > 1 && (
-                    <div className="flex items-center gap-2 text-xs bg-success/10 border border-success/30 px-2.5 py-1 rounded font-mono">
-                      <span className="text-text-secondary">Combined Effect:</span>
-                      <strong className="text-success">
-                        {ci?.trustScore || 45}% &rarr; {combinedEffect.newScore}% (+{combinedEffect.totalGain} pts Trust)
-                      </strong>
+                    <div className="relative group">
+                      <div className="flex items-center gap-2 text-xs bg-success/10 border border-success/30 px-2.5 py-1 rounded font-mono cursor-pointer">
+                        <Zap className="w-3.5 h-3.5 text-success" />
+                        <span className="text-text-secondary">Combined Effect:</span>
+                        <strong className="text-success">
+                          {ci?.trustScore || 45}% &rarr; {combinedEffect.newScore}% (+{combinedEffect.totalGain} pts Trust)
+                        </strong>
+                        <Info className="w-3 h-3 text-text-muted ml-0.5" />
+                      </div>
+
+                      {/* 5-Pillar Breakdown Tooltip (Follow-up Item 7) */}
+                      <div className="absolute right-0 bottom-full mb-1.5 hidden group-hover:block z-50 p-3 bg-neutral-900 text-neutral-100 text-[11px] rounded shadow-2xl w-72 border border-neutral-700 animate-in fade-in duration-100">
+                        <div className="flex items-center justify-between border-b border-neutral-700 pb-1.5 mb-2">
+                          <span className="font-bold text-primary-200">5-Pillar Score Breakdown</span>
+                          <span className="font-mono text-emerald-400 font-bold">+{combinedEffect.totalGain} pts Total</span>
+                        </div>
+                        <div className="space-y-1">
+                          {combinedEffect.pillarBreakdown.map((p) => (
+                            <div key={p.pillar} className="flex items-center justify-between py-0.5">
+                              <span className="text-neutral-300">
+                                {p.pillar} <span className="text-neutral-500">({p.weight}%)</span>:
+                              </span>
+                              <span className="font-mono font-bold text-neutral-100">
+                                {p.beforePts} &rarr; {p.afterPts} ({p.gain > 0 ? `+${p.gain}` : "0"} pts)
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-2 pt-1.5 border-t border-neutral-800 text-[10px] text-neutral-400">
+                          Sum of pillar gains = +{combinedEffect.totalGain} pts. Fully compliant with max pillar weights.
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -765,6 +967,8 @@ export function DataQualityView() {
                         userRole={userRole}
                         activeConfidenceInfo={activeConfidenceInfo}
                         setActiveConfidenceInfo={setActiveConfidenceInfo}
+                        activeScoreGainInfo={activeScoreGainInfo}
+                        setActiveScoreGainInfo={setActiveScoreGainInfo}
                       />
                     </div>
                   ))}
@@ -807,6 +1011,8 @@ export function DataQualityView() {
                   userRole={userRole}
                   activeConfidenceInfo={activeConfidenceInfo}
                   setActiveConfidenceInfo={setActiveConfidenceInfo}
+                  activeScoreGainInfo={activeScoreGainInfo}
+                  setActiveScoreGainInfo={setActiveScoreGainInfo}
                 />
               </div>
             </Card>
@@ -833,6 +1039,8 @@ export function DataQualityView() {
               setSelectedSeverity("All");
               setSelectedEnvironment("All");
               setSelectedStatus("All");
+              setSelectedCategory("All");
+              setSelectedOwner("All");
               setSearchQuery("");
             }}
           >
@@ -842,7 +1050,7 @@ export function DataQualityView() {
       )}
 
       {/* ----------------------------------------------------------------------- */}
-      {/* BULK APPLY CONFIRMATION DIALOG (Priority 2, Item 3) */}
+      {/* BULK APPLY CONFIRMATION DIALOG (Follow-up Item 3) */}
       {/* ----------------------------------------------------------------------- */}
       {showBulkConfirmModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -862,7 +1070,7 @@ export function DataQualityView() {
               </button>
             </div>
 
-            {/* Configurable Threshold Slider/Select */}
+            {/* Configurable Threshold Select */}
             <div className="p-3 bg-sunken rounded border border-border flex items-center justify-between text-xs">
               <div>
                 <span className="font-semibold text-text-default">Confidence Threshold:</span>
@@ -909,7 +1117,7 @@ export function DataQualityView() {
               </div>
             </div>
 
-            {/* List of EXCLUDED Tasks and Safety Reasons (Priority 2, Item 3) */}
+            {/* List of EXCLUDED Tasks and Safety Reasons (Follow-up Item 3) */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-amber-600 flex items-center gap-1.5">
@@ -938,7 +1146,7 @@ export function DataQualityView() {
               <Button
                 size="sm"
                 variant="primary"
-                disabled={!bulkEvaluation.canBulkApply}
+                disabled={!bulkEvaluation.canBulkApply || !globalApprovalCheck.canApprove}
                 onClick={handleExecuteBulkApply}
                 leftIcon={<Sparkles className="w-3.5 h-3.5" />}
               >
@@ -1120,8 +1328,8 @@ export function DataQualityView() {
 
 // ============================================================================
 // SUB-COMPONENT: REUSABLE TASK CARD ITEM
-// Encapsulates before/after preview, split alternative choices, severity icons,
-// score gain badges, and prominent primary buttons.
+// Isolated RBAC helper call (no Can/PERMISSIONS on screen).
+// Tooltip with 5-pillar Trust Score breakdown (Follow-up Item 7).
 // ============================================================================
 interface TaskCardItemProps {
   task: DataQualityTask;
@@ -1136,6 +1344,8 @@ interface TaskCardItemProps {
   userRole: string;
   activeConfidenceInfo: string | null;
   setActiveConfidenceInfo: (taskId: string | null) => void;
+  activeScoreGainInfo: string | null;
+  setActiveScoreGainInfo: (taskId: string | null) => void;
 }
 
 function TaskCardItem({
@@ -1151,6 +1361,8 @@ function TaskCardItem({
   userRole,
   activeConfidenceInfo,
   setActiveConfidenceInfo,
+  activeScoreGainInfo,
+  setActiveScoreGainInfo,
 }: TaskCardItemProps) {
   const isPending = task.status === "Pending";
   const isAwaitingOwner = task.status === "Awaiting owner acceptance";
@@ -1158,7 +1370,16 @@ function TaskCardItem({
   const isDismissed = task.status === "Dismissed" || task.status === "Rejected";
 
   const sevConfig = DQ_SEVERITY_LEVELS[task.severity] || DQ_SEVERITY_LEVELS.Low;
-  const scoreGain = task.scoreGain || calculateTaskScoreGain(task);
+  const scoreGainDetail = getTaskScoreGainDetail(task);
+  const scoreGain = task.scoreGain || scoreGainDetail.scoreGain;
+
+  // Isolated RBAC Check for this task (Follow-up Item 5)
+  const approvalCheck = canApproveTask(userRole, {
+    id: task.id,
+    ciId: task.ciId,
+    ciName: task.ciName,
+    ciClass: task.ciClass,
+  });
 
   // Confidence explanation text (Priority 4, Item 20)
   const confidenceExplanation =
@@ -1283,7 +1504,7 @@ function TaskCardItem({
             </div>
           )}
 
-          {/* Row 5: Metadata (Confidence explanation, Approver with role, Labelled Dates - Priority 4, Items 15, 16, 20) */}
+          {/* Row 5: Metadata (Confidence explanation, Approver with role, Labelled Dates) */}
           <div className="flex items-center gap-3 text-[11px] text-text-muted pt-1 flex-wrap">
             {/* Confidence with plain explanation popover */}
             <div className="relative inline-flex items-center gap-1">
@@ -1310,7 +1531,7 @@ function TaskCardItem({
 
             <span>&bull;</span>
 
-            {/* Approver with Role (Priority 4, Item 16) */}
+            {/* Approver with Role (Follow-up Item 4: Non-Admin, e.g. Data Steward / CMDB Manager / CI Owner) */}
             <span>
               Approver: <strong className="text-text-default">{task.approver}</strong>
               {task.approverRole && <span className="text-text-muted"> ({task.approverRole})</span>}
@@ -1338,40 +1559,76 @@ function TaskCardItem({
         </div>
       </div>
 
-      {/* Right Column: Trust Score Diff Badge & Primary Action Buttons (Priority 1, Item 1 & Priority 3, Item 9) */}
+      {/* Right Column: Trust Score Diff Badge with 5-Pillar Breakdown Tooltip & Primary Action Buttons */}
       <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-end md:items-end justify-between gap-2.5 flex-shrink-0 pt-2 md:pt-0">
-        {/* Dynamic Trust Score Gain Badge (Formula calculated: Freshness 30, Completeness 25, Consistency 20, Topology 15, Owner 10) */}
-        <span
-          className="text-xs font-bold text-success bg-success/10 border border-success/30 px-2.5 py-1 rounded font-mono flex items-center gap-1 shadow-xs"
-          title={`Calculated Trust Score gain from weighted formula (${scoreGain} pts)`}
-        >
-          <Zap className="w-3.5 h-3.5 text-success" />
-          <span>Score Diff: +{scoreGain} pts</span>
-        </span>
+        {/* Dynamic Trust Score Gain Badge with 5-Pillar Tooltip (Follow-up Item 7) */}
+        <div className="relative group">
+          <button
+            type="button"
+            onClick={() => setActiveScoreGainInfo(activeScoreGainInfo === task.id ? null : task.id)}
+            className="text-xs font-bold text-success bg-success/10 border border-success/30 px-2.5 py-1 rounded font-mono flex items-center gap-1 shadow-xs cursor-pointer hover:bg-success/15 transition-colors"
+          >
+            <Zap className="w-3.5 h-3.5 text-success" />
+            <span>Score Diff: +{scoreGain} pts</span>
+            <Info className="w-3 h-3 text-success/70 ml-0.5" />
+          </button>
+
+          {/* 5-Pillar Breakdown Popover / Tooltip (Follow-up Item 7) */}
+          <div className="absolute right-0 bottom-full mb-1.5 hidden group-hover:block z-50 p-3 bg-neutral-900 text-neutral-100 text-[11px] rounded shadow-2xl w-64 border border-neutral-700 animate-in fade-in duration-100">
+            <div className="flex items-center justify-between border-b border-neutral-700 pb-1.5 mb-2">
+              <span className="font-bold text-primary-200">Pillar Contribution</span>
+              <span className="font-mono text-emerald-400 font-bold">+{scoreGain} pts</span>
+            </div>
+            <div className="space-y-1">
+              {scoreGainDetail.pillarBreakdown.map((p) => (
+                <div key={p.pillar} className="flex items-center justify-between py-0.5">
+                  <span className="text-neutral-300">
+                    {p.pillar} <span className="text-neutral-500">({p.weight}%)</span>:
+                  </span>
+                  <span
+                    className={cn(
+                      "font-mono font-bold",
+                      p.gain > 0 ? "text-emerald-400" : "text-neutral-500"
+                    )}
+                  >
+                    {p.gain > 0 ? `+${p.gain} pts` : "0"}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 pt-1.5 border-t border-neutral-800 text-[10px] text-neutral-400 leading-tight">
+              {scoreGainDetail.explanation}
+            </p>
+          </div>
+        </div>
 
         {/* Action Button Set */}
         {isPending ? (
           <div className="flex items-center gap-2">
-            {/* Primary Action Button with Strong Contrast & Border (Priority 1, Item 1) */}
-            <Can
-              permission={PERMISSIONS.TASK_APPROVE}
-              resource={{ id: task.ciId, name: task.ciName, ciClass: task.ciClass }}
-              disableOnly
-              tooltipText="Administrators cannot approve data fixes (SoD rule: admin_cannot_approve)"
-            >
+            {/* Primary Action Button with Isolated RBAC Check (Follow-up Item 5) */}
+            <div className="relative group inline-block">
               <Button
                 size="sm"
                 variant={alternativeChoice === "retire" ? "danger" : "primary"}
                 leftIcon={<Check className="w-3.5 h-3.5" />}
                 onClick={onApply}
+                disabled={!approvalCheck.canApprove}
                 className={cn(
                   "font-bold text-xs shadow-sm border border-primary/40 px-3",
+                  !approvalCheck.canApprove && "opacity-50 cursor-not-allowed",
                   alternativeChoice === "retire" && "bg-rose-600 hover:bg-rose-700 text-white border-rose-700"
                 )}
               >
                 {alternativeChoice === "retire" ? "Decommission CI" : "Apply Fix"}
               </Button>
-            </Can>
+
+              {!approvalCheck.canApprove && (
+                <div className="absolute bottom-full right-0 mb-2 hidden group-hover:flex items-center gap-1.5 px-2.5 py-1.5 bg-neutral-900 text-neutral-100 text-[11px] font-medium rounded shadow-lg pointer-events-none max-w-xs text-center z-50">
+                  <Lock className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                  <span>{approvalCheck.tooltipText}</span>
+                </div>
+              )}
+            </div>
 
             {/* Dismiss Button: Visible text, less prominent than Apply Fix (Priority 1, Item 1 & Priority 2, Item 8) */}
             <Button

@@ -23,7 +23,7 @@ import {
 import { CMDBService } from "@/services/cmdb-service";
 import {
   enrichAndReconcileTasks,
-  createDataQualityAuditRecord,
+  logAuditEvent,
   evaluateBulkApply,
 } from "@/lib/governance/dataQuality";
 
@@ -840,7 +840,7 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Data Quality Tasks Actions
-  const approveDQTask = (taskId: string, actor = "Platform Governance") => {
+  const approveDQTask = (taskId: string, actor = "Elena Rostova") => {
     const task = dataQualityTasks.find((t) => t.id === taskId);
     if (!task) return;
 
@@ -848,23 +848,22 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
       prev.map((t) => (t.id === taskId ? { ...t, status: "Approved", decidedAt: new Date().toISOString() } : t))
     );
 
-    const auditEntry = createDataQualityAuditRecord({
+    const auditEntry = logAuditEvent({
       who: actor,
-      role: userRole,
-      taskId,
-      ciId: task.ciId,
-      ciName: task.ciName,
-      fieldChanged: "Governance Task Approval",
-      beforeValue: task.status,
-      afterValue: "Approved",
-      action: "Approve",
+      role: "Data Steward",
+      task: taskId,
+      ci: { id: task.ciId, name: task.ciName },
+      oldValue: task.status,
+      newValue: "Approved",
+      allowed: true,
+      reason: `Governance fix proposal for ${task.ciName} approved by steward`,
     });
     setAuditHistory((prev) => [auditEntry, ...prev]);
 
     showToast("success", "Task Approved", `Data Quality Task ${taskId} for ${task.ciName} has been approved.`);
   };
 
-  const rejectDQTask = (taskId: string, actor = "Platform Governance", reason = "Rejected by governance lead") => {
+  const rejectDQTask = (taskId: string, actor = "Elena Rostova", reason = "Rejected by data steward") => {
     const task = dataQualityTasks.find((t) => t.id === taskId);
     if (!task) return;
 
@@ -872,16 +871,14 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
       prev.map((t) => (t.id === taskId ? { ...t, status: "Rejected", decidedAt: new Date().toISOString() } : t))
     );
 
-    const auditEntry = createDataQualityAuditRecord({
+    const auditEntry = logAuditEvent({
       who: actor,
-      role: userRole,
-      taskId,
-      ciId: task.ciId,
-      ciName: task.ciName,
-      fieldChanged: "Governance Task Decision",
-      beforeValue: task.status,
-      afterValue: "Rejected",
-      action: "Dismiss",
+      role: "Data Steward",
+      task: taskId,
+      ci: { id: task.ciId, name: task.ciName },
+      oldValue: task.status,
+      newValue: "Rejected",
+      allowed: true,
       reason,
     });
     setAuditHistory((prev) => [auditEntry, ...prev]);
@@ -893,7 +890,7 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
     taskId: string,
     category: string,
     reason: string,
-    actor = "Platform Governance"
+    actor = "Elena Rostova"
   ) => {
     const task = dataQualityTasks.find((t) => t.id === taskId);
     if (!task) return;
@@ -912,16 +909,14 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
       )
     );
 
-    const auditEntry = createDataQualityAuditRecord({
+    const auditEntry = logAuditEvent({
       who: actor,
-      role: userRole,
-      taskId,
-      ciId: task.ciId,
-      ciName: task.ciName,
-      fieldChanged: "Data Quality Exception",
-      beforeValue: task.status,
-      afterValue: `Dismissed (${category})`,
-      action: "Dismiss",
+      role: "Data Steward",
+      task: taskId,
+      ci: { id: task.ciId, name: task.ciName },
+      oldValue: task.status,
+      newValue: `Dismissed (${category})`,
+      allowed: true,
       reason,
     });
     setAuditHistory((prev) => [auditEntry, ...prev]);
@@ -929,7 +924,7 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
     showToast("info", "Task Dismissed", `Task ${taskId} dismissed (${category}). Reason recorded in audit trail.`);
   };
 
-  const requestOwnerAcceptance = (taskId: string, actor = "Platform Governance") => {
+  const requestOwnerAcceptance = (taskId: string, actor = "Elena Rostova") => {
     const task = dataQualityTasks.find((t) => t.id === taskId);
     if (!task) return;
 
@@ -943,16 +938,14 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
       )
     );
 
-    const auditEntry = createDataQualityAuditRecord({
+    const auditEntry = logAuditEvent({
       who: actor,
-      role: userRole,
-      taskId,
-      ciId: task.ciId,
-      ciName: task.ciName,
-      fieldChanged: "Proposed Ownership Assignment",
-      beforeValue: "Unassigned",
-      afterValue: `Awaiting acceptance by ${proposedOwnerName}`,
-      action: "Approve",
+      role: "Data Steward",
+      task: taskId,
+      ci: { id: task.ciId, name: task.ciName },
+      oldValue: "Unassigned",
+      newValue: `Awaiting acceptance by ${proposedOwnerName}`,
+      allowed: true,
       reason: "Sent proposed ownership assignment to designated owner",
     });
     setAuditHistory((prev) => [auditEntry, ...prev]);
@@ -992,16 +985,14 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
       )
     );
 
-    const auditEntry = createDataQualityAuditRecord({
+    const auditEntry = logAuditEvent({
       who: actor,
       role: "CI Owner",
-      taskId,
-      ciId: task.ciId,
-      ciName: task.ciName,
-      fieldChanged: "Technical Ownership & Support Group",
-      beforeValue: "Unassigned",
-      afterValue: `${ownerName} (${teamName})`,
-      action: "AcceptOwnership",
+      task: taskId,
+      ci: { id: task.ciId, name: task.ciName },
+      oldValue: "Unassigned",
+      newValue: `${ownerName} (${teamName})`,
+      allowed: true,
       reason: "Owner accepted technical stewardship and support group assignment",
     });
     setAuditHistory((prev) => [auditEntry, ...prev]);
@@ -1048,18 +1039,15 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
       )
     );
 
-    const auditEntry = createDataQualityAuditRecord({
+    const auditEntry = logAuditEvent({
       who: humanApprover,
       role: "Compliance Officer",
-      taskId,
-      ciId: task.ciId,
-      ciName: task.ciName,
-      fieldChanged: "Compliance Certification",
-      beforeValue: "None (Uncertified)",
-      afterValue: "NIST-800-53",
-      action: "Apply",
+      task: taskId,
+      ci: { id: task.ciId, name: task.ciName },
+      oldValue: "None (Uncertified)",
+      newValue: `NIST-800-53 (Evidence: ${evidenceDoc})`,
+      allowed: true,
       reason: `Attested by ${humanApprover} with linked audit evidence`,
-      evidenceRef: evidenceDoc,
     });
     setAuditHistory((prev) => [auditEntry, ...prev]);
 
@@ -1070,7 +1058,7 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const applyDQTask = (taskId: string, actor = "Platform Governance", fixOptionId?: string) => {
+  const applyDQTask = (taskId: string, actor = "Marcus Vance", fixOptionId?: string) => {
     const task = dataQualityTasks.find((t) => t.id === taskId);
     if (!task) return;
 
@@ -1093,16 +1081,14 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
         )
       );
 
-      const auditEntry = createDataQualityAuditRecord({
+      const auditEntry = logAuditEvent({
         who: actor,
-        role: userRole,
-        taskId,
-        ciId: task.ciId,
-        ciName: task.ciName,
-        fieldChanged: "Lifecycle Status",
-        beforeValue: target?.operationalStatus || "Operational",
-        afterValue: "Retired (End of Life)",
-        action: "Apply",
+        role: "CMDB Manager",
+        task: taskId,
+        ci: { id: task.ciId, name: task.ciName },
+        oldValue: target?.operationalStatus || "Operational",
+        newValue: "Retired (End of Life)",
+        allowed: true,
         reason: "Asset retired per Data Quality staleness review",
       });
       setAuditHistory((prev) => [auditEntry, ...prev]);
@@ -1131,7 +1117,7 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
           target.id,
           {
             lastDiscovered: new Date().toISOString(),
-            trustScore: Math.min(100, (target.trustScore || 50) + 30),
+            trustScore: Math.min(100, (target.trustScore || 50) + 16),
           },
           actor
         );
@@ -1139,7 +1125,7 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
         updateCI(
           target.id,
           {
-            trustScore: Math.min(100, (target.trustScore || 70) + 20),
+            trustScore: Math.min(100, (target.trustScore || 70) + 15),
           },
           actor
         );
@@ -1148,7 +1134,7 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
           target.id,
           {
             lifecycleStatus: "In Use",
-            trustScore: Math.min(100, (target.trustScore || 70) + 20),
+            trustScore: Math.min(100, (target.trustScore || 70) + 12),
           },
           actor
         );
@@ -1159,16 +1145,14 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
       prev.map((t) => (t.id === taskId ? { ...t, status: "Applied", decidedAt: new Date().toISOString() } : t))
     );
 
-    const auditEntry = createDataQualityAuditRecord({
+    const auditEntry = logAuditEvent({
       who: actor,
-      role: userRole,
-      taskId,
-      ciId: task.ciId,
-      ciName: task.ciName,
-      fieldChanged: task.diff?.field || "Configuration Item Remediation",
-      beforeValue: task.diff?.before || "Degraded",
-      afterValue: task.diff?.after || "Restored",
-      action: "Apply",
+      role: "CMDB Manager",
+      task: taskId,
+      ci: { id: task.ciId, name: task.ciName },
+      oldValue: task.diff?.before || "Degraded",
+      newValue: task.diff?.after || "Restored",
+      allowed: true,
       reason: task.proposedFix,
     });
     setAuditHistory((prev) => [auditEntry, ...prev]);
@@ -1177,7 +1161,7 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
   };
 
   const bulkApplyEligibleTasks = (threshold = 85, actor = "Bulk Auto-Remediator") => {
-    const evaluation = evaluateBulkApply(dataQualityTasks, threshold);
+    const evaluation = evaluateBulkApply(dataQualityTasks, threshold, cis);
     const eligible = evaluation.eligibleTasks;
 
     eligible.forEach((task) => {
@@ -1188,31 +1172,37 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
             target.id,
             {
               lastDiscovered: new Date().toISOString(),
-              trustScore: Math.min(100, (target.trustScore || 50) + 30),
+              trustScore: Math.min(100, (target.trustScore || 50) + 16),
             },
             actor
           );
-        } else if (task.issueType === "Attribute Conflict" || task.issueType === "Duplicate Suspect") {
+        } else if (task.issueType === "Attribute Conflict") {
           updateCI(
             target.id,
             {
-              trustScore: Math.min(100, (target.trustScore || 70) + 20),
+              trustScore: Math.min(100, (target.trustScore || 70) + 15),
+            },
+            actor
+          );
+        } else if (task.issueType === "Duplicate Suspect") {
+          updateCI(
+            target.id,
+            {
+              trustScore: Math.min(100, (target.trustScore || 70) + 12),
             },
             actor
           );
         }
       }
 
-      const auditEntry = createDataQualityAuditRecord({
+      const auditEntry = logAuditEvent({
         who: actor,
         role: "Automation",
-        taskId: task.id,
-        ciId: task.ciId,
-        ciName: task.ciName,
-        fieldChanged: task.diff?.field || "Bulk Remediation",
-        beforeValue: task.diff?.before || "Degraded",
-        afterValue: task.diff?.after || "Restored",
-        action: "BulkApply",
+        task: task.id,
+        ci: { id: task.ciId, name: task.ciName },
+        oldValue: task.diff?.before || "Degraded",
+        newValue: task.diff?.after || "Restored",
+        allowed: true,
         reason: `Auto-applied high-confidence (${task.confidence}%) low-risk remediation`,
       });
       setAuditHistory((prev) => [auditEntry, ...prev]);

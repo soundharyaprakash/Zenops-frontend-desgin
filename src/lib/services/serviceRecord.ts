@@ -65,7 +65,8 @@ export interface OwnerInfo {
 export interface RevenueRisk {
   amount: number;
   currency: string;
-  basis: string; // e.g. "hour"
+  basis: string; // e.g. "per hour" (stored basis)
+  timeUnit: string; // e.g. "hr"
   formatted: string; // e.g. "$285,000 per hour"
 }
 
@@ -417,7 +418,8 @@ export function getCanonicalServiceRecords(
       revenueRisk: {
         amount: def.revenueAmount,
         currency: def.currency,
-        basis: "hour",
+        basis: "per hour",
+        timeUnit: "hr",
         formatted: `${formatCurrency(def.revenueAmount, def.currency)} per hour`,
       },
       rtoExposure,

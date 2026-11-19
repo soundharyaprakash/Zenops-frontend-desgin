@@ -62,16 +62,20 @@ export function BusinessServicesView() {
     return getCanonicalServiceRecords(cis, relationships);
   }, [cis, relationships]);
 
-  // Ownership frequency across all services to identify people owning > 2 services (Priority 3, Item 12)
+  // Ownership frequency across all services to identify people owning >= 2 services (Item 4)
   const ownerCounts = useMemo(() => {
     const counts = new Map<string, number>();
     allServices.forEach((s) => {
+      const distinctOwnersForService = new Set<string>();
       if (s.businessOwner?.name && s.businessOwner.name !== "Unassigned") {
-        counts.set(s.businessOwner.name, (counts.get(s.businessOwner.name) || 0) + 1);
+        distinctOwnersForService.add(s.businessOwner.name);
       }
       if (s.technicalOwner?.name && s.technicalOwner.name !== "Unassigned") {
-        counts.set(s.technicalOwner.name, (counts.get(s.technicalOwner.name) || 0) + 1);
+        distinctOwnersForService.add(s.technicalOwner.name);
       }
+      distinctOwnersForService.forEach((owner) => {
+        counts.set(owner, (counts.get(owner) || 0) + 1);
+      });
     });
     return counts;
   }, [allServices]);
@@ -85,7 +89,7 @@ export function BusinessServicesView() {
   const [bandFilter, setBandFilter] = useState<string>("All");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [ownerFilter, setOwnerFilter] = useState<string>("All");
-  const [sortBy, setSortBy] = useState<"risk" | "score-asc" | "score-desc" | "revenue" | "name">(
+  const [sortBy, setSortBy] = useState<"risk" | "score" | "revenue" | "tier" | "name">(
     "risk"
   );
 
@@ -102,11 +106,21 @@ export function BusinessServicesView() {
     return Array.from(set).sort();
   }, [allServices]);
 
-  // Top Summary Strip Metrics (Priority 3, Item 10)
+  // Top Summary Strip Metrics (Item 1 & Item 3)
   const summaryStrip = useMemo(() => {
     const totalCount = allServices.length;
     const belowTargetCount = allServices.filter((s) => s.trustScore < 80).length;
+    const criticalCount = allServices.filter((s) => s.trustScore < 70).length;
     const totalRevRisk = allServices.reduce((sum, s) => sum + s.revenueRisk.amount, 0);
+    const belowTargetRevRisk = allServices
+      .filter((s) => s.trustScore < 80)
+      .reduce((sum, s) => sum + s.revenueRisk.amount, 0);
+
+    // Stored basis from service record (Item 3)
+    const timeBasis = allServices[0]?.revenueRisk.basis || "per hour";
+    const timeUnit = allServices[0]?.revenueRisk.timeUnit || "hr";
+
+    // Dynamic catalog average Trust Score (Item 2 - recomputed from kept scores, never hardcoded)
     const avgScore = totalCount
       ? Number((allServices.reduce((sum, s) => sum + s.trustScore, 0) / totalCount).toFixed(1))
       : 0;
@@ -114,13 +128,18 @@ export function BusinessServicesView() {
     return {
       totalCount,
       belowTargetCount,
-      totalRevRiskFormatted: `${formatCurrency(totalRevRisk)} / hr`,
-      totalRevRiskRaw: totalRevRisk,
+      criticalCount,
+      totalRevRisk,
+      belowTargetRevRisk,
+      totalRevRiskFormatted: `${formatCurrency(totalRevRisk)} / ${timeUnit}`,
+      belowTargetRevRiskFormatted: `${formatCurrency(belowTargetRevRisk)} / ${timeUnit}`,
+      timeBasis,
+      timeUnit,
       avgScore,
     };
   }, [allServices]);
 
-  // Filtered and Sorted Services (Priority 3, Item 11)
+  // Filtered and Sorted Services (Priority 3, Item 11 & Item 6)
   const filteredServices = useMemo(() => {
     return allServices
       .filter((s) => {
@@ -162,7 +181,7 @@ export function BusinessServicesView() {
         return true;
       })
       .sort((a, b) => {
-        // Priority 3, Item 11: Default sort by risk (lowest score first; ties by revenue risk * score gap)
+        // Item 6: Explicit sort dropdown (Risk (default), Trust Score, Revenue exposure, Tier, Name)
         if (sortBy === "risk") {
           if (a.trustScore !== b.trustScore) {
             return a.trustScore - b.trustScore;
@@ -171,10 +190,18 @@ export function BusinessServicesView() {
           const riskImpactB = b.revenueRisk.amount * (80 - b.trustScore);
           return riskImpactB - riskImpactA;
         }
-        if (sortBy === "score-asc") return a.trustScore - b.trustScore;
-        if (sortBy === "score-desc") return b.trustScore - a.trustScore;
-        if (sortBy === "revenue") return b.revenueRisk.amount - a.revenueRisk.amount;
-        if (sortBy === "name") return a.canonicalName.localeCompare(b.canonicalName);
+        if (sortBy === "score") {
+          return a.trustScore - b.trustScore;
+        }
+        if (sortBy === "revenue") {
+          return b.revenueRisk.amount - a.revenueRisk.amount;
+        }
+        if (sortBy === "tier") {
+          return a.tier - b.tier;
+        }
+        if (sortBy === "name") {
+          return a.canonicalName.localeCompare(b.canonicalName);
+        }
         return 0;
       });
   }, [allServices, searchQuery, tierFilter, bandFilter, statusFilter, ownerFilter, sortBy]);
@@ -318,52 +345,69 @@ export function BusinessServicesView() {
       </div>
 
       {/* ------------------------------------------------------------------- */}
-      {/* SUMMARY STRIP AT TOP (Priority 3, Item 10) */}
+      {/* SUMMARY STRIP AT TOP (Priority 3, Item 10 & Item 1, 3) */}
       {/* ------------------------------------------------------------------- */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
-        {/* Metric 1: Services Below Target */}
+        {/* Metric 1: Below-Target Status (Item 1) */}
         <Card className="p-4 sm:p-5 bg-surface border-border flex items-center justify-between shadow-card">
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
-              Services Below Target
+              Services Trust Target Status
             </span>
-            <div className="flex items-baseline gap-2 pt-0.5">
-              <span className="text-2xl sm:text-3xl font-bold font-mono text-danger">
-                {summaryStrip.belowTargetCount}
-              </span>
-              <span className="text-xs text-text-muted font-medium">
-                of {summaryStrip.totalCount} total services
-              </span>
+            <div className="space-y-1 pt-0.5">
+              <div className="flex items-baseline gap-2">
+                <span className="text-base sm:text-lg font-bold font-mono text-warning">
+                  Below target (&lt;80): {summaryStrip.belowTargetCount} of {summaryStrip.totalCount}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-sm font-semibold font-mono text-danger">
+                  Critical (&lt;70): {summaryStrip.criticalCount} of {summaryStrip.totalCount}
+                </span>
+              </div>
             </div>
             <p className="text-[11px] text-text-secondary mt-0.5">
-              Below 80% enterprise trust threshold
+              Enterprise trust target threshold: &ge;80% Healthy
             </p>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-danger/10 border border-danger/20 text-danger flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-warning/10 border border-warning/20 text-warning flex items-center justify-center flex-shrink-0">
             <AlertOctagon className="w-5 h-5" />
           </div>
         </Card>
 
-        {/* Metric 2: Total Revenue at Risk */}
+        {/* Metric 2: Revenue Exposure (Item 3) */}
         <Card className="p-4 sm:p-5 bg-surface border-border flex items-center justify-between shadow-card">
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
-                Total Revenue at Risk
+                Revenue Exposure
               </span>
               <InfoHint
-                title="Revenue Risk Calculation"
-                concept="Estimated gross revenue and transaction settlement exposure lost per hour of total service unavailability across Tier 0-3 applications."
+                title="Revenue Exposure Breakdown"
+                concept={`Financial exposure (${summaryStrip.timeBasis}) across all business services versus services operating below target trust scores.`}
                 whyItMatters="Aligns technical CMDB governance priorities directly with organizational business risk."
               />
             </div>
-            <div className="flex items-baseline gap-2 pt-0.5">
-              <span className="text-2xl sm:text-3xl font-bold font-mono text-warning tracking-tight">
-                {summaryStrip.totalRevRiskFormatted}
-              </span>
+            <div className="space-y-1 pt-0.5">
+              <div>
+                <span className="text-[11px] text-text-muted block">
+                  Total exposure (${summaryStrip.timeUnit}):
+                </span>
+                <span className="text-base sm:text-lg font-bold font-mono text-warning tracking-tight">
+                  {summaryStrip.totalRevRiskFormatted}
+                </span>
+              </div>
+              <div>
+                <span className="text-[11px] text-text-muted block">
+                  Exposure in below-target services (${summaryStrip.timeUnit}):
+                </span>
+                <span className="text-sm font-semibold font-mono text-danger">
+                  {summaryStrip.belowTargetRevRiskFormatted}
+                </span>
+              </div>
             </div>
             <p className="text-[11px] text-text-secondary mt-0.5">
-              Sum of hourly exposure across all catalog services
+              Stored time basis: {summaryStrip.timeBasis}
             </p>
           </div>
           <div className="w-10 h-10 rounded-lg bg-warning/10 border border-warning/20 text-warning flex items-center justify-center flex-shrink-0">
@@ -371,7 +415,7 @@ export function BusinessServicesView() {
           </div>
         </Card>
 
-        {/* Metric 3: Average Trust Score */}
+        {/* Metric 3: Average Trust Score (Item 2) */}
         <Card className="p-4 sm:p-5 bg-surface border-border flex items-center justify-between shadow-card">
           <div className="space-y-1">
             <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
@@ -400,7 +444,7 @@ export function BusinessServicesView() {
               </Lozenge>
             </div>
             <p className="text-[11px] text-text-secondary mt-0.5">
-              Weighted composite across all mapped service CIs
+              Dynamically derived across all {summaryStrip.totalCount} canonical services
             </p>
           </div>
           <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center flex-shrink-0">
@@ -467,17 +511,17 @@ export function BusinessServicesView() {
               ))}
             </select>
 
-            {/* Sort Dropdown */}
+            {/* Sort Dropdown (Item 6) */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
               className="bg-sunken border border-border rounded-md px-2.5 py-1.5 text-xs font-semibold text-text-default focus:outline-none focus:ring-1 focus:ring-primary"
             >
-              <option value="risk">Sort: Risk (Lowest Score First)</option>
-              <option value="score-asc">Sort: Trust Score (Lowest First)</option>
-              <option value="score-desc">Sort: Trust Score (Highest First)</option>
-              <option value="revenue">Sort: Revenue Risk (Highest First)</option>
-              <option value="name">Sort: Service Name (A - Z)</option>
+              <option value="risk">Sort: Risk (default)</option>
+              <option value="score">Sort: Trust Score</option>
+              <option value="revenue">Sort: Revenue exposure</option>
+              <option value="tier">Sort: Tier</option>
+              <option value="name">Sort: Name</option>
             </select>
 
             {/* View Mode Toggle: Cards vs Table (Priority 4, Item 13) */}
@@ -591,16 +635,25 @@ export function BusinessServicesView() {
                       </div>
                     </div>
 
-                    {/* Score as of timestamp (Priority 2, Item 7) */}
+                    {/* Score as of timestamp & Health Band + Target Status (Item 1 & Item 7) */}
                     <div className="pt-1.5 flex items-center justify-between text-[10px] text-text-muted border-t border-border/40 mt-2">
                       <span>As of: {svc.scoreAsOf}</span>
-                      <Lozenge
-                        appearance={isBelowTarget ? "bold" : "subtle"}
-                        variant={svc.targetStatus.variant}
-                        size="xs"
-                      >
-                        {svc.targetStatus.label}
-                      </Lozenge>
+                      <div className="flex items-center gap-1.5">
+                        <Lozenge
+                          appearance={isBelowTarget ? "bold" : "subtle"}
+                          variant={svc.targetStatus.variant}
+                          size="xs"
+                        >
+                          {svc.targetStatus.label}
+                        </Lozenge>
+                        <Lozenge
+                          appearance="subtle"
+                          variant={svc.band.lozengeVariant}
+                          size="xs"
+                        >
+                          {svc.band.label}
+                        </Lozenge>
+                      </div>
                     </div>
                   </CardHeader>
 
@@ -641,12 +694,12 @@ export function BusinessServicesView() {
                         </span>
                       </div>
 
-                      {/* Business Owner (Priority 3, Item 12) */}
+                      {/* Business Owner (Priority 3, Item 12 & Item 4: triggers at >=2 services) */}
                       <div>
                         <span className="text-text-muted text-[11px] block">Business Owner</span>
                         <div className="font-medium text-text-default truncate">
                           <span>{svc.businessOwner.name}</span>
-                          {bizCount > 2 && (
+                          {bizCount >= 2 && (
                             <span className="text-[10px] text-primary font-bold ml-1">
                               (owns {bizCount} services)
                             </span>
@@ -657,12 +710,12 @@ export function BusinessServicesView() {
                         </span>
                       </div>
 
-                      {/* Technical Owner (Priority 3, Item 12) */}
+                      {/* Technical Owner (Priority 3, Item 12 & Item 4: triggers at >=2 services) */}
                       <div>
                         <span className="text-text-muted text-[11px] block">Technical Owner</span>
                         <div className="font-medium text-text-default truncate">
                           <span>{svc.technicalOwner.name}</span>
-                          {techCount > 2 && (
+                          {techCount >= 2 && (
                             <span className="text-[10px] text-primary font-bold ml-1">
                               (owns {techCount} services)
                             </span>
@@ -812,6 +865,7 @@ export function BusinessServicesView() {
                 <tr>
                   <th className="px-4 py-3">Service Name & ID</th>
                   <th className="px-3 py-3">Tier</th>
+                  <th className="px-3 py-3">Environment</th>
                   <th className="px-3 py-3">Trust Score</th>
                   <th className="px-3 py-3">Target Status</th>
                   <th className="px-3 py-3">Dependent CIs</th>
@@ -845,18 +899,22 @@ export function BusinessServicesView() {
                         </div>
                       </td>
 
-                      {/* Tier & Env */}
+                      {/* Tier (Item 5) */}
                       <td className="px-3 py-3">
-                        <div className="flex items-center gap-1.5">
-                          <Lozenge
-                            appearance="bold"
-                            variant={svc.tier === 0 ? "danger" : svc.tier === 1 ? "warning" : "info"}
-                            size="xs"
-                          >
-                            {svc.tierLabel}
-                          </Lozenge>
-                          <span className="text-[10px] text-text-muted">{svc.environment}</span>
-                        </div>
+                        <Lozenge
+                          appearance="bold"
+                          variant={svc.tier === 0 ? "danger" : svc.tier === 1 ? "warning" : "info"}
+                          size="xs"
+                        >
+                          {svc.tierLabel}
+                        </Lozenge>
+                      </td>
+
+                      {/* Environment (Item 5) */}
+                      <td className="px-3 py-3">
+                        <span className="text-[11px] font-medium text-text-secondary bg-sunken px-2 py-0.5 rounded border border-border/60">
+                          {svc.environment}
+                        </span>
                       </td>
 
                       {/* Trust Score & Health Band (Priority 1, Item 4) */}
@@ -878,15 +936,24 @@ export function BusinessServicesView() {
                         </div>
                       </td>
 
-                      {/* Target Status */}
+                      {/* Target Status (Item 1) */}
                       <td className="px-3 py-3">
-                        <Lozenge
-                          appearance={isBelowTarget ? "bold" : "subtle"}
-                          variant={svc.targetStatus.variant}
-                          size="xs"
-                        >
-                          {svc.targetStatus.label}
-                        </Lozenge>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <Lozenge
+                            appearance={isBelowTarget ? "bold" : "subtle"}
+                            variant={svc.targetStatus.variant}
+                            size="xs"
+                          >
+                            {svc.targetStatus.label}
+                          </Lozenge>
+                          <Lozenge
+                            appearance="subtle"
+                            variant={svc.band.lozengeVariant}
+                            size="xs"
+                          >
+                            {svc.band.label}
+                          </Lozenge>
+                        </div>
                       </td>
 
                       {/* Dependent CIs Clickable (Priority 4, Item 18) */}
@@ -915,7 +982,7 @@ export function BusinessServicesView() {
                         {svc.rtoFormatted} / {svc.rpoFormatted}
                       </td>
 
-                      {/* Owners */}
+                      {/* Owners (Item 4: triggers at >=2 services) */}
                       <td className="px-3 py-3">
                         <div className="space-y-0.5 max-w-[180px] text-[11px]">
                           <div className="truncate">
@@ -923,7 +990,7 @@ export function BusinessServicesView() {
                             <span className="font-medium text-text-default">
                               {svc.businessOwner.name}
                             </span>
-                            {bizCount > 2 && (
+                            {bizCount >= 2 && (
                               <span className="text-[10px] text-primary font-bold ml-1">
                                 (owns {bizCount})
                               </span>
@@ -934,7 +1001,7 @@ export function BusinessServicesView() {
                             <span className="font-medium text-text-default">
                               {svc.technicalOwner.name}
                             </span>
-                            {techCount > 2 && (
+                            {techCount >= 2 && (
                               <span className="text-[10px] text-primary font-bold ml-1">
                                 (owns {techCount})
                               </span>

@@ -12,6 +12,10 @@ import {
   getTargetStatus,
   getCanonicalServiceRecords,
 } from "@/lib/services/serviceRecord";
+import {
+  getCanonicalDiscoverySources,
+  DiscoverySourceRecord,
+} from "@/lib/discovery/sourceRecord";
 
 export {
   HEALTH_BANDS,
@@ -34,25 +38,28 @@ export interface ArchitectureSegment {
 // ============================================================================
 // DISCOVERY STATUS SPEC (Priority 1, Item 4 & Priority 4, Item 18)
 // ============================================================================
-export type DiscoveryHealthStatus = "green" | "amber" | "red";
+export type DiscoveryHealthStatus = "green" | "amber" | "red" | "gray";
 
 export interface ComputedDiscoverySource {
   id: string;
   name: string;
   type: string;
+  role: "discovery" | "import";
   schedule: string;
   lastRun: string;
   lastSyncedText: string;
   nextRunTime: string;
   intervalMs: number;
   syncAgeMs: number;
-  healthStatus: DiscoveryHealthStatus; // green = within interval, amber = late (<=2x), red = overdue (>2x)
-  statusBadge: "OK" | "LATE" | "OVERDUE";
-  badgeVariant: "success" | "warning" | "danger";
+  health: "Healthy" | "Late" | "Failed" | "Paused";
+  healthStatus: DiscoveryHealthStatus;
+  statusBadge: "Healthy" | "Late" | "Failed" | "Paused";
+  badgeVariant: "success" | "warning" | "danger" | "neutral";
   cisDiscovered: number;
   cisUpdated: number;
   errorCount: number;
   estateCoveredPct: number;
+  state: "active" | "paused" | "disabled";
 }
 
 // ============================================================================
@@ -146,6 +153,7 @@ export interface DashboardMetricsResult {
   // Discovery Sources
   discoverySources: ComputedDiscoverySource[];
   isAllDiscoveryGreen: boolean; // Controls "Live Synchronized" vs "Sync delayed"
+  healthySourcesCount: number;
 
   // Services Health
   servicesHealth: BusinessServiceHealth[];
@@ -503,102 +511,40 @@ export function getDashboardMetrics(
     }))
     .sort((a, b) => b.totalCIs - a.totalCIs);
 
-  // 11. Discovery Sources Calculation (Priority 1, Item 4 & Priority 4, Item 18)
-  // Ensure network scan and directory sources are included
-  const baseSources: DiscoverySource[] =
-    discoverySources.length > 0
-      ? [...discoverySources]
-      : [];
+  // 11. Discovery Sources Calculation (Priority 1, Item 1, 3, 7)
+  // Shared single source model with /discovery-sources: exactly 6 sources including ServiceNow Bridge
+  const canonicalDiscovery = getCanonicalDiscoverySources(now);
+  const computedDiscoverySources: ComputedDiscoverySource[] = canonicalDiscovery.map((s) => ({
+    id: s.id,
+    name: s.name,
+    type: s.type,
+    role: s.role,
+    schedule: s.cadence.description,
+    lastRun: s.lastRun.startedAt,
+    lastSyncedText: s.syncAgeText,
+    nextRunTime: s.nextRunText,
+    intervalMs: s.cadence.intervalMinutes * 60 * 1000,
+    syncAgeMs: s.syncAgeMs,
+    health: s.health,
+    healthStatus:
+      s.health === "Healthy"
+        ? "green"
+        : s.health === "Late"
+        ? "amber"
+        : s.health === "Failed"
+        ? "red"
+        : "gray",
+    statusBadge: s.health,
+    badgeVariant: s.badgeVariant,
+    cisDiscovered: s.cisDiscovered,
+    cisUpdated: s.cisUpdated,
+    errorCount: s.lastRun.errors,
+    estateCoveredPct: Math.min(100, Math.round((s.cisDiscovered / 5025) * 100)),
+    state: s.state,
+  }));
 
-  // Check if network scanner and directory source exist; if not, include them
-  const hasNetwork = baseSources.some(
-    (s) => s.type === "Network Scanner" || s.name.toLowerCase().includes("network")
-  );
-  if (!hasNetwork) {
-    baseSources.push({
-      id: "DSC-07",
-      name: "Network Subnet & Port Scanner",
-      type: "Network Scanner",
-      credentialsRef: "vault://secret/nmap/agent",
-      scope: "Enterprise Corporate & DC Subnets (10.0.0.0/8)",
-      schedule: "Every 6 Hours",
-      lastRun: new Date(now - 3.5 * 3600 * 1000).toISOString(),
-      result: "Success",
-      cisDiscovered: Math.round(safeTotal * 0.28),
-      cisUpdated: 18,
-      status: "Active",
-    });
-  }
-
-  const hasDirectory = baseSources.some(
-    (s) => s.type === "Directory Service" || s.name.toLowerCase().includes("directory")
-  );
-  if (!hasDirectory) {
-    baseSources.push({
-      id: "DSC-08",
-      name: "Active Directory & Okta Identity",
-      type: "Directory Service",
-      credentialsRef: "vault://secret/okta/oauth",
-      scope: "Global Identity & Device Catalog",
-      schedule: "Daily at 02:00 UTC",
-      lastRun: new Date(now - 14 * 3600 * 1000).toISOString(),
-      result: "Success",
-      cisDiscovered: Math.round(safeTotal * 0.42),
-      cisUpdated: 45,
-      status: "Active",
-    });
-  }
-
-  // Calculate health based on sync age vs interval:
-  // green = within interval
-  // amber = late (up to 2x interval)
-  // red = overdue (>2x interval)
-  const computedDiscoverySources: ComputedDiscoverySource[] = baseSources.map((s, idx) => {
-    const intervalMs = parseScheduleIntervalMs(s.schedule);
-    const lastRunTime = new Date(s.lastRun).getTime();
-    const syncAgeMs = isNaN(lastRunTime) ? 0 : Math.max(0, now - lastRunTime);
-
-    let healthStatus: DiscoveryHealthStatus = "green";
-    let statusBadge: "OK" | "LATE" | "OVERDUE" = "OK";
-    let badgeVariant: "success" | "warning" | "danger" = "success";
-
-    if (s.status === "Error" || s.result === "Failed" || syncAgeMs > 2 * intervalMs) {
-      healthStatus = "red";
-      statusBadge = "OVERDUE";
-      badgeVariant = "danger";
-    } else if (syncAgeMs > intervalMs) {
-      healthStatus = "amber";
-      statusBadge = "LATE";
-      badgeVariant = "warning";
-    }
-
-    const nextRunMs = isNaN(lastRunTime) ? now + intervalMs : lastRunTime + intervalMs;
-    const nextRunTime =
-      nextRunMs > now
-        ? `In ${Math.round((nextRunMs - now) / 60000)}m`
-        : "Overdue now";
-
-    return {
-      id: s.id,
-      name: s.name,
-      type: s.type,
-      schedule: s.schedule,
-      lastRun: s.lastRun,
-      lastSyncedText: formatRelativeSyncTime(syncAgeMs),
-      nextRunTime,
-      intervalMs,
-      syncAgeMs,
-      healthStatus,
-      statusBadge,
-      badgeVariant,
-      cisDiscovered: s.cisDiscovered || Math.round(safeTotal * (0.3 + (idx * 0.1) % 0.5)),
-      cisUpdated: s.cisUpdated || 24,
-      errorCount: healthStatus === "red" ? 3 : healthStatus === "amber" ? 1 : 0,
-      estateCoveredPct: Math.min(100, Math.round(((s.cisDiscovered || safeTotal * 0.35) / safeTotal) * 100)),
-    };
-  });
-
-  const isAllDiscoveryGreen = computedDiscoverySources.every((s) => s.healthStatus === "green");
+  const healthySourcesCount = computedDiscoverySources.filter((s) => s.health === "Healthy").length;
+  const isAllDiscoveryGreen = healthySourcesCount === computedDiscoverySources.length;
 
   // 12. Services by Trust Score (Derived from canonical service record model - Priority 1, Item 1 & 3)
   const canonicalServices = getCanonicalServiceRecords(filteredCIs, relationships);
@@ -771,6 +717,7 @@ export function getDashboardMetrics(
     architectureSegments,
     discoverySources: computedDiscoverySources,
     isAllDiscoveryGreen,
+    healthySourcesCount,
 
     servicesHealth,
     remediationTasks,

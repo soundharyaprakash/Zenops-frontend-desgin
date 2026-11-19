@@ -346,10 +346,10 @@ export function DashboardCharts() {
                     </CardTitle>
                     <Lozenge
                       appearance="bold"
-                      variant={dashboardData.isAllDiscoveryGreen ? "success" : "warning"}
+                      variant={dashboardData.healthySourcesCount === dashboardData.discoverySources.length ? "success" : "warning"}
                       size="xs"
                     >
-                      {dashboardData.isAllDiscoveryGreen ? "All Active" : "Delayed Sync"}
+                      {dashboardData.healthySourcesCount} of {dashboardData.discoverySources.length} Healthy
                     </Lozenge>
                   </div>
                   <CardDescription className="text-sm text-text-secondary">
@@ -376,8 +376,13 @@ export function DashboardCharts() {
                           <p className="text-xs font-semibold text-text-default truncate">
                             {source.name}
                           </p>
+                          {source.role === "import" && (
+                            <Lozenge appearance="subtle" variant="neutral" size="xs">
+                              Import
+                            </Lozenge>
+                          )}
                           <Lozenge appearance="bold" variant={source.badgeVariant} size="xs">
-                            {source.statusBadge}
+                            {source.health}
                           </Lozenge>
                         </div>
 

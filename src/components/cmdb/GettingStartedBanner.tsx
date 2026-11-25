@@ -110,7 +110,7 @@ export function GettingStartedBanner() {
   if (dismissed || progressPct === 100) return null;
 
   return (
-    <div className="relative rounded-lg border border-primary/20 dark:border-white/[0.08] bg-gradient-to-r from-primary/5 via-brand-cyan/5 to-brand-mint/5 dark:from-primary/[0.07] dark:via-surface dark:to-surface p-4 sm:p-5 shadow-xs dark:shadow-none transition-all">
+    <div className="relative rounded-lg border border-primary/20 dark:border-primary/30 bg-gradient-to-r from-primary/5 via-brand-cyan/5 to-brand-mint/5 dark:from-primary/[0.07] dark:via-surface dark:to-surface p-4 sm:p-5 shadow-xs dark:shadow-none transition-all">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Left: Summary */}
         <div className="space-y-1.5 max-w-xl">
@@ -163,12 +163,12 @@ export function GettingStartedBanner() {
       </div>
 
       {/* Steps Pill Row */}
-      <div className="mt-4 pt-3 border-t border-border/40 dark:border-white/[0.06] grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+      <div className="mt-4 pt-3 border-t border-border/40 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         {steps.map((step) => (
           <Link
             key={step.id}
             href={step.href}
-            className="flex items-start gap-1.5 p-1.5 rounded hover:bg-surface/80 dark:hover:bg-white/[0.04] transition-all duration-150 hover:-translate-y-0.5 group"
+            className="flex items-start gap-1.5 p-1.5 rounded hover:bg-surface/80 dark:hover:bg-sunken/60 transition-all duration-150 hover:-translate-y-0.5 group"
           >
             {step.completed ? (
               <CheckCircle2 className="w-3.5 h-3.5 text-success mt-0.5 flex-shrink-0 transition-transform group-hover:scale-110 duration-150" />

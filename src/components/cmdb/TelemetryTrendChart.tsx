@@ -173,7 +173,7 @@ export function TelemetryTrendChart() {
 
   return (
     <Card className="bg-surface border-border shadow-card overflow-hidden">
-      <CardHeader className="pb-3 border-b border-border/60 dark:border-white/[0.06] bg-sunken/20">
+      <CardHeader className="pb-3 border-b border-border/60 bg-sunken/20">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 flex-wrap">

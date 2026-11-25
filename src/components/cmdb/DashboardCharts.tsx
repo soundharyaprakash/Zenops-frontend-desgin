@@ -33,6 +33,10 @@ import { formatDateTime } from "@/utils";
 import { TelemetryTrendChart } from "@/components/cmdb/TelemetryTrendChart";
 import { RadialArchitectureChart } from "@/components/cmdb/RadialArchitectureChart";
 import { TrustScoreAnalyticsCard } from "@/components/cmdb/TrustScoreAnalyticsCard";
+import {
+  getTaskQueueMetrics,
+  CANONICAL_REMEDIATION_TASKS,
+} from "@/lib/cmdb-metrics";
 import { getDashboardMetrics, HEALTH_BANDS } from "@/lib/dashboard/metrics";
 
 export function DashboardCharts() {
@@ -51,6 +55,9 @@ export function DashboardCharts() {
 
   const [triggeringSource, setTriggeringSource] = useState<string | null>(null);
   const [taskViewMode, setTaskViewMode] = useState<"categories" | "priorityList">("categories");
+
+  // Canonical Task Queue Metrics (A2 requirement: reads directly from getTaskQueueMetrics())
+  const taskQueueMetrics = useMemo(() => getTaskQueueMetrics(), []);
 
   // Single shared selector module for consistency across dashboard (Priority 1, Item 1)
   const dashboardData = useMemo(() => {
@@ -79,19 +86,19 @@ export function DashboardCharts() {
   const dqCategories = [
     {
       label: "Stale Telemetry (>14d)",
-      href: "/cis?view=stale",
+      href: "/data-quality?tab=stale",
       count: dashboardData.staleCount,
       severity: dashboardData.staleCount > 0 ? "warning" : "success",
     },
     {
       label: "Missing Owner",
-      href: "/cis?view=missing-owner",
+      href: "/data-quality?tab=missing-owner",
       count: dashboardData.missingOwnerCount,
       severity: dashboardData.missingOwnerCount > 0 ? "danger" : "success",
     },
     {
       label: "Duplicate Suspects",
-      href: "/ire-console",
+      href: "/reconciliation-rules?tab=queue",
       count: dashboardData.duplicateSuspectsCount,
       severity: dashboardData.duplicateSuspectsCount > 0 ? "danger" : "success",
     },
@@ -186,11 +193,16 @@ export function DashboardCharts() {
             <div>
               <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <div>
-                  <CardTitle className="text-base font-bold text-text-default">
-                    Open DQ Remediation
-                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-base font-bold text-text-default">
+                      Open DQ Remediation
+                    </CardTitle>
+                    <Lozenge appearance="bold" variant="danger" size="xs">
+                      {taskQueueMetrics.totalTasks} open
+                    </Lozenge>
+                  </div>
                   <CardDescription className="text-sm text-text-secondary">
-                    Prioritized governance tasks
+                    Included in {taskQueueMetrics.totalTasks} canonical governance tasks
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -236,7 +248,7 @@ export function DashboardCharts() {
                       <Link
                         key={cat.label}
                         href={cat.href}
-                        className="flex items-center justify-between p-2 rounded-md hover:bg-sunken border border-border/40 dark:border-white/[0.06] transition-colors group"
+                        className="flex items-center justify-between p-2 rounded-md hover:bg-sunken border border-border/40 transition-colors group"
                       >
                         <span className="text-xs font-medium text-text-default group-hover:text-primary">
                           {cat.label}
@@ -270,7 +282,7 @@ export function DashboardCharts() {
                             CIs missing technical owners or support groups.
                           </p>
                           <Link
-                            href="/cis?view=missing-owner"
+                            href="/data-quality?tab=missing-owner"
                             className="text-primary font-semibold hover:underline inline-block mt-1"
                           >
                             Resolve unassigned CIs &rarr;
@@ -282,7 +294,7 @@ export function DashboardCharts() {
                 ) : (
                   /* Priority Task List with Severity, Age, Owner & One-Click Action (Priority 4, Item 17) */
                   <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                    {dashboardData.remediationTasks.map((task) => (
+                    {(CANONICAL_REMEDIATION_TASKS.length > 0 ? CANONICAL_REMEDIATION_TASKS : dashboardData.remediationTasks).map((task) => (
                       <div
                         key={task.id}
                         className="p-2 rounded-md border border-border/60 hover:bg-sunken transition-all flex flex-col gap-1 text-xs"
@@ -369,7 +381,7 @@ export function DashboardCharts() {
                   return (
                     <div
                       key={source.id}
-                      className="p-2.5 rounded-md border border-border/40 dark:border-white/[0.06] hover:bg-sunken transition-colors flex flex-col gap-1.5"
+                      className="p-2.5 rounded-md border border-border/40 hover:bg-sunken transition-colors flex flex-col gap-1.5"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 min-w-0">
@@ -489,7 +501,7 @@ export function DashboardCharts() {
                           </span>
                         </div>
                       </div>
-                      <div className="w-full bg-sunken rounded-full h-2 overflow-hidden border border-border/40 dark:border-white/[0.06]">
+                      <div className="w-full bg-sunken rounded-full h-2 overflow-hidden border border-border/40">
                         <div
                           className="h-full rounded-full transition-all duration-500"
                           style={{

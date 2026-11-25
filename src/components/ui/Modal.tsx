@@ -64,12 +64,12 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative w-full bg-surface text-foreground rounded-lg border border-border-strong dark:border-white/[0.12] shadow-dropdown overflow-hidden z-10 transition-all",
+          "relative w-full bg-surface text-foreground rounded-lg border border-border-strong shadow-dropdown overflow-hidden z-10 transition-all",
           maxWidthStyles[maxWidth]
         )}
       >
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between px-5 py-3.5 border-b border-border dark:border-white/[0.06] bg-elevated/40">
+          <div className="flex items-start justify-between px-5 py-3.5 border-b border-border bg-elevated/40">
             <div>
               {title && (
                 <h3 className="text-base font-bold text-foreground tracking-tight">

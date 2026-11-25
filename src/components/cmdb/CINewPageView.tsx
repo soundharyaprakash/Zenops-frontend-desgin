@@ -35,18 +35,18 @@ export function CINewPageView() {
         </div>
 
         {/* Mode Switcher Pill */}
-        <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/80 shadow-2xs self-start sm:self-auto">
+        <div className="inline-flex p-1 bg-sunken rounded-xl border border-border shadow-2xs self-start sm:self-auto">
           <button
             type="button"
             onClick={() => setMode("single")}
             className={cn(
               "flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all",
               mode === "single"
-                ? "bg-white text-[#0A192F] shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-surface text-default border border-border shadow-xs"
+                : "text-muted hover:text-default"
             )}
           >
-            <PlusCircle className="w-3.5 h-3.5 text-[#3478E8]" />
+            <PlusCircle className="w-3.5 h-3.5 text-primary" />
             Single CI Form
           </button>
           <button
@@ -55,11 +55,11 @@ export function CINewPageView() {
             className={cn(
               "flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all",
               mode === "bulk"
-                ? "bg-white text-[#0A192F] shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-surface text-default border border-border shadow-xs"
+                : "text-muted hover:text-default"
             )}
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-[#3478E8]" />
+            <FileSpreadsheet className="w-3.5 h-3.5 text-primary" />
             Bulk Upload CSV
           </button>
         </div>
@@ -69,7 +69,7 @@ export function CINewPageView() {
       {mode === "single" ? (
         <CIForm isEdit={false} />
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-card p-6 sm:p-8 max-w-5xl mx-auto">
+        <div className="bg-surface rounded-2xl border border-border shadow-card p-6 sm:p-8 max-w-5xl mx-auto">
           <CIBulkUpload
             onSuccess={() => router.push("/cis")}
             onCancel={() => setMode("single")}

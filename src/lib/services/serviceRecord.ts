@@ -17,7 +17,7 @@ export const HEALTH_BANDS = {
     lozengeVariant: "success" as const,
   },
   AT_RISK: {
-    min: 70,
+    min: 60,
     max: 79,
     label: "At risk",
     targetLabel: "Below trust target" as const,
@@ -28,7 +28,7 @@ export const HEALTH_BANDS = {
   },
   CRITICAL: {
     min: 0,
-    max: 69,
+    max: 59,
     label: "Critical",
     targetLabel: "Below trust target" as const,
     color: "#C9372C",
@@ -40,7 +40,7 @@ export const HEALTH_BANDS = {
 
 export function getHealthBand(score: number) {
   if (score >= 80) return HEALTH_BANDS.HEALTHY;
-  if (score >= 70) return HEALTH_BANDS.AT_RISK;
+  if (score >= 60) return HEALTH_BANDS.AT_RISK;
   return HEALTH_BANDS.CRITICAL;
 }
 

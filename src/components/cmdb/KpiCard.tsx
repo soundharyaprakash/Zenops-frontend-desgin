@@ -48,7 +48,7 @@ export function KpiCard({
     success: "bg-success/10 text-success border-success/20 dark:border-success/30",
     warning: "bg-warning/10 text-warning border-warning/20 dark:border-warning/30",
     danger: "bg-danger/10 text-danger border-danger/20 dark:border-danger/30",
-    neutral: "bg-neutral/10 text-neutral border-neutral/20 dark:border-white/10",
+    neutral: "bg-neutral/10 text-neutral border-neutral/20 dark:border-neutral/30",
     blue: "bg-brand-blue/10 text-brand-blue border-brand-blue/20 dark:border-brand-blue/30",
     teal: "bg-brand-cyan/10 text-brand-cyan border-brand-cyan/20 dark:border-brand-cyan/30",
   };
@@ -107,7 +107,7 @@ export function KpiCard({
                 {value}
               </span>
               {displayTarget && (
-                <span className="text-[11px] text-text-secondary font-semibold bg-sunken px-2 py-0.5 rounded border border-border/80 dark:border-white/[0.08] truncate max-w-full">
+                <span className="text-[11px] text-text-secondary font-semibold bg-sunken px-2 py-0.5 rounded border border-border/80 truncate max-w-full">
                   {displayTarget}
                 </span>
               )}
@@ -126,7 +126,7 @@ export function KpiCard({
 
         {progressPercent !== undefined && (
           <div className="mt-3 space-y-1">
-            <div className="w-full bg-sunken rounded-full h-2 overflow-hidden border border-border/30 dark:border-white/[0.06] relative">
+            <div className="w-full bg-sunken rounded-full h-2 overflow-hidden border border-border/30 relative">
               <div
                 className={cn(
                   "h-full rounded-full transition-all duration-700 ease-out relative overflow-hidden",
@@ -141,7 +141,7 @@ export function KpiCard({
         )}
       </div>
 
-      <div className="mt-3 pt-2.5 border-t border-border/50 dark:border-white/[0.06] flex items-center justify-between text-xs text-text-secondary gap-2 flex-wrap">
+      <div className="mt-3 pt-2.5 border-t border-border/50 flex items-center justify-between text-xs text-text-secondary gap-2 flex-wrap">
         {subtitle && <span className="truncate font-medium min-w-0">{subtitle}</span>}
         {trend && (
           <span

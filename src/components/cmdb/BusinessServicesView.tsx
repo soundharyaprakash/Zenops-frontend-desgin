@@ -80,10 +80,27 @@ export function BusinessServicesView() {
     return counts;
   }, [allServices]);
 
-  // View & Filter States
-  const [viewMode, setViewMode] = useState<"cards" | "table">(
-    allServices.length > 6 ? "table" : "cards"
-  );
+  // View & Filter States (G9: Persistent view mode)
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("zenops_services_view_mode");
+      if (saved === "table" || saved === "cards") setViewMode(saved);
+      else if (allServices.length > 6) setViewMode("table");
+    } catch {
+      // ignore
+    }
+  }, [allServices.length]);
+
+  const handleSetViewMode = (mode: "cards" | "table") => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem("zenops_services_view_mode", mode);
+    } catch {
+      // ignore
+    }
+  };
   const [searchQuery, setSearchQuery] = useState("");
   const [tierFilter, setTierFilter] = useState<string>("All");
   const [bandFilter, setBandFilter] = useState<string>("All");
@@ -493,8 +510,8 @@ export function BusinessServicesView() {
             >
               <option value="All">All Health Bands</option>
               <option value="Healthy">Healthy (≥80)</option>
-              <option value="At risk">At risk (70–79)</option>
-              <option value="Critical">Critical (&lt;70)</option>
+              <option value="At risk">At risk (60–79)</option>
+              <option value="Critical">Critical (&lt;60)</option>
             </select>
 
             {/* Owner Filter */}
@@ -524,11 +541,11 @@ export function BusinessServicesView() {
               <option value="name">Sort: Name</option>
             </select>
 
-            {/* View Mode Toggle: Cards vs Table (Priority 4, Item 13) */}
+            {/* View Mode Toggle: Cards vs Table (G9: Persisted in localStorage) */}
             <div className="inline-flex rounded-md border border-border bg-sunken p-0.5 select-none ml-auto">
               <button
                 type="button"
-                onClick={() => setViewMode("cards")}
+                onClick={() => handleSetViewMode("cards")}
                 className={cn(
                   "p-1.5 rounded flex items-center gap-1 font-medium transition-all",
                   viewMode === "cards"
@@ -541,7 +558,7 @@ export function BusinessServicesView() {
               </button>
               <button
                 type="button"
-                onClick={() => setViewMode("table")}
+                onClick={() => handleSetViewMode("table")}
                 className={cn(
                   "p-1.5 rounded flex items-center gap-1 font-medium transition-all",
                   viewMode === "table"

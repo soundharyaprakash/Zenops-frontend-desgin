@@ -161,7 +161,7 @@ export function Header({ onOpenMobileSidebar, collapsed }: HeaderProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 h-14 bg-surface border-b border-border dark:border-white/[0.07] px-3 sm:px-5 lg:px-6 flex items-center justify-between shadow-subtle dark:shadow-none w-full text-default">
+      <header className="sticky top-0 z-30 h-14 bg-surface border-b border-border px-3 sm:px-5 lg:px-6 flex items-center justify-between shadow-subtle dark:shadow-none w-full text-default">
         {/* Left Section: Mobile Menu, Breadcrumbs & Tenant Isolation Indicator */}
         <div className="flex items-center gap-3 min-w-0">
           <button
@@ -177,7 +177,7 @@ export function Header({ onOpenMobileSidebar, collapsed }: HeaderProps) {
 
           {/* Tenant Isolation Lock Chip */}
           <div
-            className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lozenge bg-sunken border border-border/80 dark:border-white/[0.08] text-xs font-medium text-secondary"
+            className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lozenge bg-sunken border border-border text-xs font-medium text-secondary"
             title={`Tenant isolation active: ${activeTenant}`}
           >
             <Lock className="w-3.5 h-3.5 text-primary" />
@@ -192,12 +192,12 @@ export function Header({ onOpenMobileSidebar, collapsed }: HeaderProps) {
           <button
             type="button"
             onClick={() => setCommandPaletteOpen(true)}
-            className="flex items-center gap-2 bg-sunken hover:bg-border/60 dark:hover:bg-white/[0.05] text-secondary hover:text-default px-2.5 sm:px-3 py-1.5 rounded-input border border-border dark:border-white/[0.08] text-sm transition-colors shadow-2xs group"
+            className="flex items-center gap-2 bg-sunken hover:bg-border/60 dark:hover:bg-sunken/80 text-secondary hover:text-default px-2.5 sm:px-3 py-1.5 rounded-input border border-border hover:border-border-strong text-sm transition-colors shadow-2xs group"
             title="Search CIs, records, and navigation (Cmd+K)"
           >
             <Search className="w-4 h-4 text-muted group-hover:text-default" />
             <span className="hidden sm:inline text-sm text-muted">Search or jump to...</span>
-            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-xs font-mono text-muted bg-surface rounded border border-border/80 dark:border-white/[0.08]">
+            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-xs font-mono text-muted bg-surface rounded border border-border">
               ⌘K
             </kbd>
           </button>
@@ -208,7 +208,7 @@ export function Header({ onOpenMobileSidebar, collapsed }: HeaderProps) {
             <button
               type="button"
               onClick={() => setTenantOpen(!tenantOpen)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-button hover:bg-sunken text-sm font-semibold text-secondary hover:text-default transition-colors border border-transparent hover:border-border dark:hover:border-white/[0.08]"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-button hover:bg-sunken text-sm font-semibold text-secondary hover:text-default transition-colors border border-transparent hover:border-border"
               title="Switch Active Tenant"
             >
               <Building2 className="w-4 h-4 text-primary" />
@@ -219,8 +219,8 @@ export function Header({ onOpenMobileSidebar, collapsed }: HeaderProps) {
             </button>
 
             {tenantOpen && (
-              <div className="absolute right-0 mt-1.5 w-64 bg-surface border border-border dark:border-white/[0.1] rounded-card shadow-dropdown p-1.5 z-50 text-sm animate-in fade-in zoom-in-95 duration-100">
-                <div className="px-3 py-2 border-b border-border dark:border-white/[0.06] mb-1">
+              <div className="absolute right-0 mt-1.5 w-64 bg-surface border border-border rounded-card shadow-dropdown p-1.5 z-50 text-sm animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-3 py-2 border-b border-border mb-1">
                   <p className="text-xs font-bold uppercase tracking-wider text-muted">Active Tenant</p>
                   <p className="text-sm font-bold text-default">{activeTenant}</p>
                   <p className="text-xs text-muted flex items-center gap-1 mt-0.5">

@@ -127,7 +127,7 @@ export function StagingView() {
       {/* VISUAL PIPELINE STRIP */}
       {/* ----------------------------------------------------------------------- */}
       <Card className="bg-surface p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5 px-1 border-b border-border/60 dark:border-white/[0.06] pb-2.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5 px-1 border-b border-border/60 pb-2.5">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
               End-to-End Discovery Pipeline
@@ -147,7 +147,7 @@ export function StagingView() {
           {/* Stage 1: Connectors */}
           <Link
             href="/discovery-sources"
-            className="p-3.5 rounded-lg bg-sunken hover:bg-surface border border-border/80 dark:border-white/[0.08] hover:border-primary/60 dark:hover:border-primary/60 flex flex-col justify-between space-y-2 transition-all duration-150 group cursor-pointer shadow-2xs hover:shadow-card hover:-translate-y-0.5 text-left"
+            className="p-3.5 rounded-lg bg-sunken hover:bg-surface border border-border/80 hover:border-primary/60 flex flex-col justify-between space-y-2 transition-all duration-150 group cursor-pointer shadow-2xs hover:shadow-card hover:-translate-y-0.5 text-left"
             title="Stage 1: Connector Management – Ingest feeds from AWS, Azure, K8s, Agents (/discovery-sources)"
           >
             <div>
@@ -163,7 +163,7 @@ export function StagingView() {
               <p className="text-xs text-text-secondary font-medium">Connector Management</p>
               <p className="text-[11px] text-text-muted mt-0.5">AWS, Azure, K8s, Agents</p>
             </div>
-            <div className="pt-2 border-t border-border/50 dark:border-white/[0.06] flex items-center justify-between">
+            <div className="pt-2 border-t border-border/50 flex items-center justify-between">
               <Lozenge appearance="subtle" variant="success" size="xs">
                 Active Feeds
               </Lozenge>
@@ -208,7 +208,7 @@ export function StagingView() {
           {/* Stage 3: IRE Engine */}
           <Link
             href="/reconciliation-rules"
-            className="p-3.5 rounded-lg bg-sunken hover:bg-surface border border-border/80 dark:border-white/[0.08] hover:border-warning/60 dark:hover:border-warning/60 flex flex-col justify-between space-y-2 transition-all duration-150 group cursor-pointer shadow-2xs hover:shadow-card hover:-translate-y-0.5 text-left"
+            className="p-3.5 rounded-lg bg-sunken hover:bg-surface border border-border/80 hover:border-warning/60 flex flex-col justify-between space-y-2 transition-all duration-150 group cursor-pointer shadow-2xs hover:shadow-card hover:-translate-y-0.5 text-left"
             title="Stage 3: Identification & Reconciliation Engine – Rule priority and match criteria (/reconciliation-rules)"
           >
             <div>
@@ -224,7 +224,7 @@ export function StagingView() {
               <p className="text-xs text-text-secondary font-medium">ID & Reconciliation</p>
               <p className="text-[11px] text-text-muted mt-0.5">Match Rules & Precedence</p>
             </div>
-            <div className="pt-2 border-t border-border/50 dark:border-white/[0.06] flex items-center justify-between">
+            <div className="pt-2 border-t border-border/50 flex items-center justify-between">
               <Lozenge appearance="subtle" variant="warning" size="xs">
                 Active Engine
               </Lozenge>
@@ -237,7 +237,7 @@ export function StagingView() {
           {/* Stage 4: CMDB Master */}
           <Link
             href="/cis"
-            className="p-3.5 rounded-lg bg-sunken hover:bg-surface border border-border/80 dark:border-white/[0.08] hover:border-success/60 dark:hover:border-success/60 flex flex-col justify-between space-y-2 transition-all duration-150 group cursor-pointer shadow-2xs hover:shadow-card hover:-translate-y-0.5 text-left"
+            className="p-3.5 rounded-lg bg-sunken hover:bg-surface border border-border/80 hover:border-success/60 flex flex-col justify-between space-y-2 transition-all duration-150 group cursor-pointer shadow-2xs hover:shadow-card hover:-translate-y-0.5 text-left"
             title="Stage 4: CMDB Master – CI records management and single source of truth (/cis)"
           >
             <div>
@@ -253,7 +253,7 @@ export function StagingView() {
               <p className="text-xs text-text-secondary font-medium">CI Records Management</p>
               <p className="text-[11px] text-text-muted mt-0.5">Single Source of Truth</p>
             </div>
-            <div className="pt-2 border-t border-border/50 dark:border-white/[0.06] flex items-center justify-between">
+            <div className="pt-2 border-t border-border/50 flex items-center justify-between">
               <Lozenge appearance="subtle" variant="success" size="xs">
                 CI Inventory
               </Lozenge>
@@ -267,7 +267,7 @@ export function StagingView() {
           <button
             type="button"
             onClick={() => setConsumersModalOpen(true)}
-            className="p-3.5 rounded-lg bg-sunken hover:bg-surface border border-border/80 dark:border-white/[0.08] hover:border-border-strong dark:hover:border-white/20 flex flex-col justify-between space-y-2 transition-all duration-150 group cursor-pointer shadow-2xs hover:shadow-card hover:-translate-y-0.5 text-left w-full"
+            className="p-3.5 rounded-lg bg-sunken hover:bg-surface border border-border/80 hover:border-border-strong flex flex-col justify-between space-y-2 transition-all duration-150 group cursor-pointer shadow-2xs hover:shadow-card hover:-translate-y-0.5 text-left w-full"
             title="Stage 5: Consumers – Downstream ITSM, Triage, and Billing Integrations (Click to view module status)"
           >
             <div>
@@ -283,7 +283,7 @@ export function StagingView() {
               <p className="text-xs text-text-secondary font-medium">ITSM, Triage & Billing</p>
               <p className="text-[11px] text-text-muted mt-0.5">Outbound Integrations</p>
             </div>
-            <div className="pt-2 border-t border-border/50 dark:border-white/[0.06] flex items-center justify-between">
+            <div className="pt-2 border-t border-border/50 flex items-center justify-between">
               <Lozenge appearance="bold" variant="warning" size="xs">
                 Not Implemented
               </Lozenge>
@@ -295,7 +295,7 @@ export function StagingView() {
         </div>
 
         {/* Animated Live Pipeline Telemetry Conduit */}
-        <div className="mt-3.5 pt-3 border-t border-border/60 dark:border-white/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs select-none">
+        <div className="mt-3.5 pt-3 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 text-xs select-none">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
@@ -335,7 +335,7 @@ export function StagingView() {
         <CardContent className="p-0">
           <div className="overflow-x-auto min-w-0">
             <table className="w-full text-left border-collapse text-sm min-w-[720px]">
-              <thead className="bg-sunken dark:bg-[#0A101C] border-b border-border dark:border-white/[0.08] text-xs uppercase tracking-wider text-text-secondary select-none">
+              <thead className="bg-sunken dark:bg-[#0A101C] border-b border-border text-xs uppercase tracking-wider text-text-secondary select-none">
                 <tr>
                   <th className="py-3 px-3.5">Record ID</th>
                   <th className="py-3 px-3.5">Feed Source</th>
@@ -346,7 +346,7 @@ export function StagingView() {
                   <th className="py-3 px-3.5 text-right">Payload</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/60 dark:divide-white/[0.05]">
+              <tbody className="divide-y divide-border/60">
                 {stagingRecords.map((r) => {
                   const feed = r.sourceFeed || r.source;
                   const cls = r.className || "cmdb_ci_server";
@@ -356,7 +356,7 @@ export function StagingView() {
                   const payloadObj = r.payload || r.rawPayload;
 
                   return (
-                    <tr key={r.id} className="hover:bg-sunken/40 dark:hover:bg-white/[0.03] transition-colors">
+                    <tr key={r.id} className="hover:bg-sunken/40 transition-colors">
                       <td className="py-2.5 px-3 font-mono text-[11px] text-text-default">{r.id}</td>
                       <td className="py-2.5 px-3 font-semibold text-text-default">{feed}</td>
                       <td className="py-2.5 px-3">
@@ -430,7 +430,7 @@ export function StagingView() {
               <span className="font-bold text-[10px] uppercase tracking-wider text-text-muted">
                 Raw Ingestion JSON
               </span>
-              <pre className="p-3 rounded bg-sunken border border-border dark:border-white/[0.08] text-text-default font-mono text-[11px] overflow-x-auto max-h-[480px]">
+              <pre className="p-3 rounded bg-sunken border border-border text-text-default font-mono text-[11px] overflow-x-auto max-h-[480px]">
                 {JSON.stringify(selectedRecord.payload || selectedRecord.rawPayload, null, 2)}
               </pre>
             </div>
@@ -480,7 +480,7 @@ export function StagingView() {
               Once raw discovery payloads are normalized in Staging and reconciled by the IRE Engine into the CMDB Master, downstream operational platforms consume authoritative configuration data:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-              <div className="p-3 rounded-md bg-sunken border border-border/70 dark:border-white/[0.06] space-y-1">
+              <div className="p-3 rounded-md bg-sunken border border-border/70 space-y-1">
                 <div className="flex items-center gap-1.5 font-bold text-text-default text-xs">
                   <ShieldCheck className="w-4 h-4 text-primary" />
                   <span>ITSM & Changes</span>
@@ -490,7 +490,7 @@ export function StagingView() {
                 </p>
               </div>
 
-              <div className="p-3 rounded-md bg-sunken border border-border/70 dark:border-white/[0.06] space-y-1">
+              <div className="p-3 rounded-md bg-sunken border border-border/70 space-y-1">
                 <div className="flex items-center gap-1.5 font-bold text-text-default text-xs">
                   <Activity className="w-4 h-4 text-warning" />
                   <span>Incident Triage</span>
@@ -500,7 +500,7 @@ export function StagingView() {
                 </p>
               </div>
 
-              <div className="p-3 rounded-md bg-sunken border border-border/70 dark:border-white/[0.06] space-y-1">
+              <div className="p-3 rounded-md bg-sunken border border-border/70 space-y-1">
                 <div className="flex items-center gap-1.5 font-bold text-text-default text-xs">
                   <Receipt className="w-4 h-4 text-success" />
                   <span>FinOps Billing</span>
@@ -513,7 +513,7 @@ export function StagingView() {
           </div>
 
           {/* Existing consumer functionality in ZenOps */}
-          <div className="space-y-2 pt-1 border-t border-border dark:border-white/[0.06]">
+          <div className="space-y-2 pt-1 border-t border-border">
             <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">
               Available Related Capabilities in ZenOps
             </h4>
@@ -524,7 +524,7 @@ export function StagingView() {
               <Link
                 href="/relationships"
                 onClick={() => setConsumersModalOpen(false)}
-                className="p-2.5 rounded-md border border-border/70 hover:border-primary/50 dark:border-white/[0.08] hover:bg-sunken flex items-center justify-between group transition-colors"
+                className="p-2.5 rounded-md border border-border/70 hover:border-primary/50 hover:bg-sunken flex items-center justify-between group transition-colors"
               >
                 <div className="flex items-center gap-2.5">
                   <Network className="w-4 h-4 text-primary" />
@@ -543,7 +543,7 @@ export function StagingView() {
               <Link
                 href="/services"
                 onClick={() => setConsumersModalOpen(false)}
-                className="p-2.5 rounded-md border border-border/70 hover:border-primary/50 dark:border-white/[0.08] hover:bg-sunken flex items-center justify-between group transition-colors"
+                className="p-2.5 rounded-md border border-border/70 hover:border-primary/50 hover:bg-sunken flex items-center justify-between group transition-colors"
               >
                 <div className="flex items-center gap-2.5">
                   <Briefcase className="w-4 h-4 text-brand-blue" />
@@ -562,7 +562,7 @@ export function StagingView() {
               <Link
                 href="/cis"
                 onClick={() => setConsumersModalOpen(false)}
-                className="p-2.5 rounded-md border border-border/70 hover:border-primary/50 dark:border-white/[0.08] hover:bg-sunken flex items-center justify-between group transition-colors"
+                className="p-2.5 rounded-md border border-border/70 hover:border-primary/50 hover:bg-sunken flex items-center justify-between group transition-colors"
               >
                 <div className="flex items-center gap-2.5">
                   <Boxes className="w-4 h-4 text-success" />
@@ -580,7 +580,7 @@ export function StagingView() {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-border dark:border-white/[0.06] flex items-center justify-end">
+          <div className="pt-3 border-t border-border flex items-center justify-end">
             <Button size="sm" variant="secondary" onClick={() => setConsumersModalOpen(false)}>
               Close
             </Button>

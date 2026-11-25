@@ -48,9 +48,15 @@ import { formatDateTime } from "@/utils";
 import { usePermission } from "@/components/rbac/usePermission";
 import { PERMISSIONS } from "@/lib/rbac/permissions";
 import { getDashboardMetrics } from "@/lib/dashboard/metrics";
+import { PrimaryButton } from "@/components/shared/PrimaryButton";
+import {
+  getTaskQueueMetrics,
+  ESTATE_TRUST_SCORE_LABEL,
+} from "@/lib/cmdb-metrics";
 
 export function CMDBDashboardView() {
   const router = useRouter();
+  const taskQueueMetrics = useMemo(() => getTaskQueueMetrics(), []);
   const {
     cis,
     relationships,
@@ -225,7 +231,7 @@ export function CMDBDashboardView() {
               </span>
             )}
 
-            <span className="inline-flex items-center gap-1 text-xs text-text-muted bg-sunken px-2 py-0.5 rounded border border-border/60 dark:border-white/[0.08]">
+            <span className="inline-flex items-center gap-1 text-xs text-text-muted bg-sunken px-2 py-0.5 rounded border border-border/60">
               <Lock className="w-3 h-3 text-text-muted" />
               Isolated to {activeTenant}
             </span>
@@ -277,33 +283,27 @@ export function CMDBDashboardView() {
             </Button>
           )}
 
-          {/* Primary Create CI Button with Tooltip if Disabled (Priority 4, Item 20) */}
+          {/* Primary Create CI Button with Tooltip if Disabled (Priority 4, Item 20 & G2) */}
           {canCreate ? (
             <Link href="/cis/new" className="w-full sm:w-auto">
-              <Button
+              <PrimaryButton
                 size="sm"
-                variant="primary"
-                leftIcon={<Plus className="w-3.5 h-3.5" />}
+                icon={<Plus className="w-3.5 h-3.5" />}
                 className="w-full sm:w-auto justify-center"
               >
                 Create CI
-              </Button>
+              </PrimaryButton>
             </Link>
           ) : (
-            <div
-              className="w-full sm:w-auto"
-              title="CI creation requires Editor, CMDB Owner, or Admin role privileges"
+            <PrimaryButton
+              size="sm"
+              disabled
+              disabledReason="CI creation requires Editor, CMDB Owner, or Admin role privileges"
+              icon={<Plus className="w-3.5 h-3.5" />}
+              className="w-full sm:w-auto justify-center"
             >
-              <Button
-                size="sm"
-                variant="primary"
-                disabled
-                leftIcon={<Plus className="w-3.5 h-3.5" />}
-                className="w-full sm:w-auto justify-center opacity-60 cursor-not-allowed"
-              >
-                Create CI
-              </Button>
-            </div>
+              Create CI
+            </PrimaryButton>
           )}
         </div>
       </div>
@@ -337,7 +337,7 @@ export function CMDBDashboardView() {
             value={dashboardData.totalCIs}
             subtitle="Indexed assets"
             icon={Boxes}
-            targetLabel={`Discovery coverage: ${dashboardData.discoveryCoveragePct}% of estate`}
+            targetLabel="Seen by >=1 source (last 14 d): 95%"
             accentColor="primary"
             trend={{ value: "+12 this week", direction: "up", sentiment: "positive" }}
             onClick={() => router.push("/cis")}
@@ -350,9 +350,9 @@ export function CMDBDashboardView() {
 
           {/* Tile 2: Weighted Trust Score (Unified weighted formula - Priority 1, Item 5) */}
           <KpiCard
-            title="Avg Trust Score"
+            title={ESTATE_TRUST_SCORE_LABEL}
             value={`${dashboardData.weightedTrustScore}%`}
-            subtitle="Weighted score"
+            subtitle="Weighted formula"
             icon={Award}
             target="80%+"
             accentColor={dashboardData.trustBand.lozengeVariant}
@@ -369,13 +369,13 @@ export function CMDBDashboardView() {
           {/* Tile 3: Stale CIs % (Click-through to filtered list, down arrow green - Priority 1, Item 3 & Priority 3, Item 11) */}
           <KpiCard
             title="Stale CIs"
-            value={`${dashboardData.stalePercent}%`}
-            subtitle={`${dashboardData.staleCount} CIs >14d quiet`}
+            value={`${Math.round((taskQueueMetrics.staleCount / Math.max(1, cis.length)) * 100)}%`}
+            subtitle={`${taskQueueMetrics.staleCount} CIs >14d quiet`}
             icon={Clock}
             target="< 5%"
-            accentColor={dashboardData.stalePercent <= 5 ? "success" : "danger"}
+            accentColor={taskQueueMetrics.staleCount <= 2 ? "success" : "danger"}
             trend={{ value: "-1.1% vs last week", direction: "down", sentiment: "positive" }}
-            onClick={() => router.push("/cis?view=stale")}
+            onClick={() => router.push("/data-quality?tab=stale")}
             infoHint={{
               concept: "Percentage of active configuration items whose telemetry or discovery timestamps have not been refreshed in the past 14 days.",
               whyItMatters: "Stale CIs often represent decommissioned ghost servers still incurring cloud costs or unpatched security vectors.",
@@ -386,13 +386,13 @@ export function CMDBDashboardView() {
           {/* Tile 4: Missing Owner (Click-through to filtered list, down arrow green - Priority 1, Item 3 & Priority 3, Item 11) */}
           <KpiCard
             title="Missing Owner"
-            value={`${dashboardData.missingOwnerPercent}%`}
-            subtitle={`${dashboardData.missingOwnerCount} unassigned CIs`}
+            value={`${Math.round((taskQueueMetrics.missingOwnerCount / Math.max(1, cis.length)) * 100)}%`}
+            subtitle={`${taskQueueMetrics.missingOwnerCount} unassigned CIs`}
             icon={UserCheck}
             target="< 5%"
-            accentColor={dashboardData.missingOwnerPercent <= 5 ? "success" : "danger"}
+            accentColor={taskQueueMetrics.missingOwnerCount <= 2 ? "success" : "danger"}
             trend={{ value: "-4 resolved", direction: "down", sentiment: "positive" }}
-            onClick={() => router.push("/cis?view=missing-owner")}
+            onClick={() => router.push("/data-quality?tab=missing-owner")}
             infoHint={{
               concept: "Percentage and count of Live/In-Use CIs lacking an assigned technical engineer or service ownership group.",
               whyItMatters: "Without explicit owners, critical security alerts and change approval requests stall, creating governance bottlenecks.",
@@ -403,17 +403,17 @@ export function CMDBDashboardView() {
           {/* Tile 5: Duplicate Suspects (Click-through to IRE Console - Priority 1, Item 3) */}
           <KpiCard
             title="Duplicate Suspects"
-            value={dashboardData.duplicateSuspectsCount}
-            subtitle={`${dashboardData.duplicateRate}% collision rate`}
+            value={taskQueueMetrics.duplicateCount}
+            subtitle={`${Math.round((taskQueueMetrics.duplicateCount / Math.max(1, cis.length)) * 100)}% collision rate`}
             icon={Copy}
             target="0"
-            accentColor={dashboardData.duplicateSuspectsCount === 0 ? "success" : "danger"}
+            accentColor={taskQueueMetrics.duplicateCount === 0 ? "success" : "danger"}
             trend={{
-              value: dashboardData.duplicateSuspectsCount === 0 ? "0 pending" : "1 pending review",
+              value: `${taskQueueMetrics.ireReviewQueueCount} pending review`,
               direction: "neutral",
-              sentiment: dashboardData.duplicateSuspectsCount === 0 ? "positive" : "negative",
+              sentiment: taskQueueMetrics.duplicateCount === 0 ? "positive" : "negative",
             }}
-            onClick={() => router.push("/ire-console")}
+            onClick={() => router.push("/reconciliation-rules?tab=queue")}
             infoHint={{
               concept: "Discovered entities with conflicting or overlapping MAC addresses, serial numbers, or FQDNs flagged by the Reconciliation engine.",
               whyItMatters: "Duplicates fragment telemetry and hide true dependency topologies, corrupting blast-radius incident impact calculation.",
@@ -489,7 +489,7 @@ export function CMDBDashboardView() {
               accentColor="blue"
               trend={{ value: "+3% assigned", direction: "up", sentiment: "positive" }}
               progressPercent={100 - dashboardData.missingOwnerPercent}
-              onClick={() => router.push("/cis?view=missing-owner")}
+              onClick={() => router.push("/data-quality?tab=missing-owner")}
               infoHint={{
                 concept: "Proportion of active CIs assigned to recognized support groups and engineers.",
                 whyItMatters: "Prevents critical alerts being routed to unmonitored queues.",
@@ -532,7 +532,7 @@ export function CMDBDashboardView() {
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="divide-y divide-border/60 dark:divide-white/[0.05]">
+            <div className="divide-y divide-border/60">
               {dashboardData.enrichedAudits.map((item) => (
                 <div
                   key={item.id}
@@ -540,7 +540,7 @@ export function CMDBDashboardView() {
                 >
                   {/* CI Identifiers & Changed Field */}
                   <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                    <span className="font-mono text-xs text-text-muted bg-sunken px-2 py-0.5 rounded border border-border/60 dark:border-white/[0.08]">
+                    <span className="font-mono text-xs text-text-muted bg-sunken px-2 py-0.5 rounded border border-border/60">
                       {item.ciId}
                     </span>
                     <span className="font-semibold text-text-default truncate max-w-[200px]" title={item.ciName}>

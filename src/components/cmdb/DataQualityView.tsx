@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   ShieldCheck,
   AlertTriangle,
@@ -58,6 +59,10 @@ import {
   getHealthBand,
 } from "@/lib/governance/dataQuality";
 import { DataQualityTask } from "@/types/cmdb";
+import {
+  CANONICAL_REMEDIATION_TASKS,
+  getTaskQueueMetrics,
+} from "@/lib/cmdb-metrics";
 
 export function DataQualityView() {
   const {
@@ -77,9 +82,23 @@ export function DataQualityView() {
   } = useCMDB();
 
   // Navigation & Category Tab state (Priority 4, Item 17)
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<DQCategoryTab>("all");
   const [viewScope, setViewScope] = useState<"open" | "resolved">("open");
   const [isGroupedByCI, setIsGroupedByCI] = useState<boolean>(false);
+
+  // Sync with URL query parameters (?tab=stale, ?tab=missing-owner, ?type=...)
+  useEffect(() => {
+    if (!searchParams) return;
+    const tabParam = searchParams.get("tab") as DQCategoryTab;
+    if (tabParam && ["all", "missing-owner", "stale", "conflicts", "duplicates", "compliance"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+    const typeParam = searchParams.get("type");
+    if (typeParam) {
+      setSearchQuery(typeParam);
+    }
+  }, [searchParams]);
 
   // Search, Sort & Multi-Filter state (Follow-up Item 2: Added Owner & Category filters)
   const [searchQuery, setSearchQuery] = useState("");

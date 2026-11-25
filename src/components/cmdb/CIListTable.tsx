@@ -334,10 +334,10 @@ export function CIListTable({ items, onRetireCI }: CIListTableProps) {
       {/* ----------------------------------------------------------------------- */}
       {/* MAIN TABLE */}
       {/* ----------------------------------------------------------------------- */}
-      <div className="bg-surface rounded-lg border border-border dark:border-white/[0.08] shadow-card dark:shadow-none overflow-hidden">
+      <div className="bg-surface rounded-lg border border-border shadow-card dark:shadow-none overflow-hidden">
         <div className="overflow-x-auto min-w-0">
           <table className="w-full text-left border-collapse text-sm min-w-[880px]">
-            <thead className="bg-sunken dark:bg-[#0A101C] border-b border-border dark:border-white/[0.08] select-none sticky top-0 z-10">
+            <thead className="bg-sunken dark:bg-[#0A101C] border-b border-border select-none sticky top-0 z-10">
               <tr className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
                 <th className="py-2.5 px-3 w-8 text-center">
                   <input
@@ -639,7 +639,7 @@ export function CIListTable({ items, onRetireCI }: CIListTableProps) {
         </div>
 
         {/* Pagination Bar */}
-        <div className="px-4 py-3 border-t border-border dark:border-white/[0.06] bg-sunken/40 dark:bg-[#080D18]/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-text-secondary">
+        <div className="px-4 py-3 border-t border-border bg-sunken/40 dark:bg-[#080D18]/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-text-secondary">
           <div className="flex items-center gap-2.5">
             <span>Show:</span>
             <select

@@ -88,7 +88,7 @@ export function TrustScoreAnalyticsCard() {
       {/* ------------------------------------------------------------------- */}
       {/* HEADER */}
       {/* ------------------------------------------------------------------- */}
-      <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/60 dark:border-white/[0.06] bg-sunken/20">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/60 bg-sunken/20">
         <div>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary flex items-center justify-center shadow-xs">
@@ -238,11 +238,11 @@ export function TrustScoreAnalyticsCard() {
               </span>
               <span className="flex items-center gap-1.5 text-warning font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-warning" />
-                70–79 At risk ({bands[1].count} CIs)
+                60–79 At risk ({bands[1].count} CIs)
               </span>
               <span className="flex items-center gap-1.5 text-danger font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-danger" />
-                &lt;70 Critical ({bands[2].count + bands[3].count + bands[4].count} CIs)
+                &lt;60 Critical ({bands[2].count + bands[3].count + bands[4].count} CIs)
               </span>
             </div>
           </div>
@@ -311,13 +311,13 @@ export function TrustScoreAnalyticsCard() {
                   <span
                     className={cn(
                       "text-[11px] font-semibold flex items-center justify-center gap-1",
-                      avgScore >= 80 ? "text-success" : avgScore >= 70 ? "text-warning" : "text-danger"
+                      avgScore >= 80 ? "text-success" : avgScore >= 60 ? "text-warning" : "text-danger"
                     )}
                   >
                     <span
                       className={cn(
                         "w-1.5 h-1.5 rounded-full animate-ping",
-                        avgScore >= 80 ? "bg-success" : avgScore >= 70 ? "bg-warning" : "bg-danger"
+                        avgScore >= 80 ? "bg-success" : avgScore >= 60 ? "bg-warning" : "bg-danger"
                       )}
                     />
                     Weighted score: {dashboardData.trustBand.targetLabel}
@@ -490,7 +490,7 @@ export function TrustScoreAnalyticsCard() {
       {/* ------------------------------------------------------------------- */}
       {/* FOOTER */}
       {/* ------------------------------------------------------------------- */}
-      <div className="px-4 py-2.5 bg-sunken/40 border-t border-border/60 dark:border-white/[0.06] flex items-center justify-between text-xs">
+      <div className="px-4 py-2.5 bg-sunken/40 border-t border-border/60 flex items-center justify-between text-xs">
         <span className="text-text-muted text-[11px] flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-primary" />
           Weighted score: Freshness (30), Completeness (25), Consistency (20), Topology (15), Owner (10)

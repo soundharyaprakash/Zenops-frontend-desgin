@@ -4,7 +4,9 @@ export type CIClass =
   | "Database"
   | "Application"
   | "Network Device"
+  | "Network"
   | "Cloud Resource"
+  | "Storage"
   | "SaaS Subscription"
   | "Business Service"
   | "Service Offering";
@@ -36,6 +38,7 @@ export type Environment =
 export type BusinessCriticality =
   | "Tier 1 - Mission Critical"
   | "Tier 2 - Business Critical"
+  | "Tier 2 - Business Operational"
   | "Tier 3 - Business Operational"
   | "Tier 4 - Non-Critical";
 
@@ -53,6 +56,11 @@ export interface IdentificationKeys {
   cloudResourceId?: string;
   uuid?: string;
   serialNumber?: string;
+  clusterName?: string;
+  namespace?: string;
+  workloadName?: string;
+  workloadKind?: string;
+  [key: string]: any;
 }
 
 export interface ScoreComponents {

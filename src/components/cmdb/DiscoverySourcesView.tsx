@@ -72,6 +72,7 @@ import {
   UncoveredDomain,
 } from "@/lib/discovery/sourceRecord";
 import { logAuditEvent } from "@/lib/governance/dataQuality";
+import { PrimaryButton } from "@/components/shared";
 
 export function DiscoverySourcesView() {
   const {
@@ -87,8 +88,26 @@ export function DiscoverySourcesView() {
   // Timezone toggle: UTC (default) vs Local (Priority 3, Item 14)
   const [tzMode, setTzMode] = useState<"UTC" | "Local">("UTC");
 
-  // View mode: Cards vs Table (Priority 4, Item 22)
+  // View mode: Cards vs Table (G9: Persistent view mode)
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("zenops_discovery_view_mode");
+      if (saved === "table" || saved === "cards") setViewMode(saved);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleSetViewMode = (mode: "cards" | "table") => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem("zenops_discovery_view_mode", mode);
+    } catch {
+      // ignore
+    }
+  };
 
   // Master source list initialized from the single canonical model (Priority 1, Item 1 & 2)
   const [sources, setSources] = useState<DiscoverySourceRecord[]>(() => {
@@ -500,37 +519,20 @@ export function DiscoverySourcesView() {
           </p>
         </div>
 
-        {/* Primary Action Button (Priority 2, Item 8: Contrast, Border, Tooltip when disabled) */}
+        {/* Primary Action Button using PrimaryButton (Phase 0, Item 0.9 & G2) */}
         <div className="flex items-center gap-2">
-          {canConfigure ? (
-            <Button
-              size="sm"
-              variant="primary"
-              leftIcon={<Plus className="w-4 h-4" />}
-              onClick={() => {
-                setIsAddWizardOpen(true);
-                setWizardStep(1);
-              }}
-              className="border border-primary font-semibold shadow-xs"
-            >
-              Add Discovery Source
-            </Button>
-          ) : (
-            <div
-              title="Requires permission 'discovery.configure' (held by Discovery / Integration Admin and CMDB Administrator)"
-              className="cursor-not-allowed"
-            >
-              <Button
-                size="sm"
-                variant="primary"
-                disabled
-                leftIcon={<Plus className="w-4 h-4 opacity-50" />}
-                className="opacity-50 cursor-not-allowed border border-border"
-              >
-                Add Discovery Source
-              </Button>
-            </div>
-          )}
+          <PrimaryButton
+            size="sm"
+            disabled={!canConfigure}
+            disabledReason="Requires 'discovery.configure' permission (held by Discovery / Integration Admin and CMDB Administrator)."
+            onClick={() => {
+              setIsAddWizardOpen(true);
+              setWizardStep(1);
+            }}
+            icon={<Plus className="w-4 h-4" />}
+          >
+            Add Discovery Source
+          </PrimaryButton>
         </div>
       </div>
 
@@ -771,11 +773,11 @@ export function DiscoverySourcesView() {
               <span>TZ: {tzMode}</span>
             </button>
 
-            {/* View Mode Toggle: Cards vs Table (Priority 4, Item 22) */}
+            {/* View Mode Toggle: Cards vs Table (G9: Persisted in localStorage) */}
             <div className="inline-flex rounded-md border border-border bg-sunken p-0.5 select-none ml-auto">
               <button
                 type="button"
-                onClick={() => setViewMode("cards")}
+                onClick={() => handleSetViewMode("cards")}
                 className={cn(
                   "p-1.5 rounded flex items-center gap-1 font-medium transition-all",
                   viewMode === "cards"
@@ -788,7 +790,7 @@ export function DiscoverySourcesView() {
               </button>
               <button
                 type="button"
-                onClick={() => setViewMode("table")}
+                onClick={() => handleSetViewMode("table")}
                 className={cn(
                   "p-1.5 rounded flex items-center gap-1 font-medium transition-all",
                   viewMode === "table"

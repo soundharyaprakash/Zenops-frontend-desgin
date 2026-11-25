@@ -11,8 +11,8 @@ export function Card({ className, hoverEffect = false, children, ...props }: Car
   return (
     <div
       className={cn(
-        "bg-surface rounded-card border border-border dark:border-white/[0.08] shadow-card dark:shadow-none transition-all duration-200 overflow-hidden text-default",
-        hoverEffect && "hover:border-border-strong dark:hover:border-white/[0.16] hover:shadow-raised dark:hover:shadow-none hover:-translate-y-0.5 cursor-pointer",
+        "bg-surface rounded-card border border-border shadow-card dark:shadow-none transition-all duration-200 overflow-hidden text-default",
+        hoverEffect && "hover:border-border-strong hover:shadow-raised dark:hover:shadow-none hover:-translate-y-0.5 cursor-pointer",
         className
       )}
       {...props}
@@ -30,7 +30,7 @@ export function CardHeader({
   return (
     <div
       className={cn(
-        "px-5 py-3.5 border-b border-border dark:border-white/[0.06] flex items-center justify-between gap-3 bg-surface",
+        "px-5 py-3.5 border-b border-border flex items-center justify-between gap-3 bg-surface",
         className
       )}
       {...props}
@@ -87,7 +87,7 @@ export function CardFooter({
   return (
     <div
       className={cn(
-        "px-5 py-3 bg-sunken/60 dark:bg-sunken/30 border-t border-border dark:border-white/[0.06] flex items-center justify-between text-xs text-secondary",
+        "px-5 py-3 bg-sunken/60 dark:bg-sunken/30 border-t border-border flex items-center justify-between text-xs text-secondary",
         className
       )}
       {...props}

@@ -539,7 +539,7 @@ export function getDashboardMetrics(
     cisDiscovered: s.cisDiscovered,
     cisUpdated: s.cisUpdated,
     errorCount: s.lastRun.errors,
-    estateCoveredPct: Math.min(100, Math.round((s.cisDiscovered / 5025) * 100)),
+    estateCoveredPct: Math.min(100, Math.round((s.cisDiscovered / Math.max(1, filteredCIs.length)) * 100)),
     state: s.state,
   }));
 

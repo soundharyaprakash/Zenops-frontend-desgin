@@ -632,14 +632,21 @@ export function CIDetailView({ ci: initialCI }: CIDetailViewProps) {
           {activeTab === "audit" && (
             <div className="space-y-4 animate-in fade-in duration-100">
               <Card className="bg-surface border-border">
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <div>
                     <CardTitle className="text-xs">Immutable Audit Trail</CardTitle>
                     <CardDescription className="text-xs">Historical change logs for {ci.id}</CardDescription>
                   </div>
-                  <Lozenge appearance="subtle" variant="neutral">
-                    {ciAudits.length} Events
-                  </Lozenge>
+                  <div className="flex items-center gap-2">
+                    <Lozenge appearance="subtle" variant="neutral">
+                      {ciAudits.length} Events
+                    </Lozenge>
+                    <Link href={`/audit-history?search=${encodeURIComponent(ci.id)}`}>
+                      <Button size="xs" variant="outline" className="h-6 text-[11px]">
+                        Open Full Audit Trail &rarr;
+                      </Button>
+                    </Link>
+                  </div>
                 </CardHeader>
                 <CardContent className="p-0">
                   {ciAudits.length > 0 ? (

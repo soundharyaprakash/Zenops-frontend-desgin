@@ -6,7 +6,7 @@ import {
   DataQualityTask,
   AttestationCampaign,
   CIAuditHistory,
-} from "@/types/cmdb";
+} from "../types/cmdb";
 
 export const INITIAL_CIS: CIItem[] = [
   {
@@ -91,8 +91,8 @@ export const INITIAL_CIS: CIItem[] = [
     },
     discoverySource: "AWS Discovery Connector",
     firstDiscovered: "2023-04-10T10:15:00Z",
-    lastDiscovered: "2026-11-11T15:20:00Z",
-    lastVerified: "2026-11-10T18:00:00Z",
+    lastDiscovered: "2026-11-20T10:00:00Z",
+    lastVerified: "2026-11-20T10:00:00Z",
     sourceRanking: 5,
     trustScore: 98,
     scoreComponents: {
@@ -145,8 +145,8 @@ export const INITIAL_CIS: CIItem[] = [
     },
     discoverySource: "Kubernetes Cluster Operator",
     firstDiscovered: "2024-01-15T11:00:00Z",
-    lastDiscovered: "2026-11-11T15:30:00Z",
-    lastVerified: "2026-11-11T15:30:00Z",
+    lastDiscovered: "2026-11-20T10:00:00Z",
+    lastVerified: "2026-11-20T10:00:00Z",
     sourceRanking: 4,
     trustScore: 92,
     scoreComponents: {
@@ -411,8 +411,8 @@ export const INITIAL_CIS: CIItem[] = [
     },
     discoverySource: "Manual Provisioning",
     firstDiscovered: "2022-01-01T00:00:00Z",
-    lastDiscovered: "2026-11-10T10:00:00Z",
-    lastVerified: "2026-11-10T10:00:00Z",
+    lastDiscovered: "2026-11-20T10:00:00Z",
+    lastVerified: "2026-11-20T10:00:00Z",
     sourceRanking: 5,
     trustScore: 99,
     scoreComponents: {
@@ -565,8 +565,8 @@ export const INITIAL_CIS: CIItem[] = [
     },
     discoverySource: "AWS Discovery Connector",
     firstDiscovered: "2024-02-01T12:00:00Z",
-    lastDiscovered: "2026-11-11T11:00:00Z",
-    lastVerified: "2026-11-09T00:00:00Z",
+    lastDiscovered: "2026-11-19T11:00:00Z",
+    lastVerified: "2026-11-19T00:00:00Z",
     sourceRanking: 4,
     trustScore: 88,
     scoreComponents: {
@@ -618,8 +618,8 @@ export const INITIAL_CIS: CIItem[] = [
     },
     discoverySource: "CrowdStrike Falcon Sensor",
     firstDiscovered: "2023-08-20T10:00:00Z",
-    lastDiscovered: "2026-11-11T10:15:00Z",
-    lastVerified: "2026-11-07T14:00:00Z",
+    lastDiscovered: "2026-10-18T10:15:00Z",
+    lastVerified: "2026-10-18T10:15:00Z",
     sourceRanking: 4,
     trustScore: 93,
     scoreComponents: {
@@ -643,6 +643,1432 @@ export const INITIAL_CIS: CIItem[] = [
     createdAt: "2023-08-20T00:00:00Z",
     updatedAt: "2026-11-11T10:15:00Z",
   },
+  {
+    "id": "CI-1013",
+    "name": "prod-web-frontend-01",
+    "ciClass": "Application",
+    "description": "Production customer-facing Next.js frontend node in primary availability zone.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "David Chen",
+    "supportGroup": "Digital Channels Engineering",
+    "vendor": "Vercel / Node.js",
+    "manufacturer": "ZenOps Frontend",
+    "model": "v14.2 App Router",
+    "serialNumber": "APP-WEB-1013",
+    "assetTag": "AT-99026",
+    "location": "AWS us-east-1a",
+    "costCenter": "CC-DIGITAL-01",
+    "installDate": "2024-01-10",
+    "warrantyEnd": "2027-01-10",
+    "dataClassification": "Internal",
+    "complianceFlags": [
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "arn:aws:ecs:us-east-1:112233445566:task/web-frontend-01",
+      "fqdn": "portal-01.zenops.io",
+      "ipAddress": "10.100.10.13"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2024-01-10T08:00:00Z",
+    "lastDiscovered": "2026-11-20T12:00:00Z",
+    "lastVerified": "2026-11-18T10:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 88,
+    "scoreComponents": {
+      "completeness": 90,
+      "freshness": 94,
+      "accuracy": 88,
+      "reconciliation": 88
+    },
+    "scoreReasons": [
+      "Telemetry verified via AWS Discovery"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "port": 3000,
+      "framework": "Next.js 14",
+      "nodeVersion": "20.17.0"
+    },
+    "createdAt": "2024-01-10T00:00:00Z",
+    "updatedAt": "2026-11-20T12:00:00Z"
+  },
+  {
+    "id": "CI-1014",
+    "name": "prod-web-frontend-02",
+    "ciClass": "Application",
+    "description": "Production customer-facing Next.js frontend node in secondary availability zone.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "David Chen",
+    "supportGroup": "Digital Channels Engineering",
+    "vendor": "Vercel / Node.js",
+    "manufacturer": "ZenOps Frontend",
+    "model": "v14.2 App Router",
+    "serialNumber": "APP-WEB-1014",
+    "assetTag": "AT-99027",
+    "location": "AWS us-east-1b",
+    "costCenter": "CC-DIGITAL-01",
+    "installDate": "2024-01-10",
+    "warrantyEnd": "2027-01-10",
+    "dataClassification": "Internal",
+    "complianceFlags": [
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "arn:aws:ecs:us-east-1:112233445566:task/web-frontend-02",
+      "fqdn": "portal-02.zenops.io",
+      "ipAddress": "10.100.10.14"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2024-01-10T08:00:00Z",
+    "lastDiscovered": "2026-11-20T12:00:00Z",
+    "lastVerified": "2026-11-18T10:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 89,
+    "scoreComponents": {
+      "completeness": 92,
+      "freshness": 94,
+      "accuracy": 88,
+      "reconciliation": 88
+    },
+    "scoreReasons": [
+      "Telemetry verified via AWS Discovery"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "port": 3000,
+      "framework": "Next.js 14",
+      "nodeVersion": "20.17.0"
+    },
+    "createdAt": "2024-01-10T00:00:00Z",
+    "updatedAt": "2026-11-20T12:00:00Z"
+  },
+  {
+    "id": "CI-1015",
+    "name": "prod-edge-alb-01",
+    "ciClass": "Network",
+    "description": "AWS Application Load Balancer terminating public TLS for Customer Web Portal.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Unassigned",
+    "supportGroup": "Core Infrastructure & Cloud Ops",
+    "vendor": "Amazon Web Services",
+    "manufacturer": "AWS ALB",
+    "model": "Application Load Balancer v2",
+    "serialNumber": "NET-ALB-1015",
+    "assetTag": "AT-99028",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-INFRA-NET",
+    "installDate": "2023-05-15",
+    "warrantyEnd": "2028-05-15",
+    "dataClassification": "Public",
+    "complianceFlags": [
+      "PCI-DSS",
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "arn:aws:elasticloadbalancing:us-east-1:112233445566:loadbalancer/app/prod-portal-alb/9182391283",
+      "fqdn": "portal-lb.zenops.io"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2023-05-15T00:00:00Z",
+    "lastDiscovered": "2026-11-20T13:00:00Z",
+    "lastVerified": "2026-11-19T00:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 92,
+    "scoreComponents": {
+      "completeness": 95,
+      "freshness": 95,
+      "accuracy": 92,
+      "reconciliation": 92
+    },
+    "scoreReasons": [
+      "Active AWS health checks passing 100%"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "scheme": "internet-facing",
+      "ipType": "dualstack",
+      "sslCertExp": "2027-06-01"
+    },
+    "createdAt": "2023-05-15T00:00:00Z",
+    "updatedAt": "2026-11-20T13:00:00Z"
+  },
+  {
+    "id": "CI-1016",
+    "name": "prod-portal-redis-01",
+    "ciClass": "Database",
+    "description": "ElastiCache Redis cluster primary node for web portal session state.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Sarah Jenkins",
+    "supportGroup": "Platform Engineering",
+    "vendor": "Amazon Web Services",
+    "manufacturer": "AWS ElastiCache",
+    "model": "cache.r6g.xlarge",
+    "serialNumber": "DB-RED-1016",
+    "assetTag": "AT-99029",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-DIGITAL-01",
+    "installDate": "2023-09-01",
+    "warrantyEnd": "2027-09-01",
+    "dataClassification": "Restricted",
+    "complianceFlags": [
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "arn:aws:elasticache:us-east-1:112233445566:cluster:prod-portal-redis-01",
+      "ipAddress": "10.100.20.16"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2023-09-01T00:00:00Z",
+    "lastDiscovered": "2026-11-20T13:30:00Z",
+    "lastVerified": "2026-11-18T00:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 86,
+    "scoreComponents": {
+      "completeness": 88,
+      "freshness": 92,
+      "accuracy": 85,
+      "reconciliation": 85
+    },
+    "scoreReasons": [
+      "Redis cluster memory utilization at 42%"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "engine": "Redis",
+      "engineVersion": "7.1",
+      "clusterMode": "enabled"
+    },
+    "createdAt": "2023-09-01T00:00:00Z",
+    "updatedAt": "2026-11-20T13:30:00Z"
+  },
+  {
+    "id": "CI-1017",
+    "name": "prod-portal-auth-proxy",
+    "ciClass": "Server/VM",
+    "description": "Hardened Envoy reverse-proxy for portal OAuth2 and OpenID token validation.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Sarah Jenkins",
+    "supportGroup": "Platform Engineering",
+    "vendor": "Canonical / AWS",
+    "manufacturer": "Ubuntu LTS",
+    "model": "EC2 c6i.xlarge",
+    "serialNumber": "SRV-VM-1017",
+    "assetTag": "AT-99030",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-SEC-01",
+    "installDate": "2023-06-20",
+    "warrantyEnd": "2026-06-20",
+    "dataClassification": "Confidential",
+    "complianceFlags": [
+      "SOC2",
+      "ISO27001"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "i-091238918239017a",
+      "ipAddress": "10.100.10.17",
+      "serialNumber": "SRV-VM-1017"
+    },
+    "discoverySource": "CrowdStrike Falcon Sensor",
+    "firstDiscovered": "2023-06-20T00:00:00Z",
+    "lastDiscovered": "2026-11-20T13:00:00Z",
+    "lastVerified": "2026-11-19T00:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 90,
+    "scoreComponents": {
+      "completeness": 92,
+      "freshness": 94,
+      "accuracy": 90,
+      "reconciliation": 90
+    },
+    "scoreReasons": [
+      "Envoy sidecar proxy active"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "osName": "Ubuntu 22.04 LTS",
+      "cpuCores": 4,
+      "ramGb": 8
+    },
+    "createdAt": "2023-06-20T00:00:00Z",
+    "updatedAt": "2026-11-20T13:00:00Z"
+  },
+  {
+    "id": "CI-1018",
+    "name": "prod-payment-worker-01",
+    "ciClass": "Container/Pod",
+    "description": "Kubernetes pod executing asynchronous settlement batch transactions.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Sarah Jenkins",
+    "supportGroup": "Core Infrastructure & Cloud Ops",
+    "vendor": "Cloud Native Computing Foundation",
+    "manufacturer": "Kubernetes",
+    "model": "Pod / Container",
+    "serialNumber": "POD-PAY-1018",
+    "assetTag": "AT-99031",
+    "location": "EKS Cluster us-east-1",
+    "costCenter": "CC-FINTECH-01",
+    "installDate": "2024-03-01",
+    "warrantyEnd": "2027-03-01",
+    "dataClassification": "Restricted",
+    "complianceFlags": [
+      "PCI-DSS",
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "clusterName": "eks-prod-us-east-1",
+      "namespace": "payments",
+      "workloadName": "payment-worker",
+      "workloadKind": "Deployment",
+      "ipAddress": "10.100.30.18"
+    },
+    "discoverySource": "Kubernetes Operator",
+    "firstDiscovered": "2024-03-01T00:00:00Z",
+    "lastDiscovered": "2026-11-20T14:15:00Z",
+    "lastVerified": "2026-11-20T10:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 95,
+    "scoreComponents": {
+      "completeness": 96,
+      "freshness": 98,
+      "accuracy": 95,
+      "reconciliation": 95
+    },
+    "scoreReasons": [
+      "Pod running with 0 restarts in 45 days"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "containerImage": "zenops/payment-worker:v3.2",
+      "cpuLimit": "2000m",
+      "memLimit": "4Gi"
+    },
+    "createdAt": "2024-03-01T00:00:00Z",
+    "updatedAt": "2026-11-20T14:15:00Z"
+  },
+  {
+    "id": "CI-1019",
+    "name": "prod-payment-worker-02",
+    "ciClass": "Container/Pod",
+    "description": "Kubernetes pod executing asynchronous settlement batch transactions.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Sarah Jenkins",
+    "supportGroup": "Core Infrastructure & Cloud Ops",
+    "vendor": "Cloud Native Computing Foundation",
+    "manufacturer": "Kubernetes",
+    "model": "Pod / Container",
+    "serialNumber": "POD-PAY-1019",
+    "assetTag": "AT-99032",
+    "location": "EKS Cluster us-east-1",
+    "costCenter": "CC-FINTECH-01",
+    "installDate": "2024-03-01",
+    "warrantyEnd": "2027-03-01",
+    "dataClassification": "Restricted",
+    "complianceFlags": [
+      "PCI-DSS",
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "clusterName": "eks-prod-us-east-1",
+      "namespace": "payments",
+      "workloadName": "payment-worker",
+      "workloadKind": "Deployment",
+      "ipAddress": "10.100.30.19"
+    },
+    "discoverySource": "Kubernetes Operator",
+    "firstDiscovered": "2024-03-01T00:00:00Z",
+    "lastDiscovered": "2026-11-20T14:15:00Z",
+    "lastVerified": "2026-11-20T10:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 94,
+    "scoreComponents": {
+      "completeness": 95,
+      "freshness": 98,
+      "accuracy": 94,
+      "reconciliation": 94
+    },
+    "scoreReasons": [
+      "Pod running with 0 restarts in 45 days"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "containerImage": "zenops/payment-worker:v3.2",
+      "cpuLimit": "2000m",
+      "memLimit": "4Gi"
+    },
+    "createdAt": "2024-03-01T00:00:00Z",
+    "updatedAt": "2026-11-20T14:15:00Z"
+  },
+  {
+    "id": "CI-1020",
+    "name": "prod-payment-hsm-01",
+    "ciClass": "Server/VM",
+    "description": "AWS CloudHSM cluster dedicated cryptographic appliance for PIN/CVV decryption.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Amara Okafor",
+    "supportGroup": "Information Security & Compliance",
+    "vendor": "Amazon Web Services",
+    "manufacturer": "AWS CloudHSM",
+    "model": "FIPS 140-2 Level 3",
+    "serialNumber": "HSM-PAY-1020",
+    "assetTag": "AT-99033",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-FINTECH-SEC",
+    "installDate": "2023-01-15",
+    "warrantyEnd": "2028-01-15",
+    "dataClassification": "Restricted",
+    "complianceFlags": [
+      "PCI-DSS",
+      "FIPS-140-2",
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "arn:aws:cloudhsm:us-east-1:112233445566:cluster/chsm-99120",
+      "serialNumber": "HSM-PAY-1020"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2023-01-15T00:00:00Z",
+    "lastDiscovered": "2026-11-20T12:00:00Z",
+    "lastVerified": "2026-11-19T00:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 96,
+    "scoreComponents": {
+      "completeness": 98,
+      "freshness": 96,
+      "accuracy": 96,
+      "reconciliation": 96
+    },
+    "scoreReasons": [
+      "FIPS cryptographic tamper sensors verified"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "firmwareVersion": "3.4.1",
+      "certAuthority": "Internal HSM Root"
+    },
+    "createdAt": "2023-01-15T00:00:00Z",
+    "updatedAt": "2026-11-20T12:00:00Z"
+  },
+  {
+    "id": "CI-1021",
+    "name": "prod-payment-kafka-broker",
+    "ciClass": "Server/VM",
+    "description": "Dedicated Apache Kafka broker node for financial ledger event streaming.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Sarah Jenkins",
+    "supportGroup": "Platform Engineering",
+    "vendor": "Confluent / AWS",
+    "manufacturer": "AWS MSK",
+    "model": "kafka.m5.2xlarge",
+    "serialNumber": "MSK-PAY-1021",
+    "assetTag": "AT-99034",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-FINTECH-01",
+    "installDate": "2023-08-10",
+    "warrantyEnd": "2027-08-10",
+    "dataClassification": "Restricted",
+    "complianceFlags": [
+      "PCI-DSS",
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "arn:aws:kafka:us-east-1:112233445566:cluster/prod-payment-kafka/1021",
+      "ipAddress": "10.100.40.21"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2023-08-10T00:00:00Z",
+    "lastDiscovered": "2026-11-20T13:45:00Z",
+    "lastVerified": "2026-11-18T00:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 92,
+    "scoreComponents": {
+      "completeness": 94,
+      "freshness": 94,
+      "accuracy": 92,
+      "reconciliation": 92
+    },
+    "scoreReasons": [
+      "Kafka cluster ISR in sync across 3 AZs"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "kafkaVersion": "3.5.1",
+      "storageGb": 2000,
+      "tlsAuth": "mTLS Required"
+    },
+    "createdAt": "2023-08-10T00:00:00Z",
+    "updatedAt": "2026-11-20T13:45:00Z"
+  },
+  {
+    "id": "CI-1022",
+    "name": "prod-payment-vault-cluster",
+    "ciClass": "Server/VM",
+    "description": "HashiCorp Vault production cluster storing tokenization encryption keys.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Amara Okafor",
+    "supportGroup": "Information Security & Compliance",
+    "vendor": "HashiCorp / AWS",
+    "manufacturer": "Vault Enterprise",
+    "model": "EC2 m6i.xlarge",
+    "serialNumber": "VLT-PAY-1022",
+    "assetTag": "AT-99035",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-SEC-01",
+    "installDate": "2023-04-01",
+    "warrantyEnd": "2027-04-01",
+    "dataClassification": "Restricted",
+    "complianceFlags": [
+      "PCI-DSS",
+      "SOC2",
+      "ISO27001"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "i-08819283918231022",
+      "fqdn": "vault-internal.zenops.io",
+      "ipAddress": "10.100.15.22",
+      "serialNumber": "VLT-PAY-1022"
+    },
+    "discoverySource": "CrowdStrike Falcon Sensor",
+    "firstDiscovered": "2023-04-01T00:00:00Z",
+    "lastDiscovered": "2026-11-20T13:00:00Z",
+    "lastVerified": "2026-11-19T00:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 95,
+    "scoreComponents": {
+      "completeness": 96,
+      "freshness": 96,
+      "accuracy": 95,
+      "reconciliation": 95
+    },
+    "scoreReasons": [
+      "Automated auto-unseal via KMS validated"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "vaultVersion": "1.15.2",
+      "sealType": "awskms",
+      "storageBackend": "raft"
+    },
+    "createdAt": "2023-04-01T00:00:00Z",
+    "updatedAt": "2026-11-20T13:00:00Z"
+  },
+  {
+    "id": "CI-1023",
+    "name": "prod-edw-snowflake-wh",
+    "ciClass": "Database",
+    "description": "Snowflake Enterprise Data Warehouse virtual compute warehouse (LARGE).",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Elena Rostova",
+    "supportGroup": "Data Engineering & Analytics",
+    "vendor": "Snowflake Computing",
+    "manufacturer": "Snowflake Cloud",
+    "model": "Warehouse Size L",
+    "serialNumber": "SNOW-WH-1023",
+    "assetTag": "AT-99036",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-DATA-01",
+    "installDate": "2023-07-01",
+    "warrantyEnd": "2028-07-01",
+    "dataClassification": "Confidential",
+    "complianceFlags": [
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "uuid": "snw-wh-99120-edw-primary",
+      "fqdn": "zenops.snowflakecomputing.com"
+    },
+    "discoverySource": "ServiceNow Bridge",
+    "firstDiscovered": "2023-07-01T00:00:00Z",
+    "lastDiscovered": "2026-11-19T04:00:00Z",
+    "lastVerified": "2026-11-19T00:00:00Z",
+    "sourceRanking": 3,
+    "trustScore": 74,
+    "scoreComponents": {
+      "completeness": 80,
+      "freshness": 72,
+      "accuracy": 74,
+      "reconciliation": 74
+    },
+    "scoreReasons": [
+      "Telemetry quiet 8 days, pending bridge reconciliation"
+    ],
+    "qualityFlags": [
+      "Quiet Telemetry > 7d"
+    ],
+    "attributes": {
+      "autoSuspendMin": 10,
+      "autoResume": true,
+      "scalingPolicy": "STANDARD"
+    },
+    "createdAt": "2023-07-01T00:00:00Z",
+    "updatedAt": "2026-11-12T04:00:00Z"
+  },
+  {
+    "id": "CI-1024",
+    "name": "prod-edw-dbt-runner",
+    "ciClass": "Container/Pod",
+    "description": "Kubernetes cronjob pod executing scheduled dbt dimensional models.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 2 - Business Operational",
+    "owner": "Elena Rostova",
+    "supportGroup": "Data Engineering & Analytics",
+    "vendor": "dbt Labs",
+    "manufacturer": "Kubernetes",
+    "model": "Pod / CronJob",
+    "serialNumber": "DBT-POD-1024",
+    "assetTag": "AT-99037",
+    "location": "EKS Cluster us-east-1",
+    "costCenter": "CC-DATA-01",
+    "installDate": "2024-01-15",
+    "warrantyEnd": "2027-01-15",
+    "dataClassification": "Internal",
+    "complianceFlags": [],
+    "identificationKeys": {
+      "clusterName": "eks-prod-us-east-1",
+      "namespace": "analytics",
+      "workloadName": "dbt-nightly-runner",
+      "workloadKind": "CronJob"
+    },
+    "discoverySource": "Kubernetes Operator",
+    "firstDiscovered": "2024-01-15T00:00:00Z",
+    "lastDiscovered": "2026-11-20T14:15:00Z",
+    "lastVerified": "2026-11-18T00:00:00Z",
+    "sourceRanking": 4,
+    "trustScore": 72,
+    "scoreComponents": {
+      "completeness": 76,
+      "freshness": 75,
+      "accuracy": 70,
+      "reconciliation": 70
+    },
+    "scoreReasons": [
+      "Model build telemetry partially updated"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "dbtVersion": "1.8.0",
+      "targetProfile": "prod_snowflake"
+    },
+    "createdAt": "2024-01-15T00:00:00Z",
+    "updatedAt": "2026-11-20T14:15:00Z"
+  },
+  {
+    "id": "CI-1025",
+    "name": "prod-edw-airbyte-sync",
+    "ciClass": "Container/Pod",
+    "description": "Airbyte ELT connector pod syncing third-party SaaS payloads into S3 data lake.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 2 - Business Operational",
+    "owner": "Elena Rostova",
+    "supportGroup": "Data Engineering & Analytics",
+    "vendor": "Airbyte",
+    "manufacturer": "Kubernetes",
+    "model": "Pod / Deployment",
+    "serialNumber": "AIR-POD-1025",
+    "assetTag": "AT-99038",
+    "location": "EKS Cluster us-east-1",
+    "costCenter": "CC-DATA-01",
+    "installDate": "2024-02-01",
+    "warrantyEnd": "2027-02-01",
+    "dataClassification": "Internal",
+    "complianceFlags": [],
+    "identificationKeys": {
+      "clusterName": "eks-prod-us-east-1",
+      "namespace": "analytics",
+      "workloadName": "airbyte-worker",
+      "workloadKind": "Deployment"
+    },
+    "discoverySource": "Kubernetes Operator",
+    "firstDiscovered": "2024-02-01T00:00:00Z",
+    "lastDiscovered": "2026-11-20T14:15:00Z",
+    "lastVerified": "2026-11-18T00:00:00Z",
+    "sourceRanking": 4,
+    "trustScore": 75,
+    "scoreComponents": {
+      "completeness": 78,
+      "freshness": 76,
+      "accuracy": 74,
+      "reconciliation": 74
+    },
+    "scoreReasons": [
+      "Hourly ELT sync heartbeats healthy"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "airbyteVersion": "0.50.31",
+      "activeConnectors": 14
+    },
+    "createdAt": "2024-02-01T00:00:00Z",
+    "updatedAt": "2026-11-20T14:15:00Z"
+  },
+  {
+    "id": "CI-1026",
+    "name": "prod-edw-spark-master",
+    "ciClass": "Server/VM",
+    "description": "Apache Spark standalone cluster master node coordinating big data ETL pipelines.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Elena Rostova",
+    "supportGroup": "Data Engineering & Analytics",
+    "vendor": "Apache / AWS",
+    "manufacturer": "AWS EMR",
+    "model": "EC2 r6i.4xlarge",
+    "serialNumber": "SPK-MST-1026",
+    "assetTag": "AT-99039",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-DATA-01",
+    "installDate": "2023-09-10",
+    "warrantyEnd": "2027-09-10",
+    "dataClassification": "Confidential",
+    "complianceFlags": [
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "i-09123891823901026",
+      "ipAddress": "10.100.50.26",
+      "serialNumber": "SPK-MST-1026"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2023-09-10T00:00:00Z",
+    "lastDiscovered": "2026-11-20T13:45:00Z",
+    "lastVerified": "2026-11-18T00:00:00Z",
+    "sourceRanking": 4,
+    "trustScore": 74,
+    "scoreComponents": {
+      "completeness": 80,
+      "freshness": 74,
+      "accuracy": 72,
+      "reconciliation": 72
+    },
+    "scoreReasons": [
+      "Telemetry refreshed via AWS connector"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "sparkVersion": "3.5.0",
+      "cpuCores": 16,
+      "ramGb": 128
+    },
+    "createdAt": "2023-09-10T00:00:00Z",
+    "updatedAt": "2026-11-20T13:45:00Z"
+  },
+  {
+    "id": "CI-1027",
+    "name": "prod-edw-spark-worker-01",
+    "ciClass": "Server/VM",
+    "description": "Apache Spark cluster worker node executing distributed PySpark transformations.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 2 - Business Operational",
+    "owner": "Elena Rostova",
+    "supportGroup": "Data Engineering & Analytics",
+    "vendor": "Apache / AWS",
+    "manufacturer": "AWS EMR",
+    "model": "EC2 r6i.8xlarge",
+    "serialNumber": "SPK-WRK-1027",
+    "assetTag": "AT-99040",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-DATA-01",
+    "installDate": "2023-09-10",
+    "warrantyEnd": "2027-09-10",
+    "dataClassification": "Confidential",
+    "complianceFlags": [
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "i-09123891823901027",
+      "ipAddress": "10.100.50.27",
+      "serialNumber": "SPK-WRK-1027"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2023-09-10T00:00:00Z",
+    "lastDiscovered": "2026-11-20T13:45:00Z",
+    "lastVerified": "2026-11-18T00:00:00Z",
+    "sourceRanking": 4,
+    "trustScore": 73,
+    "scoreComponents": {
+      "completeness": 78,
+      "freshness": 74,
+      "accuracy": 72,
+      "reconciliation": 72
+    },
+    "scoreReasons": [
+      "Memory pressure observed during midnight run"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "cpuCores": 32,
+      "ramGb": 256,
+      "storageGb": 1000
+    },
+    "createdAt": "2023-09-10T00:00:00Z",
+    "updatedAt": "2026-11-20T13:45:00Z"
+  },
+  {
+    "id": "CI-1028",
+    "name": "prod-edw-spark-worker-02",
+    "ciClass": "Server/VM",
+    "description": "Apache Spark cluster worker node executing distributed PySpark transformations.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 2 - Business Operational",
+    "owner": "Elena Rostova",
+    "supportGroup": "Data Engineering & Analytics",
+    "vendor": "Apache / AWS",
+    "manufacturer": "AWS EMR",
+    "model": "EC2 r6i.8xlarge",
+    "serialNumber": "SPK-WRK-1028",
+    "assetTag": "AT-99041",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-DATA-01",
+    "installDate": "2023-09-10",
+    "warrantyEnd": "2027-09-10",
+    "dataClassification": "Confidential",
+    "complianceFlags": [
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "i-09123891823901028",
+      "ipAddress": "10.100.50.28",
+      "serialNumber": "SPK-WRK-1028"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2023-09-10T00:00:00Z",
+    "lastDiscovered": "2026-11-20T13:45:00Z",
+    "lastVerified": "2026-11-18T00:00:00Z",
+    "sourceRanking": 4,
+    "trustScore": 74,
+    "scoreComponents": {
+      "completeness": 78,
+      "freshness": 74,
+      "accuracy": 74,
+      "reconciliation": 74
+    },
+    "scoreReasons": [
+      "Executors active"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "cpuCores": 32,
+      "ramGb": 256,
+      "storageGb": 1000
+    },
+    "createdAt": "2023-09-10T00:00:00Z",
+    "updatedAt": "2026-11-20T13:45:00Z"
+  },
+  {
+    "id": "CI-1029",
+    "name": "prod-edw-s3-lake-01",
+    "ciClass": "Storage",
+    "description": "Encrypted Amazon S3 data lake raw bucket storing bronze and silver Parquet layers.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Elena Rostova",
+    "supportGroup": "Data Engineering & Analytics",
+    "vendor": "Amazon Web Services",
+    "manufacturer": "AWS S3",
+    "model": "Standard / Intelligent-Tiering",
+    "serialNumber": "S3-EDW-1029",
+    "assetTag": "AT-99042",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-DATA-01",
+    "installDate": "2023-05-01",
+    "warrantyEnd": "2028-05-01",
+    "dataClassification": "Confidential",
+    "complianceFlags": [
+      "SOC2",
+      "PCI-DSS"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "arn:aws:s3:::zenops-edw-lake-prod-01"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2023-05-01T00:00:00Z",
+    "lastDiscovered": "2026-11-20T13:45:00Z",
+    "lastVerified": "2026-11-19T00:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 76,
+    "scoreComponents": {
+      "completeness": 85,
+      "freshness": 78,
+      "accuracy": 75,
+      "reconciliation": 75
+    },
+    "scoreReasons": [
+      "KMS customer-managed key encryption verified"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "bucketName": "zenops-edw-lake-prod-01",
+      "storageClass": "INTELLIGENT_TIERING"
+    },
+    "createdAt": "2023-05-01T00:00:00Z",
+    "updatedAt": "2026-11-20T13:45:00Z"
+  },
+  {
+    "id": "CI-1030",
+    "name": "prod-edw-glue-catalog",
+    "ciClass": "Application",
+    "description": "AWS Glue Data Catalog metadata repository for centralized schema registry.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Elena Rostova",
+    "supportGroup": "Data Engineering & Analytics",
+    "vendor": "Amazon Web Services",
+    "manufacturer": "AWS Glue",
+    "model": "Data Catalog v2",
+    "serialNumber": "GLUE-CAT-1030",
+    "assetTag": "AT-99043",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-DATA-01",
+    "installDate": "2023-06-15",
+    "warrantyEnd": "2027-06-15",
+    "dataClassification": "Internal",
+    "complianceFlags": [
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "arn:aws:glue:us-east-1:112233445566:catalog"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2023-06-15T00:00:00Z",
+    "lastDiscovered": "2026-11-20T13:45:00Z",
+    "lastVerified": "2026-11-18T00:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 75,
+    "scoreComponents": {
+      "completeness": 80,
+      "freshness": 76,
+      "accuracy": 74,
+      "reconciliation": 74
+    },
+    "scoreReasons": [
+      "Database partition crawler schemas active"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "catalogId": "112233445566",
+      "totalDatabases": 12,
+      "totalTables": 480
+    },
+    "createdAt": "2023-06-15T00:00:00Z",
+    "updatedAt": "2026-11-20T13:45:00Z"
+  },
+  {
+    "id": "CI-1031",
+    "name": "prod-edw-kafka-consumer",
+    "ciClass": "Container/Pod",
+    "description": "Kafka consumer daemon ingestion microservice writing CDC change logs to S3.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 2 - Business Operational",
+    "owner": "Elena Rostova",
+    "supportGroup": "Data Engineering & Analytics",
+    "vendor": "Cloud Native Computing Foundation",
+    "manufacturer": "Kubernetes",
+    "model": "Pod / Deployment",
+    "serialNumber": "KFK-POD-1031",
+    "assetTag": "AT-99044",
+    "location": "EKS Cluster us-east-1",
+    "costCenter": "CC-DATA-01",
+    "installDate": "2024-02-10",
+    "warrantyEnd": "2027-02-10",
+    "dataClassification": "Internal",
+    "complianceFlags": [],
+    "identificationKeys": {
+      "clusterName": "eks-prod-us-east-1",
+      "namespace": "analytics",
+      "workloadName": "kafka-edw-sink",
+      "workloadKind": "Deployment"
+    },
+    "discoverySource": "Kubernetes Operator",
+    "firstDiscovered": "2024-02-10T00:00:00Z",
+    "lastDiscovered": "2026-11-20T14:15:00Z",
+    "lastVerified": "2026-11-18T00:00:00Z",
+    "sourceRanking": 4,
+    "trustScore": 74,
+    "scoreComponents": {
+      "completeness": 76,
+      "freshness": 76,
+      "accuracy": 74,
+      "reconciliation": 74
+    },
+    "scoreReasons": [
+      "Consumer group lag within acceptable 15s window"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "consumerGroup": "edw-s3-sink-group",
+      "partitionsCount": 24
+    },
+    "createdAt": "2024-02-10T00:00:00Z",
+    "updatedAt": "2026-11-20T14:15:00Z"
+  },
+  {
+    "id": "CI-1032",
+    "name": "prod-edw-superset-bi",
+    "ciClass": "Application",
+    "description": "Apache Superset business intelligence reporting server and visualization portal.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 2 - Business Operational",
+    "owner": "Elena Rostova",
+    "supportGroup": "Data Engineering & Analytics",
+    "vendor": "Apache / ZenOps",
+    "manufacturer": "Superset OSS",
+    "model": "v3.1 Web UI",
+    "serialNumber": "SPT-APP-1032",
+    "assetTag": "AT-99045",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-DATA-BI",
+    "installDate": "2023-11-01",
+    "warrantyEnd": "2026-11-01",
+    "dataClassification": "Confidential",
+    "complianceFlags": [
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "fqdn": "bi.zenops.internal",
+      "ipAddress": "10.100.50.32"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2023-11-01T00:00:00Z",
+    "lastDiscovered": "2026-11-20T13:45:00Z",
+    "lastVerified": "2026-11-18T00:00:00Z",
+    "sourceRanking": 4,
+    "trustScore": 78,
+    "scoreComponents": {
+      "completeness": 82,
+      "freshness": 80,
+      "accuracy": 76,
+      "reconciliation": 76
+    },
+    "scoreReasons": [
+      "Dashboard render response times < 800ms"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "webFramework": "Flask",
+      "workers": 8
+    },
+    "createdAt": "2023-11-01T00:00:00Z",
+    "updatedAt": "2026-11-20T13:45:00Z"
+  },
+  {
+    "id": "CI-1033",
+    "name": "prod-logistics-api",
+    "ciClass": "Application",
+    "description": "Warehouse order dispatch, inventory sync, and freight logistics API gateway.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 2 - Business Operational",
+    "owner": "Marcus Vance",
+    "supportGroup": "Supply Chain & Operations",
+    "vendor": "ZenOps Systems",
+    "manufacturer": "Go Microservice",
+    "model": "v2.8 REST/gRPC",
+    "serialNumber": "LOG-API-1033",
+    "assetTag": "AT-99046",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-LOGISTICS-01",
+    "installDate": "2023-10-15",
+    "warrantyEnd": "2027-10-15",
+    "dataClassification": "Internal",
+    "complianceFlags": [
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "arn:aws:ecs:us-east-1:112233445566:service/logistics-api",
+      "fqdn": "logistics.zenops.internal",
+      "ipAddress": "10.100.60.33"
+    },
+    "discoverySource": "Dynatrace APM Agent",
+    "firstDiscovered": "2023-10-15T00:00:00Z",
+    "lastDiscovered": "2026-11-20T14:00:00Z",
+    "lastVerified": "2026-11-19T00:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 85,
+    "scoreComponents": {
+      "completeness": 88,
+      "freshness": 92,
+      "accuracy": 84,
+      "reconciliation": 84
+    },
+    "scoreReasons": [
+      "Dynatrace service traces streaming normally"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "port": 8080,
+      "runtime": "Go 1.22",
+      "rps": 340
+    },
+    "createdAt": "2023-10-15T00:00:00Z",
+    "updatedAt": "2026-11-20T14:00:00Z"
+  },
+  {
+    "id": "CI-1034",
+    "name": "prod-logistics-db-primary",
+    "ciClass": "Database",
+    "description": "Amazon RDS PostgreSQL Multi-AZ primary database for inventory tracking.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "Marcus Vance",
+    "supportGroup": "Core Infrastructure & Cloud Ops",
+    "vendor": "Amazon Web Services",
+    "manufacturer": "PostgreSQL",
+    "model": "RDS db.r6g.2xlarge",
+    "serialNumber": "RDS-LOG-1034",
+    "assetTag": "AT-99047",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-LOGISTICS-01",
+    "installDate": "2023-10-15",
+    "warrantyEnd": "2027-10-15",
+    "dataClassification": "Confidential",
+    "complianceFlags": [
+      "SOC2",
+      "ISO27001"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "arn:aws:rds:us-east-1:112233445566:db:prod-logistics-db",
+      "ipAddress": "10.100.60.34"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2023-10-15T00:00:00Z",
+    "lastDiscovered": "2026-11-20T13:45:00Z",
+    "lastVerified": "2026-11-19T00:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 84,
+    "scoreComponents": {
+      "completeness": 90,
+      "freshness": 90,
+      "accuracy": 82,
+      "reconciliation": 82
+    },
+    "scoreReasons": [
+      "Multi-AZ standby synchronous replication active"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "engineVersion": "16.1",
+      "allocatedStorageGb": 1000,
+      "iops": 3000
+    },
+    "createdAt": "2023-10-15T00:00:00Z",
+    "updatedAt": "2026-11-20T13:45:00Z"
+  },
+  {
+    "id": "CI-1035",
+    "name": "prod-logistics-fleet-tracker",
+    "ciClass": "Container/Pod",
+    "description": "GPS telematics and carrier webhook receiver container running on EKS.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 2 - Business Operational",
+    "owner": "Marcus Vance",
+    "supportGroup": "Supply Chain & Operations",
+    "vendor": "Cloud Native Computing Foundation",
+    "manufacturer": "Kubernetes",
+    "model": "Pod / Deployment",
+    "serialNumber": "FLT-POD-1035",
+    "assetTag": "AT-99048",
+    "location": "EKS Cluster us-east-1",
+    "costCenter": "CC-LOGISTICS-01",
+    "installDate": "2024-03-15",
+    "warrantyEnd": "2027-03-15",
+    "dataClassification": "Internal",
+    "complianceFlags": [],
+    "identificationKeys": {
+      "clusterName": "eks-prod-us-east-1",
+      "namespace": "logistics",
+      "workloadName": "fleet-tracker-pod",
+      "workloadKind": "Deployment"
+    },
+    "discoverySource": "Kubernetes Operator",
+    "firstDiscovered": "2024-03-15T00:00:00Z",
+    "lastDiscovered": "2026-11-20T14:15:00Z",
+    "lastVerified": "2026-11-19T00:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 86,
+    "scoreComponents": {
+      "completeness": 88,
+      "freshness": 94,
+      "accuracy": 86,
+      "reconciliation": 86
+    },
+    "scoreReasons": [
+      "Carrier GPS webhook latency < 120ms"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "containerPort": 8088,
+      "replicas": 4
+    },
+    "createdAt": "2024-03-15T00:00:00Z",
+    "updatedAt": "2026-11-20T14:15:00Z"
+  },
+  {
+    "id": "CI-1036",
+    "name": "prod-logistics-queue-rabbit",
+    "ciClass": "Server/VM",
+    "description": "RabbitMQ cluster high-availability node managing warehouse packing event queues.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 2 - Business Operational",
+    "owner": "Marcus Vance",
+    "supportGroup": "Supply Chain & Operations",
+    "vendor": "VMware / AWS",
+    "manufacturer": "RabbitMQ Cluster",
+    "model": "EC2 c6i.2xlarge",
+    "serialNumber": "RAB-LOG-1036",
+    "assetTag": "AT-99049",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-LOGISTICS-01",
+    "installDate": "2023-10-20",
+    "warrantyEnd": "2026-10-20",
+    "dataClassification": "Internal",
+    "complianceFlags": [
+      "SOC2"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "i-09123891823901036",
+      "ipAddress": "10.100.60.36",
+      "serialNumber": "RAB-LOG-1036"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2023-10-20T00:00:00Z",
+    "lastDiscovered": "2026-11-20T13:45:00Z",
+    "lastVerified": "2026-11-19T00:00:00Z",
+    "sourceRanking": 4,
+    "trustScore": 83,
+    "scoreComponents": {
+      "completeness": 85,
+      "freshness": 88,
+      "accuracy": 82,
+      "reconciliation": 82
+    },
+    "scoreReasons": [
+      "Queue depth < 100 messages"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "rabbitmqVersion": "3.12.10",
+      "erlangVersion": "26.1"
+    },
+    "createdAt": "2023-10-20T00:00:00Z",
+    "updatedAt": "2026-11-20T13:45:00Z"
+  },
+  {
+    "id": "CI-1037",
+    "name": "prod-order-service-api",
+    "ciClass": "Application",
+    "description": "Core order submission, cart checkout, and state machine validation engine.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "David Chen",
+    "supportGroup": "Digital Channels Engineering",
+    "vendor": "ZenOps Systems",
+    "manufacturer": "Java Spring Boot",
+    "model": "v4.1.0 Cloud Native",
+    "serialNumber": "ORD-API-1037",
+    "assetTag": "AT-99050",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-ORDER-01",
+    "installDate": "2023-04-10",
+    "warrantyEnd": "2027-04-10",
+    "dataClassification": "Confidential",
+    "complianceFlags": [
+      "SOC2",
+      "PCI-DSS"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "arn:aws:ecs:us-east-1:112233445566:service/order-service-api",
+      "fqdn": "order-api.zenops.internal",
+      "ipAddress": "10.100.70.37"
+    },
+    "discoverySource": "Dynatrace APM Agent",
+    "firstDiscovered": "2023-04-10T00:00:00Z",
+    "lastDiscovered": "2026-11-20T14:00:00Z",
+    "lastVerified": "2026-11-18T00:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 79,
+    "scoreComponents": {
+      "completeness": 82,
+      "freshness": 82,
+      "accuracy": 78,
+      "reconciliation": 78
+    },
+    "scoreReasons": [
+      "Java heap pool GC spikes under peak traffic"
+    ],
+    "qualityFlags": [
+      "Garbage Collection Latency Spikes"
+    ],
+    "attributes": {
+      "javaVersion": "21.0.2",
+      "springBootVersion": "3.2.3",
+      "activeWorkers": 16
+    },
+    "createdAt": "2023-04-10T00:00:00Z",
+    "updatedAt": "2026-11-20T14:00:00Z"
+  },
+  {
+    "id": "CI-1038",
+    "name": "prod-order-worker-batch",
+    "ciClass": "Container/Pod",
+    "description": "Kubernetes container processing bulk cart abandonment notifications and CRM webhooks.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 2 - Business Operational",
+    "owner": "David Chen",
+    "supportGroup": "Digital Channels Engineering",
+    "vendor": "Cloud Native Computing Foundation",
+    "manufacturer": "Kubernetes",
+    "model": "Pod / Deployment",
+    "serialNumber": "ORD-POD-1038",
+    "assetTag": "AT-99051",
+    "location": "EKS Cluster us-east-1",
+    "costCenter": "CC-ORDER-01",
+    "installDate": "2024-02-18",
+    "warrantyEnd": "2027-02-18",
+    "dataClassification": "Internal",
+    "complianceFlags": [],
+    "identificationKeys": {
+      "clusterName": "eks-prod-us-east-1",
+      "namespace": "orders",
+      "workloadName": "order-batch-worker",
+      "workloadKind": "Deployment"
+    },
+    "discoverySource": "Kubernetes Operator",
+    "firstDiscovered": "2024-02-18T00:00:00Z",
+    "lastDiscovered": "2026-11-20T14:15:00Z",
+    "lastVerified": "2026-11-19T00:00:00Z",
+    "sourceRanking": 4,
+    "trustScore": 80,
+    "scoreComponents": {
+      "completeness": 84,
+      "freshness": 88,
+      "accuracy": 80,
+      "reconciliation": 80
+    },
+    "scoreReasons": [
+      "Cron schedule running every 5 minutes"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "batchSize": 500,
+      "maxConcurrency": 8
+    },
+    "createdAt": "2024-02-18T00:00:00Z",
+    "updatedAt": "2026-11-20T14:15:00Z"
+  },
+  {
+    "id": "CI-1039",
+    "name": "prod-order-cassandra-01",
+    "ciClass": "Database",
+    "description": "Apache Cassandra distributed NoSQL primary replica for high-throughput order receipts.",
+    "lifecycleStatus": "In Use",
+    "operationalStatus": "Operational",
+    "environment": "Production",
+    "businessCriticality": "Tier 1 - Mission Critical",
+    "owner": "David Chen",
+    "supportGroup": "Core Infrastructure & Cloud Ops",
+    "vendor": "Apache / AWS",
+    "manufacturer": "AWS Keyspaces",
+    "model": "Amazon Keyspaces Cassandra",
+    "serialNumber": "CAS-ORD-1039",
+    "assetTag": "AT-99052",
+    "location": "AWS us-east-1",
+    "costCenter": "CC-ORDER-01",
+    "installDate": "2023-05-20",
+    "warrantyEnd": "2027-05-20",
+    "dataClassification": "Restricted",
+    "complianceFlags": [
+      "SOC2",
+      "PCI-DSS"
+    ],
+    "identificationKeys": {
+      "cloudResourceId": "arn:aws:cassandra:us-east-1:112233445566:/keyspace/order_receipts",
+      "fqdn": "cassandra.us-east-1.amazonaws.com"
+    },
+    "discoverySource": "AWS Discovery Connector",
+    "firstDiscovered": "2023-05-20T00:00:00Z",
+    "lastDiscovered": "2026-11-20T13:45:00Z",
+    "lastVerified": "2026-11-18T00:00:00Z",
+    "sourceRanking": 5,
+    "trustScore": 78,
+    "scoreComponents": {
+      "completeness": 82,
+      "freshness": 82,
+      "accuracy": 76,
+      "reconciliation": 76
+    },
+    "scoreReasons": [
+      "Cassandra read repair latency within threshold"
+    ],
+    "qualityFlags": [],
+    "attributes": {
+      "consistencyLevel": "LOCAL_QUORUM",
+      "keyspace": "order_receipts"
+    },
+    "createdAt": "2023-05-20T00:00:00Z",
+    "updatedAt": "2026-11-20T13:45:00Z"
+  }
 ];
 
 export const INITIAL_RELATIONSHIPS: CIRelationship[] = [
@@ -846,8 +2272,14 @@ export const INITIAL_RECONCILIATION_RULES: ReconciliationRule[] = [
     id: "REC-01",
     name: "Server / VM Identification Matrix",
     ciClass: "Server/VM",
-    identifierAttributes: ["serialNumber", "macAddress", "fqdn", "cloudResourceId"],
-    sourcePriority: ["AWS Discovery Connector", "CrowdStrike Falcon Sensor", "Dynatrace APM Agent", "ServiceNow Bridge"],
+    identifierAttributes: ["cloudResourceId", "serialNumber", "macAddress", "fqdn"],
+    sourcePriority: [
+      "AWS Discovery Connector",
+      "Azure Resource Graph",
+      "CrowdStrike Falcon Sensor",
+      "Dynatrace APM Agent",
+      "ServiceNow Bridge",
+    ],
     mergeAction: "Auto Merge",
     staleThreshold: 14,
     active: true,
@@ -855,21 +2287,26 @@ export const INITIAL_RECONCILIATION_RULES: ReconciliationRule[] = [
   },
   {
     id: "REC-02",
-    name: "Container & Pod Lifecycle Correlation",
+    name: "Container & Workload Lifecycle Correlation",
     ciClass: "Container/Pod",
-    identifierAttributes: ["uuid", "clusterName", "namespace", "containerImage"],
-    sourcePriority: ["Kubernetes Cluster Operator", "Dynatrace APM Agent"],
+    identifierAttributes: ["clusterName", "namespace", "workloadName", "workloadKind"],
+    sourcePriority: ["Kubernetes Operator", "Dynatrace APM Agent"],
     mergeAction: "Auto Merge",
     staleThreshold: 3,
     active: true,
-    matchCount: 2840,
+    matchCount: 1190,
   },
   {
     id: "REC-03",
     name: "Database Instance & Cluster Rule",
     ciClass: "Database",
-    identifierAttributes: ["cloudResourceId", "fqdn", "port"],
-    sourcePriority: ["AWS Discovery Connector", "Azure Resource Graph", "Manual Provisioning"],
+    identifierAttributes: ["cloudResourceId", "fqdn", "databaseName", "port"],
+    sourcePriority: [
+      "AWS Discovery Connector",
+      "Azure Resource Graph",
+      "ServiceNow Bridge",
+      "Manual Provisioning",
+    ],
     mergeAction: "Require Approval",
     staleThreshold: 7,
     active: true,
@@ -888,11 +2325,15 @@ export const INITIAL_RECONCILIATION_RULES: ReconciliationRule[] = [
   },
   {
     id: "REC-05",
-    name: "Network Hardware Serial Match",
+    name: "Network Hardware & Switch Reconciliation",
     ciClass: "Network Device",
     identifierAttributes: ["serialNumber", "macAddress", "managementIp"],
-    sourcePriority: ["CrowdStrike Falcon Sensor", "Manual Provisioning"],
-    mergeAction: "Overwrite",
+    sourcePriority: [
+      "Network / SNMP Discovery Source",
+      "ServiceNow Bridge",
+      "Manual Provisioning",
+    ],
+    mergeAction: "Require Approval",
     staleThreshold: 30,
     active: true,
     matchCount: 94,
@@ -904,7 +2345,7 @@ export const INITIAL_DATA_QUALITY_TASKS: DataQualityTask[] = [
     id: "DQ-201",
     ciId: "CI-1010",
     ciName: "staging-legacy-billing-sync",
-    ciClass: "Application",
+    ciClass: "Server/VM",
     issueType: "Missing Required Ownership",
     proposedFix: "Assign owner to 'David Chen (Enterprise Architect)' based on git commit history & project codeowners.",
     confidence: 94,
@@ -917,7 +2358,7 @@ export const INITIAL_DATA_QUALITY_TASKS: DataQualityTask[] = [
     id: "DQ-202",
     ciId: "CI-1010",
     ciName: "staging-legacy-billing-sync",
-    ciClass: "Application",
+    ciClass: "Server/VM",
     issueType: "Stale Discovery",
     proposedFix: "Trigger active ping probe and re-enable ServiceNow sync sensor or mark for retirement.",
     confidence: 89,
@@ -935,7 +2376,7 @@ export const INITIAL_DATA_QUALITY_TASKS: DataQualityTask[] = [
     proposedFix: "Merge OS version attribute from CrowdStrike ('Amazon Linux 2023.4') over AWS descriptor.",
     confidence: 96,
     approver: "David Chen",
-    status: "Approved",
+    status: "Pending",
     severity: "Medium",
     createdAt: "2026-11-09T11:00:00Z",
   },
@@ -961,9 +2402,35 @@ export const INITIAL_DATA_QUALITY_TASKS: DataQualityTask[] = [
     proposedFix: "Add 'NIST-800-53' flag based on Equinix DC1 security certification checklist.",
     confidence: 91,
     approver: "Amara Okafor",
-    status: "Applied",
+    status: "Pending",
     severity: "Medium",
     createdAt: "2026-11-07T09:30:00Z",
+  },
+  {
+    id: "DQ-206",
+    ciId: "CI-1015",
+    ciName: "prod-edge-alb-01",
+    ciClass: "Network Device",
+    issueType: "Missing Required Ownership",
+    proposedFix: "Assign ownership to Digital Experience & Growth team (David Chen).",
+    confidence: 94,
+    approver: "David Chen",
+    status: "Pending",
+    severity: "High",
+    createdAt: "2026-11-15T09:20:00Z",
+  },
+  {
+    id: "DQ-207",
+    ciId: "CI-1012",
+    ciName: "storage-san-dell-powerstore-01",
+    ciClass: "Storage",
+    issueType: "Stale Discovery",
+    proposedFix: "Storage device telemetry silent for 32 days (threshold: 30d). Alert NOC & trigger probe scan.",
+    confidence: 95,
+    approver: "Jordan Lee",
+    status: "Pending",
+    severity: "Critical",
+    createdAt: "2026-10-19T11:00:00Z",
   },
 ];
 

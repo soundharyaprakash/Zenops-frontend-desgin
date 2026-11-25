@@ -351,7 +351,7 @@ export function CIInventoryView() {
       {/* ----------------------------------------------------------------------- */}
       {/* SAVED FILTER TABS (Jira-style) */}
       {/* ----------------------------------------------------------------------- */}
-      <div className="flex items-center gap-1 border-b border-border dark:border-white/[0.08] overflow-x-auto pb-px whitespace-nowrap scrollbar-none">
+      <div className="flex items-center gap-1 border-b border-border overflow-x-auto pb-px whitespace-nowrap scrollbar-none">
         {savedViews.map((view) => {
           const isActive = activeSavedView === view.id;
           return (
@@ -362,7 +362,7 @@ export function CIInventoryView() {
                 "px-3.5 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
                 isActive
                   ? "border-primary text-primary font-semibold"
-                  : "border-transparent text-text-muted hover:text-text-default hover:border-border dark:hover:border-white/[0.12]"
+                  : "border-transparent text-text-muted hover:text-text-default hover:border-border hover:border-border-strong"
               )}
             >
               {view.label}
@@ -381,7 +381,7 @@ export function CIInventoryView() {
             placeholder="Filter by ID, Name, IP, MAC, Owner..."
             value={filters.search}
             onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
-            className="w-full pl-9 pr-3.5 py-2 text-sm bg-surface border border-border dark:border-white/[0.08] rounded-input focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-default placeholder:text-text-muted shadow-2xs"
+            className="w-full pl-9 pr-3.5 py-2 text-sm bg-surface border border-border hover:border-border-strong rounded-input focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-text-default placeholder:text-text-muted shadow-2xs"
           />
           <Search className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           {filters.search && (

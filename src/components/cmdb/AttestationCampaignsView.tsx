@@ -154,7 +154,7 @@ export function AttestationCampaignsView() {
                   <ProgressBar value={camp.completionPercentage} max={100} variant="brand" size="sm" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-border dark:border-white/[0.06] text-xs">
+                <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-border text-xs">
                   <div>
                     <span className="text-text-muted">Due Date</span>
                     <p className="font-semibold text-text-default flex items-center gap-1.5 mt-0.5">
@@ -178,7 +178,7 @@ export function AttestationCampaignsView() {
                     {camp.ownerList.map((owner) => (
                       <span
                         key={owner}
-                        className="px-2 py-0.5 rounded bg-sunken text-text-secondary text-xs font-medium border border-border/60 dark:border-white/[0.08]"
+                        className="px-2 py-0.5 rounded bg-sunken text-text-secondary text-xs font-medium border border-border/60"
                       >
                         {owner.split(" ")[0]}
                       </span>

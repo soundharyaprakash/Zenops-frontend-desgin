@@ -46,7 +46,7 @@ function ToastItem({
   return (
     <div
       className={cn(
-        "pointer-events-auto flex items-start gap-3 p-3.5 rounded-md bg-surface text-foreground border border-border dark:border-white/[0.08] shadow-dropdown animate-in slide-in-from-bottom-3 fade-in duration-200 transition-all",
+        "pointer-events-auto flex items-start gap-3 p-3.5 rounded-md bg-surface text-foreground border border-border shadow-dropdown animate-in slide-in-from-bottom-3 fade-in duration-200 transition-all",
         borderStyles[toast.type]
       )}
     >

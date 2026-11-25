@@ -210,13 +210,13 @@ export function Sidebar({
       {/* Sidebar Container */}
       <aside
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-40 flex flex-col bg-surface border-r border-border dark:border-white/[0.07] transition-all duration-200 ease-in-out shadow-subtle select-none text-default",
+          "fixed top-0 bottom-0 left-0 z-40 flex flex-col bg-surface border-r border-border transition-all duration-200 ease-in-out shadow-subtle select-none text-default",
           collapsed ? "w-16" : "w-64 xl:w-72",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         {/* Top Logo Header */}
-        <div className="h-14 flex items-center justify-between gap-1.5 px-3 py-2 border-b border-border dark:border-white/[0.07] bg-surface transition-colors">
+        <div className="h-14 flex items-center justify-between gap-1.5 px-3 py-2 border-b border-border bg-surface transition-colors">
           <div className="flex-1 min-w-0">
             <Logo collapsed={collapsed} size="sm" />
           </div>
@@ -244,7 +244,7 @@ export function Sidebar({
 
         {/* Collapsed Expand Trigger */}
         {collapsed && (
-          <div className="hidden lg:flex justify-center py-2 border-b border-border dark:border-white/[0.07] bg-surface">
+          <div className="hidden lg:flex justify-center py-2 border-b border-border bg-surface">
             <button
               onClick={onToggleCollapse}
               className="p-1 rounded-button text-muted hover:text-default hover:bg-sunken transition-colors"

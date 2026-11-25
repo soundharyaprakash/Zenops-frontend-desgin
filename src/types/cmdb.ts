@@ -380,6 +380,10 @@ export interface ReconciliationRule {
   staleThreshold: number; // in days
   active: boolean;
   matchCount?: number;
+  author?: string;
+  authorId?: string;
+  approvalStatus?: "Draft" | "Pending Approval" | "Approved";
+  approvedBy?: string;
 }
 
 export type DataQualityStatus =

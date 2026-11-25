@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node --max-old-space-size=4096 ./node_modules/next/dist/bin/next build",
+    "build": "node ./node_modules/typescript/bin/tsc --noEmit && node --max-old-space-size=4096 ./node_modules/next/dist/bin/next build",
     "start": "next start",
     "lint": "next lint",
     "test": "node ./node_modules/typescript/bin/tsc src/tests/rbac.test.ts --outDir .dist-test --module commonjs --target es2020 --moduleResolution node --skipLibCheck --esModuleInterop && node .dist-test/tests/rbac.test.js && powershell -Command \"Remove-Item -Recurse -Force .dist-test -ErrorAction SilentlyContinue\""

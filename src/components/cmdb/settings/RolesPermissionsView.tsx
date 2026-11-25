@@ -68,11 +68,11 @@ export function RolesPermissionsView() {
     },
     {
       permission: "Resolve & Apply Data Quality Tasks",
-      description: "Approve automated remediation fixes and restore degraded Trust Scores",
+      description: "Approve automated remediation fixes and restore degraded Trust Scores (Blocked for Admin by SoD)",
       viewer: false,
       editor: false,
       cmdbOwner: true,
-      admin: true,
+      admin: false, // Strict SoD: admin_cannot_approve!
     },
     {
       permission: "Execute IRE Reconciliation & Merge",
@@ -152,22 +152,31 @@ export function RolesPermissionsView() {
         </div>
 
         {/* Quick Role Switcher for Demo */}
-        <div className="flex items-center gap-1.5 p-1 bg-sunken rounded-md border border-border flex-wrap">
-          <span className="text-xs font-semibold text-text-muted px-2">Simulate Role:</span>
-          {(["Viewer", "Editor", "CMDB Owner", "Admin"] as UserRole[]).map((r) => (
-            <button
-              key={r}
-              onClick={() => handleSwitchRole(r)}
-              className={cn(
-                "px-3 py-1.5 rounded text-xs sm:text-sm font-semibold transition-all",
-                userRole === r
-                  ? "bg-primary text-white shadow-xs"
-                  : "text-text-secondary hover:text-text-default hover:bg-surface"
-              )}
-            >
-              {r}
-            </button>
-          ))}
+        <div className="flex items-center gap-2 flex-wrap">
+          <a
+            href="/settings/security/matrix"
+            className="text-xs font-semibold text-primary hover:underline px-2.5 py-1.5 rounded bg-primary/10 border border-primary/20 flex items-center gap-1.5"
+          >
+            <Shield className="w-3.5 h-3.5" />
+            View Enterprise 12-Role Matrix
+          </a>
+          <div className="flex items-center gap-1.5 p-1 bg-sunken rounded-md border border-border flex-wrap">
+            <span className="text-xs font-semibold text-text-muted px-2">Simulate Role:</span>
+            {(["Viewer", "Editor", "CMDB Owner", "Admin"] as UserRole[]).map((r) => (
+              <button
+                key={r}
+                onClick={() => handleSwitchRole(r)}
+                className={cn(
+                  "px-3 py-1.5 rounded text-xs sm:text-sm font-semibold transition-all",
+                  userRole === r
+                    ? "bg-primary text-white shadow-xs"
+                    : "text-text-secondary hover:text-text-default hover:bg-surface"
+                )}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -11,6 +11,8 @@ import {
   Scale,
   Activity,
   Grid,
+  KeyRound,
+  FileCheck2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +57,18 @@ const SECURITY_TABS = [
     name: "Permission Matrix",
     href: "/settings/security/matrix",
     icon: Grid,
+    exact: false,
+  },
+  {
+    name: "Break-Glass Access",
+    href: "/settings/security/break-glass",
+    icon: KeyRound,
+    exact: false,
+  },
+  {
+    name: "Access Reviews",
+    href: "/settings/security/access-reviews",
+    icon: FileCheck2,
     exact: false,
   },
 ];

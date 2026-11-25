@@ -8,6 +8,10 @@ import {
   TemporaryAccessService,
   TemporaryAccessException,
   getAllRoles,
+  detectUserSodConflicts,
+  UserContext,
+  AccessAuditService,
+  PERMISSIONS,
 } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +26,7 @@ export default function TemporaryAccessPage() {
   const [ticketId, setTicketId] = useState("CHG-9402");
   const [reason, setReason] = useState("Emergency database schema reconciliation fix");
   const [durationHours, setDurationHours] = useState(24);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const roles = getAllRoles();
 
@@ -31,9 +36,34 @@ export default function TemporaryAccessPage() {
 
   const handleCreateException = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+
+    // Section 3.5: Enforce 24-hour maximum duration on JIT privileged access
+    const cappedDuration = Math.min(Math.max(Number(durationHours), 1), 24);
+
+    // Section 3.5: Evaluate SoD conflicts before granting JIT elevation
+    // Check if target user already holds admin roles or conflicting privileges
+    const isTargetAdmin = userEmail.toLowerCase().includes("admin") || userName.toLowerCase().includes("admin");
+    const simulatedRoles = isTargetAdmin ? ["cmdb_admin", elevatedRole] : [elevatedRole];
+    const simulatedUser: UserContext = {
+      id: "usr-jit-check",
+      name: userName.trim(),
+      email: userEmail.trim(),
+      role: elevatedRole,
+      roles: simulatedRoles,
+      tenantId: "CMP_1001_ZENDEV",
+    };
+
+    const conflicts = detectUserSodConflicts(simulatedUser);
+    if (conflicts.length > 0) {
+      setFormError(
+        `JIT Elevation Blocked by Separation of Duties Policy: ${conflicts.map((c) => c.reason).join("; ")}`
+      );
+      return;
+    }
 
     const start = new Date();
-    const end = new Date(start.getTime() + durationHours * 60 * 60 * 1000);
+    const end = new Date(start.getTime() + cappedDuration * 60 * 60 * 1000);
 
     const created = TemporaryAccessService.addException({
       userId: `USR-${Math.floor(1000 + Math.random() * 9000)}`,

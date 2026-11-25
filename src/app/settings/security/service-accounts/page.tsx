@@ -91,6 +91,12 @@ export default function ServiceAccountsPage() {
                     {daysSince} days ago ({new Date(sa.lastRotated).toLocaleDateString()})
                   </span>
                 </div>
+                <div>
+                  <span className="text-muted block text-[10px] uppercase font-semibold">Credential Expiry</span>
+                  <span className="font-semibold text-default">
+                    {new Date(new Date(sa.lastRotated).getTime() + sa.rotationIntervalDays * 86400000).toLocaleDateString()}
+                  </span>
+                </div>
                 <div className="col-span-2 pt-1 border-t border-border/50">
                   <span className="text-muted block text-[10px] uppercase font-semibold">IP Allow-List</span>
                   <span className="font-mono text-default text-[10px]">

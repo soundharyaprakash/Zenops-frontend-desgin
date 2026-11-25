@@ -69,6 +69,88 @@ export default function GroupMappingPage() {
         </Button>
       </div>
 
+      {/* Directory Sync Status Banner (Section 3.5) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+        <div className="p-3.5 bg-surface border border-border rounded-lg space-y-1 shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-muted block">IdP Sync Health</span>
+          <div className="flex items-center gap-1.5 text-emerald-600 font-bold">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Okta SCIM 2.0 & Azure AD: Active</span>
+          </div>
+          <span className="text-[10px] text-muted block">Automatic delta sync enabled</span>
+        </div>
+
+        <div className="p-3.5 bg-surface border border-border rounded-lg space-y-1 shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-muted block">Last Directory Sync</span>
+          <div className="font-bold text-default text-xs">
+            12 minutes ago (07:15 UTC)
+          </div>
+          <span className="text-[10px] text-muted block">Next scheduled pull in 18 minutes</span>
+        </div>
+
+        <div className="p-3.5 bg-surface border border-border rounded-lg space-y-1 shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-muted block">Unmapped Groups</span>
+          <div className="font-bold text-amber-600 text-xs">
+            2 Groups Pending Review
+          </div>
+          <span className="text-[10px] text-muted block">8 users with default Viewer fallback</span>
+        </div>
+      </div>
+
+      {/* Unmapped Directory Groups Alert Section (Section 3.5) */}
+      <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl space-y-2 text-xs">
+        <div className="flex items-center justify-between">
+          <span className="font-bold text-amber-800 dark:text-amber-200 flex items-center gap-2">
+            <Layers className="w-4 h-4 text-amber-600" />
+            Unmapped Directory Groups Detected from IdP
+          </span>
+          <span className="text-[10px] text-muted font-mono">SCIM Inbound Queue</span>
+        </div>
+        <p className="text-secondary text-[11px]">
+          The following enterprise directory groups exist in your IdP but have not been mapped to a canonical CMDB role. Members currently fall back to read-only access.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <div className="p-2.5 rounded bg-surface border border-border flex items-center justify-between">
+            <div>
+              <span className="font-mono font-semibold text-default block">Security-Auditors-External</span>
+              <span className="text-[10px] text-muted">3 members &bull; Source: Okta SCIM</span>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setNewGroup("Security-Auditors-External");
+                setSelectedRoleKey("auditor");
+                setModalOpen(true);
+              }}
+              className="text-xs py-1 h-7"
+            >
+              Map Role
+            </Button>
+          </div>
+
+          <div className="p-2.5 rounded bg-surface border border-border flex items-center justify-between">
+            <div>
+              <span className="font-mono font-semibold text-default block">Cloud-Contractors</span>
+              <span className="text-[10px] text-muted">5 members &bull; Source: Azure AD</span>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setNewGroup("Cloud-Contractors");
+                setSelectedRoleKey("service_desk_agent");
+                setModalOpen(true);
+              }}
+              className="text-xs py-1 h-7"
+            >
+              Map Role
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* Enterprise Architecture Notice */}
       <div className="p-4 rounded-lg bg-surface border border-border flex items-start gap-3 text-xs">
         <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />

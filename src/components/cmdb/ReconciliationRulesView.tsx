@@ -38,6 +38,8 @@ import { CIClass, ReconciliationRule } from "@/types/cmdb";
 import { cn } from "@/lib/utils";
 import { usePermission } from "@/components/rbac/usePermission";
 import { PERMISSIONS } from "@/lib/rbac/permissions";
+import { canApproveRule } from "@/lib/rbac-lite/canApproveRule";
+import { UserContext } from "@/lib/rbac/scope";
 
 interface ConflictRecord {
   id: string;
@@ -164,7 +166,7 @@ const INITIAL_REVIEW_QUEUE: ConflictRecord[] = [
 ];
 
 export function ReconciliationRulesView() {
-  const { reconciliationRules, userRole, showToast } = useCMDB();
+  const { reconciliationRules, userRole, showToast, session } = useCMDB();
   const [rules, setRules] = useState(reconciliationRules);
   const [reviewQueue, setReviewQueue] = useState<ConflictRecord[]>(INITIAL_REVIEW_QUEUE);
   const [activeTab, setActiveTab] = useState<"rules" | "queue">("rules");
@@ -195,14 +197,69 @@ export function ReconciliationRulesView() {
       sourcePriority: sources.split(",").map((s) => s.trim()),
       mergeAction,
       staleThreshold: Number(staleThreshold) || 14,
-      active: true,
+      active: false,
       matchCount: 0,
+      author: session?.email || "sarah.jenkins@gmail.com",
+      authorId: session?.userId || "USR-1001",
+      approvalStatus: "Pending Approval",
     };
 
     setRules([newRule, ...rules]);
     setIsAddOpen(false);
-    showToast("success", "Reconciliation Rule Added", `Rule "${name}" is now active in the IRE engine.`);
+    showToast(
+      "info",
+      "Rule Draft Created (Pending Approval)",
+      `Rule "${name}" requires independent approval from a CMDB Manager before activation (rule authors cannot self-approve).`
+    );
     setName("");
+  };
+
+  const handleApproveRule = (ruleId: string) => {
+    const target = rules.find((r) => r.id === ruleId);
+    if (!target) return;
+
+    const userCtx: UserContext = {
+      id: session?.userId || "usr-current",
+      name: session?.name || (userRole === "Admin" ? "Sarah Jenkins" : "David Chen"),
+      email: session?.email || (userRole === "Admin" ? "sarah.jenkins@gmail.com" : "david.chen@gmail.com"),
+      role: userRole || session?.role || "CMDB Administrator",
+      tenantId: session?.tenantId || "CMP_1001_ZENDEV",
+    };
+
+    const check = canApproveRule(userCtx, {
+      id: target.id,
+      name: target.name,
+      author: target.author,
+      authorId: target.authorId,
+      ruleAuthorId: target.authorId,
+    });
+
+    if (!check.canApprove) {
+      showToast(
+        "error",
+        "Rule Approval Denied",
+        check.reason || "Rule authors cannot approve their own rule drafts (SoD: rule_author_cannot_approve)."
+      );
+      return;
+    }
+
+    setRules((prev) =>
+      prev.map((r) =>
+        r.id === ruleId
+          ? {
+              ...r,
+              approvalStatus: "Approved",
+              active: true,
+              approvedBy: userCtx.name,
+            }
+          : r
+      )
+    );
+    showToast(
+      "success",
+      "Rule Approved & Activated",
+      `Rule "${target.name}" approved by ${userCtx.name} and activated in IRE engine.`
+    );
   };
 
   const toggleRuleActive = (ruleId: string) => {
@@ -431,12 +488,31 @@ export function ReconciliationRulesView() {
                                 >
                                   {rule.mergeAction}
                                 </Badge>
+                                {rule.approvalStatus === "Pending Approval" && (
+                                  <Badge variant="warning" size="sm">
+                                    Pending Approval
+                                  </Badge>
+                                )}
                               </div>
                               <CardTitle className="mt-1 text-base font-bold">{rule.name}</CardTitle>
+                              {rule.author && (
+                                <p className="text-[11px] text-muted">Author: {rule.author} {rule.approvedBy && `(Approved by: ${rule.approvedBy})`}</p>
+                              )}
                             </div>
                           </div>
 
                           <div className="flex items-center gap-3 shrink-0">
+                            {rule.approvalStatus === "Pending Approval" && (
+                              <Button
+                                size="sm"
+                                variant="primary"
+                                leftIcon={<CheckCircle2 className="w-3.5 h-3.5" />}
+                                onClick={() => handleApproveRule(rule.id)}
+                                className="text-xs py-1 h-7"
+                              >
+                                Approve Rule
+                              </Button>
+                            )}
                             <span className="text-xs sm:text-sm text-muted">
                               Matches Reconciled:{" "}
                               <strong className="text-foreground font-mono tabular-nums">

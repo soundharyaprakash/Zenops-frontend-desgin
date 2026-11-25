@@ -55,15 +55,26 @@ export const INITIAL_EXCEPTIONS: TemporaryAccessException[] = [
   },
 ];
 
+let _inMemoryExceptions: TemporaryAccessException[] = [...INITIAL_EXCEPTIONS];
+
 export class TemporaryAccessService {
   public static getExceptions(): TemporaryAccessException[] {
-    if (typeof window === "undefined") return INITIAL_EXCEPTIONS;
+    const now = Date.now();
+    if (typeof window === "undefined") {
+      let changed = false;
+      _inMemoryExceptions.forEach((exc) => {
+        if (exc.status === "active" && new Date(exc.endDate).getTime() <= now) {
+          exc.status = "expired";
+          changed = true;
+        }
+      });
+      return _inMemoryExceptions;
+    }
     try {
       const stored = localStorage.getItem(STORAGE_KEY_EXCEPTIONS);
       if (stored) {
         const parsed = JSON.parse(stored) as TemporaryAccessException[];
         // Auto-refresh expired status against current time
-        const now = Date.now();
         let changed = false;
         parsed.forEach((exc) => {
           if (exc.status === "active" && new Date(exc.endDate).getTime() <= now) {
@@ -84,6 +95,7 @@ export class TemporaryAccessService {
   }
 
   public static saveExceptions(exceptions: TemporaryAccessException[]): void {
+    _inMemoryExceptions = exceptions;
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(STORAGE_KEY_EXCEPTIONS, JSON.stringify(exceptions));

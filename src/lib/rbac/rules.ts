@@ -144,4 +144,32 @@ export const SOD_RULES: SodRule[] = [
       return { blocked: false };
     },
   },
+
+  {
+    id: "rule_author_cannot_approve",
+    name: "Rule Author Self-Approval Prohibition",
+    description: "A reconciliation rule author cannot approve their own rule draft (SoD rule: rule_author_cannot_approve).",
+    riskCategory: "Toxic Privilege Combination",
+    severity: "Critical",
+    evaluator: (user, permission, resource) => {
+      if (permission === PERMISSIONS.RULES_APPROVE && resource) {
+        const author = resource.ruleAuthorId || resource.authorId || resource.authorEmail || resource.author;
+        if (
+          author &&
+          (author === user.id ||
+            (typeof author === "string" && (
+              author.toLowerCase() === user.email.toLowerCase() ||
+              author.toLowerCase() === user.name.toLowerCase()
+            )))
+        ) {
+          return {
+            blocked: true,
+            reason: "Rule authors cannot approve their own rule drafts (SoD rule: rule_author_cannot_approve). Approval must be granted by an independent CMDB Manager.",
+            auditFlag: "SOD_RULE_AUTHOR_APPROVAL_BLOCKED",
+          };
+        }
+      }
+      return { blocked: false };
+    },
+  },
 ];

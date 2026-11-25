@@ -25,8 +25,11 @@ export const PERMISSIONS = {
   DISCOVERY_CONFIGURE: "discovery.configure",
   STAGING_WRITE: "staging.write",
 
-  // Security Administration
-  ROLES_MANAGE: "roles.manage",
+  // Security Administration (Split per Section 1.3)
+  ROLES_DEFINE: "roles.define",
+  ROLES_ASSIGN: "roles.assign",
+  SECURITY_POLICY_EDIT: "security.policy.edit",
+  SECURITY_SOD_EDIT: "security.sod.edit",
 
   // Observability & Auditing
   AUDIT_VIEW: "audit.view",
@@ -136,11 +139,35 @@ export const PERMISSION_CATALOG: Record<PermissionKey, PermissionDefinition> = {
     riskLevel: "Medium",
     requiresAudit: true,
   },
-  [PERMISSIONS.ROLES_MANAGE]: {
-    key: PERMISSIONS.ROLES_MANAGE,
-    label: "Manage Roles & Security",
+  [PERMISSIONS.ROLES_DEFINE]: {
+    key: PERMISSIONS.ROLES_DEFINE,
+    label: "Define Roles & Schema",
     category: "Security & Admin",
-    description: "Configure system roles, directory group mappings, service accounts, and temporary access exceptions.",
+    description: "Create, modify, and clone system and custom role definitions, permissions, and scopes.",
+    riskLevel: "Critical",
+    requiresAudit: true,
+  },
+  [PERMISSIONS.ROLES_ASSIGN]: {
+    key: PERMISSIONS.ROLES_ASSIGN,
+    label: "Assign Roles & Members",
+    category: "Security & Admin",
+    description: "Assign roles to users, configure directory group mappings, and grant temporary elevations.",
+    riskLevel: "Critical",
+    requiresAudit: true,
+  },
+  [PERMISSIONS.SECURITY_POLICY_EDIT]: {
+    key: PERMISSIONS.SECURITY_POLICY_EDIT,
+    label: "Edit Security Policy",
+    category: "Security & Admin",
+    description: "Toggle enforcement modes, configure session limits, and modify access boundaries.",
+    riskLevel: "Critical",
+    requiresAudit: true,
+  },
+  [PERMISSIONS.SECURITY_SOD_EDIT]: {
+    key: PERMISSIONS.SECURITY_SOD_EDIT,
+    label: "Edit SoD Rules",
+    category: "Security & Admin",
+    description: "Author and calibrate toxic combination separation of duties rules and dual custody thresholds.",
     riskLevel: "Critical",
     requiresAudit: true,
   },
@@ -154,7 +181,7 @@ export const PERMISSION_CATALOG: Record<PermissionKey, PermissionDefinition> = {
   },
   [PERMISSIONS.DASHBOARD_VIEW]: {
     key: PERMISSIONS.DASHBOARD_VIEW,
-    label: "View Executive Dashboard",
+    label: "View CMDB dashboards",
     category: "Reporting & Audit",
     description: "Access high-level CMDB health metrics, data quality scores, and aggregated KPIs.",
     riskLevel: "Low",

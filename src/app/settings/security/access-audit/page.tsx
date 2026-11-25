@@ -1,14 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Activity, ShieldAlert, CheckCircle2, XCircle, AlertTriangle, Search, Filter } from "lucide-react";
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { Activity, ShieldAlert, CheckCircle2, XCircle, AlertTriangle, Search, Filter, X } from "lucide-react";
 import { Lozenge } from "@/components/ui/Lozenge";
+import { Button } from "@/components/ui/Button";
 import { AccessAuditService, AccessAuditEntry, AccessAlert } from "@/lib/rbac";
 
-export default function AccessAuditPage() {
+function AccessAuditContent() {
+  const searchParams = useSearchParams();
+  const searchParamQuery = searchParams?.get("search") || "";
+
   const [logs, setLogs] = useState<AccessAuditEntry[]>([]);
   const [alerts, setAlerts] = useState<AccessAlert[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParamQuery);
   const [filterAllowed, setFilterAllowed] = useState<"all" | "allowed" | "denied">("all");
 
   useEffect(() => {
@@ -16,17 +21,30 @@ export default function AccessAuditPage() {
     setAlerts(AccessAuditService.getAlerts());
   }, []);
 
-  const filteredLogs = logs.filter((log) => {
-    const matchesSearch =
-      log.actorEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.permission.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.reason.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (log.resourceName && log.resourceName.toLowerCase().includes(searchQuery.toLowerCase()));
+  useEffect(() => {
+    if (searchParamQuery) {
+      setSearchQuery(searchParamQuery);
+    }
+  }, [searchParamQuery]);
 
+  const filteredLogs = logs.filter((log) => {
+    const q = searchQuery.toLowerCase().trim();
     const matchesFilter =
       filterAllowed === "all" ||
       (filterAllowed === "allowed" && log.allowed) ||
       (filterAllowed === "denied" && !log.allowed);
+
+    if (!q) return matchesFilter;
+
+    const matchesSearch =
+      log.id.toLowerCase().includes(q) ||
+      (Boolean(log.auditFlag) && log.auditFlag!.toLowerCase().includes(q)) ||
+      log.actorEmail.toLowerCase().includes(q) ||
+      log.actorName.toLowerCase().includes(q) ||
+      log.permission.toLowerCase().includes(q) ||
+      log.reason.toLowerCase().includes(q) ||
+      (Boolean(log.resourceName) && log.resourceName!.toLowerCase().includes(q)) ||
+      (Boolean(log.resourceId) && log.resourceId!.toLowerCase().includes(q));
 
     return matchesSearch && matchesFilter;
   });
@@ -86,9 +104,24 @@ export default function AccessAuditPage() {
       {/* Audit Log Table Header & Filters */}
       <div className="space-y-3 pt-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-muted">
-            Live Policy Decisions Stream ({filteredLogs.length})
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted">
+              Live Policy Decisions Stream ({filteredLogs.length})
+            </h3>
+            {searchQuery && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono bg-primary/10 text-primary border border-primary/20">
+                Filtered: &quot;{searchQuery}&quot;
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="hover:text-default"
+                  title="Clear filter"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <div className="relative">
@@ -97,8 +130,8 @@ export default function AccessAuditPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search audit trail..."
-                className="bg-surface border border-border rounded-md pl-8 pr-3 py-1 text-xs text-default placeholder:text-muted focus:outline-none"
+                placeholder="Search by Audit ID, actor, flag..."
+                className="bg-surface border border-border rounded-md pl-8 pr-3 py-1 text-xs text-default placeholder:text-muted focus:outline-none w-56"
               />
             </div>
 
@@ -120,6 +153,7 @@ export default function AccessAuditPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-sunken border-b border-border text-[11px] uppercase tracking-wider text-muted font-bold sticky top-0 z-10">
                 <tr>
+                  <th className="px-4 py-3">Audit ID</th>
                   <th className="px-4 py-3">Timestamp</th>
                   <th className="px-4 py-3">Outcome</th>
                   <th className="px-4 py-3">Actor & Role</th>
@@ -132,6 +166,9 @@ export default function AccessAuditPage() {
                 {filteredLogs.length > 0 ? (
                   filteredLogs.map((log) => (
                     <tr key={log.id} className="hover:bg-sunken/40 transition-colors">
+                      <td className="px-4 py-3 font-mono text-[11px] font-bold text-primary whitespace-nowrap">
+                        {log.id}
+                      </td>
                       <td className="px-4 py-3 font-mono text-[11px] text-muted whitespace-nowrap">
                         {new Date(log.timestamp).toLocaleTimeString()}
                       </td>
@@ -159,7 +196,7 @@ export default function AccessAuditPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-xs text-muted">
+                    <td colSpan={7} className="px-4 py-8 text-center text-xs text-muted">
                       No matching audit records found.
                     </td>
                   </tr>
@@ -170,5 +207,13 @@ export default function AccessAuditPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AccessAuditPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-xs text-muted">Loading audit log stream...</div>}>
+      <AccessAuditContent />
+    </Suspense>
   );
 }

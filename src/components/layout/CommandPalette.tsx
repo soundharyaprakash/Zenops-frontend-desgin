@@ -83,7 +83,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     { name: "Immutable CI Audit History Log", href: "/audit-history", icon: History, category: "Navigation" },
     { name: "Settings: Class Hierarchy", href: "/settings/classes", icon: Settings, category: "Settings" },
     { name: "Settings: Trust Score Weights", href: "/settings/trust-score", icon: Sliders, category: "Settings" },
-    { name: "Settings: Roles & RBAC Matrix", href: "/settings/roles", icon: Shield, category: "Settings" },
+    { name: "Settings: Roles & RBAC Matrix", href: "/settings/security/roles", icon: Shield, category: "Settings" },
   ];
 
   // Quick Actions

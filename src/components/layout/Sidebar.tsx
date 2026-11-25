@@ -189,9 +189,9 @@ export function Sidebar({
     },
     {
       name: "RBAC Permissions Matrix",
-      href: "/settings/roles",
+      href: "/settings/security/matrix",
       icon: ShieldCheck,
-      active: pathname.startsWith("/settings/roles"),
+      active: pathname === "/settings/security/matrix",
     },
   ];
 

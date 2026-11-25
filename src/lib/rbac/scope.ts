@@ -11,7 +11,7 @@ import { PermissionKey } from "./permissions";
 
 export interface ScopeRule {
   /** Target scope boundary */
-  type: "whole_tenant" | "owned_by_me" | "service_scoped" | "connector_scoped" | "filtered";
+  type: "whole_tenant" | "owned_by_me" | "owned_by_my_groups" | "service_scoped" | "connector_scoped" | "filtered";
   /** Human-readable description of this scope */
   description: string;
   /** Optional filter criteria */
@@ -188,16 +188,31 @@ export function isResourceInScope(
 
   // 6. Class Filter
   if (filters.classes && filters.classes.length > 0 && resource.ciClass) {
-    const classMatch = filters.classes.includes(resource.ciClass);
+    const classMatch = filters.classes.some(
+      (cls) => cls.toLowerCase() === resource.ciClass?.toLowerCase()
+    );
     if (!classMatch) {
       return {
         inScope: false,
-        reason: `Class restricted: Resource class '${resource.ciClass}' is outside role allowed classes.`,
+        reason: `Class restricted: Resource class '${resource.ciClass}' is outside role allowed classes [${filters.classes.join(", ")}].`,
       };
     }
   }
 
-  // 7. Connector Isolation
+  // 7. Region Filter
+  if (filters.regions && filters.regions.length > 0 && resource.region) {
+    const regionMatch = filters.regions.some(
+      (reg) => reg.toLowerCase() === resource.region?.toLowerCase()
+    );
+    if (!regionMatch) {
+      return {
+        inScope: false,
+        reason: `Region restricted: Role is only permitted in [${filters.regions.join(", ")}], but resource is in '${resource.region}'.`,
+      };
+    }
+  }
+
+  // 8. Connector Isolation
   if (filters.connectorOnly) {
     if (user.isServiceAccount && user.connectorId && resource.connectorId) {
       if (user.connectorId !== resource.connectorId) {

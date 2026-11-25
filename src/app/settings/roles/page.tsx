@@ -1,11 +1,10 @@
-import { Metadata } from "next";
-import { RolesPermissionsView } from "@/components/cmdb/settings/RolesPermissionsView";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Role Permissions Matrix | ZenOps CMDB",
-  description: "Governance authority and RBAC permissions matrix for Viewer, Editor, CMDB Owner, and Admin.",
-};
-
+/**
+ * Legacy /settings/roles route redirects to the centralized
+ * Security & Access Control System Roles view (/settings/security/roles)
+ * to avoid duplicate stale role definitions.
+ */
 export default function RolesSettingsPage() {
-  return <RolesPermissionsView />;
+  redirect("/settings/security/roles");
 }

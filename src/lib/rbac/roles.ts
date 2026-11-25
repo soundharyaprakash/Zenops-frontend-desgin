@@ -15,9 +15,15 @@ export interface RoleDefinition {
   permissions: PermissionKey[];
   scopeRule: ScopeRule;
   owner: string;
+  ownerBackup?: string;
   reviewDate: string;
+  reviewCadence?: "Quarterly" | "Semi-Annual" | "Annual" | "Continuous";
+  lastReviewed?: string;
+  nextReviewDue?: string;
+  isOverdue?: boolean;
   isSystem: boolean;
-  category: "CMDB Core" | "Ownership" | "ITIL Operations" | "Governance & Audit" | "Automated";
+  version?: number;
+  category: "CMDB Core" | "Ownership" | "ITIL Operations" | "Governance & Audit" | "Automated" | "Security & Admin";
   badgeColor?: string;
   autoGrantRule?: "ci_ownership" | "service_ownership" | null;
 }
@@ -33,13 +39,19 @@ export const SYSTEM_ROLES: Record<string, RoleDefinition> = {
       PERMISSIONS.CI_RETIRE,
       PERMISSIONS.TASK_APPROVE,
       PERMISSIONS.RULES_APPROVE,
+      PERMISSIONS.ROLES_ASSIGN,
       PERMISSIONS.AUDIT_VIEW,
       PERMISSIONS.DASHBOARD_VIEW,
       PERMISSIONS.ATTESTATION_MANAGE,
     ],
     scopeRule: SCOPE_POLICIES.WHOLE_TENANT,
-    owner: "IT Operations Governance Board",
+    owner: "Marcus Vance",
+    ownerBackup: "David Chen",
     reviewDate: "2026-12-31",
+    reviewCadence: "Quarterly",
+    lastReviewed: "2026-09-30",
+    nextReviewDue: "2026-12-31",
+    isOverdue: false,
     isSystem: true,
     category: "CMDB Core",
     badgeColor: "bg-blue-500/10 text-blue-600 border-blue-500/20",
@@ -57,14 +69,21 @@ export const SYSTEM_ROLES: Record<string, RoleDefinition> = {
       PERMISSIONS.CI_RETIRE,
       PERMISSIONS.DISCOVERY_CONFIGURE,
       PERMISSIONS.RULES_EDIT,
-      PERMISSIONS.ROLES_MANAGE,
+      PERMISSIONS.ROLES_DEFINE,
+      PERMISSIONS.SECURITY_POLICY_EDIT,
+      PERMISSIONS.SECURITY_SOD_EDIT,
       PERMISSIONS.AUDIT_VIEW,
       PERMISSIONS.DASHBOARD_VIEW,
       // CRITICAL: NEVER task.approve to enforce separation of duties!
     ],
     scopeRule: SCOPE_POLICIES.WHOLE_TENANT,
-    owner: "Principal Platform Engineering",
+    owner: "Sarah Jenkins",
+    ownerBackup: "Alex Rivera",
     reviewDate: "2026-12-31",
+    reviewCadence: "Quarterly",
+    lastReviewed: "2026-10-15",
+    nextReviewDue: "2026-12-31",
+    isOverdue: false,
     isSystem: true,
     category: "CMDB Core",
     badgeColor: "bg-purple-500/10 text-purple-600 border-purple-500/20",
@@ -85,8 +104,13 @@ export const SYSTEM_ROLES: Record<string, RoleDefinition> = {
       PERMISSIONS.ATTESTATION_MANAGE,
     ],
     scopeRule: SCOPE_POLICIES.WHOLE_TENANT,
-    owner: "Enterprise Architecture Lead",
+    owner: "Elena Rostova",
+    ownerBackup: "Priya Sharma",
     reviewDate: "2026-12-31",
+    reviewCadence: "Quarterly",
+    lastReviewed: "2026-10-01",
+    nextReviewDue: "2026-12-31",
+    isOverdue: false,
     isSystem: true,
     category: "CMDB Core",
     badgeColor: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
@@ -104,8 +128,13 @@ export const SYSTEM_ROLES: Record<string, RoleDefinition> = {
       PERMISSIONS.DASHBOARD_VIEW,
     ],
     scopeRule: SCOPE_POLICIES.WHOLE_TENANT,
-    owner: "DevOps Infrastructure Lead",
+    owner: "Devon Brooks",
+    ownerBackup: "Sarah Jenkins",
     reviewDate: "2026-12-31",
+    reviewCadence: "Quarterly",
+    lastReviewed: "2026-09-15",
+    nextReviewDue: "2026-12-31",
+    isOverdue: false,
     isSystem: true,
     category: "CMDB Core",
     badgeColor: "bg-cyan-500/10 text-cyan-600 border-cyan-500/20",
@@ -123,8 +152,13 @@ export const SYSTEM_ROLES: Record<string, RoleDefinition> = {
       PERMISSIONS.TASK_APPROVE,
     ],
     scopeRule: SCOPE_POLICIES.OWNED_BY_ME,
-    owner: "Dynamic (Derived from CI ownership)",
+    owner: "David Chen",
+    ownerBackup: "Application SRE Lead",
     reviewDate: "Continuous",
+    reviewCadence: "Continuous",
+    lastReviewed: "2026-11-01",
+    nextReviewDue: "2026-12-31",
+    isOverdue: false,
     isSystem: true,
     category: "Ownership",
     badgeColor: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20",
@@ -142,8 +176,13 @@ export const SYSTEM_ROLES: Record<string, RoleDefinition> = {
       PERMISSIONS.TASK_APPROVE,
     ],
     scopeRule: SCOPE_POLICIES.SERVICE_OWNED,
-    owner: "Dynamic (Derived from Service ownership)",
+    owner: "Priya Sharma",
+    ownerBackup: "Enterprise Architect Lead",
     reviewDate: "Continuous",
+    reviewCadence: "Continuous",
+    lastReviewed: "2026-11-01",
+    nextReviewDue: "2026-12-31",
+    isOverdue: false,
     isSystem: true,
     category: "Ownership",
     badgeColor: "bg-teal-500/10 text-teal-600 border-teal-500/20",
@@ -158,8 +197,13 @@ export const SYSTEM_ROLES: Record<string, RoleDefinition> = {
       PERMISSIONS.CI_VIEW,
     ],
     scopeRule: SCOPE_POLICIES.WHOLE_TENANT,
-    owner: "Service Desk Manager",
+    owner: "Tom Miller",
+    ownerBackup: "Service Desk Lead",
     reviewDate: "2026-12-31",
+    reviewCadence: "Semi-Annual",
+    lastReviewed: "2026-07-01",
+    nextReviewDue: "2026-12-31",
+    isOverdue: false,
     isSystem: true,
     category: "ITIL Operations",
     badgeColor: "bg-slate-500/10 text-slate-600 border-slate-500/20",
@@ -175,8 +219,13 @@ export const SYSTEM_ROLES: Record<string, RoleDefinition> = {
       PERMISSIONS.AUDIT_VIEW,
     ],
     scopeRule: SCOPE_POLICIES.WHOLE_TENANT,
-    owner: "CAB Chair",
+    owner: "Victoria Sterling",
+    ownerBackup: "Marcus Vance",
     reviewDate: "2026-12-31",
+    reviewCadence: "Quarterly",
+    lastReviewed: "2026-09-30",
+    nextReviewDue: "2026-12-31",
+    isOverdue: false,
     isSystem: true,
     category: "ITIL Operations",
     badgeColor: "bg-amber-500/10 text-amber-600 border-amber-500/20",
@@ -192,8 +241,13 @@ export const SYSTEM_ROLES: Record<string, RoleDefinition> = {
       PERMISSIONS.CI_NOTES,
     ],
     scopeRule: SCOPE_POLICIES.WHOLE_TENANT,
-    owner: "Problem Management Lead",
+    owner: "James Okafor",
+    ownerBackup: "Elena Rostova",
     reviewDate: "2026-12-31",
+    reviewCadence: "Semi-Annual",
+    lastReviewed: "2026-06-30",
+    nextReviewDue: "2026-12-31",
+    isOverdue: false,
     isSystem: true,
     category: "ITIL Operations",
     badgeColor: "bg-orange-500/10 text-orange-600 border-orange-500/20",
@@ -210,8 +264,13 @@ export const SYSTEM_ROLES: Record<string, RoleDefinition> = {
       PERMISSIONS.DASHBOARD_VIEW,
     ],
     scopeRule: SCOPE_POLICIES.WHOLE_TENANT,
-    owner: "Chief Compliance Officer",
+    owner: "Alex Rivera",
+    ownerBackup: "Rachel Moore",
     reviewDate: "2026-12-31",
+    reviewCadence: "Annual",
+    lastReviewed: "2026-01-15",
+    nextReviewDue: "2026-12-31",
+    isOverdue: false,
     isSystem: true,
     category: "Governance & Audit",
     badgeColor: "bg-rose-500/10 text-rose-600 border-rose-500/20",
@@ -226,8 +285,13 @@ export const SYSTEM_ROLES: Record<string, RoleDefinition> = {
       PERMISSIONS.DASHBOARD_VIEW,
     ],
     scopeRule: SCOPE_POLICIES.WHOLE_TENANT,
-    owner: "Chief Information Officer",
+    owner: "Robert Langdon",
+    ownerBackup: "Victoria Sterling",
     reviewDate: "2026-12-31",
+    reviewCadence: "Annual",
+    lastReviewed: "2026-01-15",
+    nextReviewDue: "2026-12-31",
+    isOverdue: false,
     isSystem: true,
     category: "Governance & Audit",
     badgeColor: "bg-blue-600/10 text-blue-700 border-blue-600/20",
@@ -243,8 +307,13 @@ export const SYSTEM_ROLES: Record<string, RoleDefinition> = {
       PERMISSIONS.CI_VIEW, // Read-only for deduplication check
     ],
     scopeRule: SCOPE_POLICIES.CONNECTOR_STAGING,
-    owner: "Security Architecture",
+    owner: "Devon Brooks",
+    ownerBackup: "Platform Security Lead",
     reviewDate: "90-day rotation",
+    reviewCadence: "Quarterly",
+    lastReviewed: "2026-10-01",
+    nextReviewDue: "2026-12-31",
+    isOverdue: false,
     isSystem: true,
     category: "Automated",
     badgeColor: "bg-neutral-500/10 text-neutral-600 border-neutral-500/20",
@@ -264,14 +333,22 @@ export const SYSTEM_ROLES: Record<string, RoleDefinition> = {
       PERMISSIONS.RULES_APPROVE,
       PERMISSIONS.RULES_EDIT,
       PERMISSIONS.DISCOVERY_CONFIGURE,
-      PERMISSIONS.ROLES_MANAGE,
+      PERMISSIONS.ROLES_DEFINE,
+      PERMISSIONS.ROLES_ASSIGN,
+      PERMISSIONS.SECURITY_POLICY_EDIT,
+      PERMISSIONS.SECURITY_SOD_EDIT,
       PERMISSIONS.AUDIT_VIEW,
       PERMISSIONS.DASHBOARD_VIEW,
       PERMISSIONS.ATTESTATION_MANAGE,
     ],
     scopeRule: SCOPE_POLICIES.WHOLE_TENANT,
     owner: "Security Operations Center (SOC)",
+    ownerBackup: "CISO On-Call",
     reviewDate: "Emergency Only",
+    reviewCadence: "Continuous",
+    lastReviewed: "2026-11-15",
+    nextReviewDue: "2026-11-30",
+    isOverdue: false,
     isSystem: true,
     category: "Security & Admin" as any,
     badgeColor: "bg-red-500/15 text-red-600 border-red-500/30",
@@ -284,8 +361,10 @@ export const SYSTEM_ROLES: Record<string, RoleDefinition> = {
  */
 const STORAGE_CUSTOM_ROLES_KEY = "zenops_rbac_custom_roles";
 
+let _inMemoryCustomRoles: Record<string, RoleDefinition> = {};
+
 export function getAllRoles(): Record<string, RoleDefinition> {
-  if (typeof window === "undefined") return { ...SYSTEM_ROLES };
+  if (typeof window === "undefined") return { ...SYSTEM_ROLES, ..._inMemoryCustomRoles };
   try {
     const stored = localStorage.getItem(STORAGE_CUSTOM_ROLES_KEY);
     if (stored) {
@@ -299,6 +378,7 @@ export function getAllRoles(): Record<string, RoleDefinition> {
 }
 
 export function saveCustomRole(role: RoleDefinition): void {
+  _inMemoryCustomRoles[role.key] = { ...role, isSystem: false };
   if (typeof window === "undefined") return;
   try {
     const stored = localStorage.getItem(STORAGE_CUSTOM_ROLES_KEY);
@@ -315,6 +395,11 @@ export function saveCustomRole(role: RoleDefinition): void {
  */
 export function normalizeRoleKey(roleString: string): string {
   const clean = roleString.trim().toLowerCase();
+
+  // Direct exact key match (system or custom roles)
+  const all = getAllRoles();
+  if (all[clean]) return clean;
+
   if (clean.includes("admin") && !clean.includes("discovery") && !clean.includes("break")) return "cmdb_admin";
   if (clean.includes("manager") && clean.includes("cmdb")) return "cmdb_manager";
   if (clean.includes("owner") && clean.includes("cmdb")) return "cmdb_manager";
@@ -332,8 +417,5 @@ export function normalizeRoleKey(roleString: string): string {
   if (clean.includes("editor")) return "data_steward";
   if (clean.includes("viewer")) return "service_desk_agent";
 
-  // direct key match
-  if (SYSTEM_ROLES[clean]) return clean;
-
-  return "cmdb_admin"; // fallback for demo
+  return clean;
 }

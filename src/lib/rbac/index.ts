@@ -11,3 +11,4 @@ export * from "./audit";
 export * from "./temporary-access";
 export * from "./service-accounts";
 export * from "./group-mapping";
+export * from "./role-holders";

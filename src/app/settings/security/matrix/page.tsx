@@ -48,7 +48,9 @@ export default function PermissionMatrixPage() {
                       {role.name}
                     </div>
                     <span className="text-[10px] text-muted block font-normal capitalize">
-                      {role.scopeRule.type.replace(/_/g, " ")}
+                      {role.scopeRule.type === "owned_by_me" || role.scopeRule.type === "owned_by_my_groups"
+                        ? "Owned by my groups"
+                        : role.scopeRule.type.replace(/_/g, " ")}
                     </span>
                   </th>
                 ))}
@@ -72,6 +74,11 @@ export default function PermissionMatrixPage() {
                     {/* Role Permission Cells */}
                     {roles.map((role) => {
                       const isGranted = role.permissions.includes(permKey);
+                      const isSodForbidden =
+                        (role.key === "cmdb_admin" && (permKey === "task.approve" || permKey === "rules.approve" || permKey === "roles.assign")) ||
+                        (role.key === "discovery_admin" && (permKey === "ci.merge" || permKey === "ci.retire")) ||
+                        (role.key === "integration_service_account" && permKey === "dashboard.view");
+
                       return (
                         <td
                           key={role.key}
@@ -81,11 +88,15 @@ export default function PermissionMatrixPage() {
                           )}
                         >
                           {isGranted ? (
-                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold mx-auto">
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold mx-auto" title="Granted">
                               <Check className="w-3.5 h-3.5" />
                             </span>
+                          ) : isSodForbidden ? (
+                            <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 mx-auto" title="Forbidden by Separation of Duties policy">
+                              SoD
+                            </span>
                           ) : (
-                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-neutral-300 dark:text-neutral-700 mx-auto">
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-neutral-300 dark:text-neutral-700 mx-auto" title="Not granted">
                               &mdash;
                             </span>
                           )}
@@ -102,7 +113,7 @@ export default function PermissionMatrixPage() {
 
       {/* Legend */}
       <div className="p-4 bg-surface border border-border rounded-xl text-xs flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-1.5">
             <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
               <Check className="w-3 h-3" />
@@ -110,12 +121,18 @@ export default function PermissionMatrixPage() {
             <span className="text-secondary">Explicitly Granted</span>
           </div>
           <div className="flex items-center gap-1.5">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-600 border border-rose-500/20">
+              SoD
+            </span>
+            <span className="text-secondary">Forbidden by Separation of Duties (SoD)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
             <span className="text-neutral-400 font-bold">&mdash;</span>
-            <span className="text-secondary">Strictly Denied (Least Privilege)</span>
+            <span className="text-secondary">Not Granted (Least Privilege)</span>
           </div>
         </div>
         <p className="text-[11px] text-muted">
-          Separation of Duties (SoD) policies override explicit grants (e.g. CMDB Administrator is denied task.approve).
+          Separation of Duties (SoD) policies override explicit grants (e.g. CMDB Administrator is strictly denied task.approve).
         </p>
       </div>
     </div>

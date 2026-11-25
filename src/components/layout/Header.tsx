@@ -451,7 +451,7 @@ export function Header({ onOpenMobileSidebar, collapsed }: HeaderProps) {
                     Getting Started Checklist
                   </Link>
                   <Link
-                    href="/settings/roles"
+                    href="/settings/security/matrix"
                     onClick={() => setProfileOpen(false)}
                     className="block px-2.5 py-1.5 rounded-[3px] hover:bg-sunken text-default transition-colors text-xs"
                   >

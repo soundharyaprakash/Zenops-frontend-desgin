@@ -4,6 +4,8 @@
  * Append-only security audit log and real-time behavioral access alerts.
  */
 
+import { PERMISSIONS } from "./permissions";
+
 export interface AccessAuditEntry {
   id: string;
   timestamp: string; // ISO 8601
@@ -42,6 +44,8 @@ export interface AccessAlert {
 const STORAGE_KEY_AUDIT_LOG = "zenops_rbac_audit_log";
 const STORAGE_KEY_ALERTS = "zenops_rbac_alerts";
 
+let _inMemoryAuditLog: AccessAuditEntry[] = [];
+
 export const INITIAL_ALERTS: AccessAlert[] = [
   {
     id: "ALT-9001",
@@ -75,16 +79,18 @@ export const INITIAL_ALERTS: AccessAlert[] = [
   },
 ];
 
+let _inMemoryAlerts: AccessAlert[] = [...INITIAL_ALERTS];
+
 export class AccessAuditService {
   public static getLog(): AccessAuditEntry[] {
-    if (typeof window === "undefined") return [];
+    if (typeof window === "undefined") return _inMemoryAuditLog;
     try {
       const stored = localStorage.getItem(STORAGE_KEY_AUDIT_LOG);
       if (stored) return JSON.parse(stored) as AccessAuditEntry[];
     } catch {
       // fallback
     }
-    return [];
+    return _inMemoryAuditLog;
   }
 
   public static append(entry: Omit<AccessAuditEntry, "id" | "timestamp">): AccessAuditEntry {
@@ -98,6 +104,7 @@ export class AccessAuditService {
     // Keep last 1,000 entries
     list.unshift(created);
     if (list.length > 1000) list.pop();
+    _inMemoryAuditLog = list;
 
     if (typeof window !== "undefined") {
       try {
@@ -114,18 +121,19 @@ export class AccessAuditService {
   }
 
   public static getAlerts(): AccessAlert[] {
-    if (typeof window === "undefined") return INITIAL_ALERTS;
+    if (typeof window === "undefined") return _inMemoryAlerts;
     try {
       const stored = localStorage.getItem(STORAGE_KEY_ALERTS);
       if (stored) return JSON.parse(stored) as AccessAlert[];
     } catch {
       // fallback
     }
-    this.saveAlerts(INITIAL_ALERTS);
-    return INITIAL_ALERTS;
+    this.saveAlerts(_inMemoryAlerts);
+    return _inMemoryAlerts;
   }
 
   public static saveAlerts(alerts: AccessAlert[]): void {
+    _inMemoryAlerts = alerts;
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(STORAGE_KEY_ALERTS, JSON.stringify(alerts));
@@ -159,7 +167,30 @@ export class AccessAuditService {
       });
     }
 
-    // 2. Repeated denials check (3 denials from same user within 5 minutes)
+    // 2. Administrator Role Change / Mutation Alert (Item 3)
+    const isAdminTarget =
+      entry.metadata?.newRoleKey === "cmdb_admin" ||
+      entry.metadata?.newRoleKey === "cmdb_manager" ||
+      entry.metadata?.newRoleKey === "break_glass_admin" ||
+      (typeof entry.metadata?.newRoleKey === "string" && entry.metadata.newRoleKey.includes("admin")) ||
+      entry.permission === PERMISSIONS.ROLES_DEFINE;
+
+    if (
+      isAdminTarget &&
+      (entry.auditFlag === "ROLE_ASSIGNMENT_APPROVED" ||
+       entry.auditFlag === "ROLE_ASSIGNMENT_DUAL_CUSTODY_REQUIRED" ||
+       entry.permission === PERMISSIONS.ROLES_DEFINE)
+    ) {
+      this.addAlert({
+        severity: "critical",
+        type: "role_modified",
+        title: "Administrator Role Assignment / Mutation Alert",
+        description: `Privileged administrative role event: Role '${entry.metadata?.newRoleKey || entry.permission}' was modified or assigned by '${entry.actorEmail}'. Reason: ${entry.reason}`,
+        actor: entry.actorEmail,
+      });
+    }
+
+    // 3. Repeated denials check (3 denials from same user within 5 minutes)
     if (!entry.allowed) {
       const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
       const recentDenials = recentLogs.filter(

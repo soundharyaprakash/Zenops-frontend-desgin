@@ -482,7 +482,7 @@ export function ReconciliationRulesView() {
       </div>
 
       {/* Metrics Summary Strip (Screen 3, Item 7 & Single Source of Truth) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-surface p-3.5 rounded-lg border border-border shadow-xs text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-surface p-3.5 rounded-lg border border-border shadow-xs text-xs">
         <div>
           <span className="text-muted block text-[11px]">Matches Reconciled (last 30 days)</span>
           <span className="font-mono text-base font-bold text-foreground">{inventoryMetrics.totalCIs} CIs</span>
@@ -510,7 +510,7 @@ export function ReconciliationRulesView() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-border">
+      <div className="flex border-b border-border overflow-x-auto whitespace-nowrap scrollbar-none">
         <button
           onClick={() => setActiveTab("rules")}
           className={cn(

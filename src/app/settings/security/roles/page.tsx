@@ -502,7 +502,7 @@ export default function RolesManagementPage() {
       {/* Main Grid: Left List (Sticky) + Right Detail Drawer */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Role List */}
-        <div className="lg:col-span-5 space-y-3 sticky top-4">
+        <div className="lg:col-span-5 space-y-3 lg:sticky lg:top-4">
           {/* Search & Category Filter */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
@@ -611,7 +611,7 @@ export default function RolesManagementPage() {
         {/* Right Column: Role Detail View / Side Drawer */}
         <div className="lg:col-span-7">
           {selectedRole ? (
-            <div className="bg-surface border border-border rounded-xl p-6 space-y-6 shadow-xs sticky top-4 max-h-[85vh] overflow-y-auto scrollbar-thin">
+            <div className="bg-surface border border-border rounded-xl p-4 sm:p-6 space-y-6 shadow-xs lg:sticky lg:top-4 max-h-[85vh] overflow-y-auto scrollbar-thin">
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-border">
                 <div className="space-y-1.5">

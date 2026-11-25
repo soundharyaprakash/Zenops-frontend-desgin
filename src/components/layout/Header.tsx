@@ -219,7 +219,7 @@ export function Header({ onOpenMobileSidebar, collapsed }: HeaderProps) {
             </button>
 
             {tenantOpen && (
-              <div className="absolute right-0 mt-1.5 w-64 bg-surface border border-border rounded-card shadow-dropdown p-1.5 z-50 text-sm animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute right-0 mt-1.5 w-[calc(100vw-24px)] max-w-xs sm:w-64 bg-surface border border-border rounded-card shadow-dropdown p-1.5 z-50 text-sm animate-in fade-in zoom-in-95 duration-100">
                 <div className="px-3 py-2 border-b border-border mb-1">
                   <p className="text-xs font-bold uppercase tracking-wider text-muted">Active Tenant</p>
                   <p className="text-sm font-bold text-default">{activeTenant}</p>
@@ -320,7 +320,7 @@ export function Header({ onOpenMobileSidebar, collapsed }: HeaderProps) {
             </button>
 
             {notifOpen && (
-              <div className="absolute right-0 mt-1.5 w-80 sm:w-88 bg-surface border border-border rounded-card shadow-dropdown p-0 z-50 text-sm animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
+              <div className="absolute right-0 mt-1.5 w-[calc(100vw-24px)] max-w-sm sm:w-88 bg-surface border border-border rounded-card shadow-dropdown p-0 z-50 text-sm animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
                 <div className="px-3.5 py-2.5 border-b border-border bg-sunken/60 flex items-center justify-between">
                   <div>
                     <h5 className="font-bold text-default text-sm">CMDB Governance Alerts</h5>
@@ -401,7 +401,7 @@ export function Header({ onOpenMobileSidebar, collapsed }: HeaderProps) {
             </button>
 
             {profileOpen && (
-              <div className="absolute right-0 mt-1.5 w-64 bg-surface border border-border rounded-card shadow-dropdown p-2.5 z-50 text-sm animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute right-0 mt-1.5 w-[calc(100vw-24px)] max-w-xs sm:w-64 bg-surface border border-border rounded-card shadow-dropdown p-2.5 z-50 text-sm animate-in fade-in zoom-in-95 duration-100">
                 <div className="px-2.5 py-2 border-b border-border">
                   <p className="font-bold text-default text-sm truncate">{session?.name || "Sarah Jenkins"}</p>
                   <p className="text-xs text-muted truncate">{session?.email || "sarah.jenkins@gmail.com"}</p>

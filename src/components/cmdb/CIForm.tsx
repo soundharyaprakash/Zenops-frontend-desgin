@@ -814,9 +814,9 @@ export function CIForm({ initialCI, isEdit = false }: CIFormProps) {
       {/* ----------------------------------------------------------------------- */}
       {/* FORM ACTIONS */}
       {/* ----------------------------------------------------------------------- */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-        <Link href="/cis">
-          <Button variant="outline" size="sm">
+      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-4 border-t border-border">
+        <Link href="/cis" className="w-full sm:w-auto">
+          <Button variant="outline" size="sm" className="w-full sm:w-auto justify-center">
             Cancel
           </Button>
         </Link>
@@ -827,6 +827,7 @@ export function CIForm({ initialCI, isEdit = false }: CIFormProps) {
           leftIcon={<Save className="w-4 h-4" />}
           onClick={handleSave}
           isLoading={isSubmitting}
+          className="w-full sm:w-auto justify-center"
         >
           {isEdit ? "Save Changes" : "Create CI"}
         </Button>

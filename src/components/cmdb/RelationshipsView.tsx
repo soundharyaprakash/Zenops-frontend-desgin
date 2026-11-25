@@ -21,10 +21,10 @@ export function RelationshipsView() {
   return (
     <div className="space-y-6 pb-12 animate-fade-in-up">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A192F] tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-text-default tracking-tight">
           CI Relationships & Topology
         </h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-text-secondary mt-1">
           Dependency Mapping, Directional Service Graphs and Architectural Criticality
         </p>
       </div>

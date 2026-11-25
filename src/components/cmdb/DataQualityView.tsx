@@ -1509,15 +1509,15 @@ function TaskCardItem({
 
           {/* Row 4: Before / After Diff Preview Strip (Priority 2, Item 7) */}
           {task.diff && (
-            <div className="inline-flex flex-wrap items-center gap-2 p-1.5 px-2.5 rounded bg-sunken/80 border border-border text-xs">
-              <span className="font-semibold text-text-muted uppercase text-[10px] tracking-wider">
+            <div className="inline-flex flex-wrap items-center gap-2 p-1.5 px-2.5 rounded bg-sunken/80 border border-border text-xs max-w-full overflow-hidden">
+              <span className="font-semibold text-text-muted uppercase text-[10px] tracking-wider shrink-0">
                 {task.diff.field} Diff:
               </span>
-              <span className="line-through text-red-600 dark:text-red-400 font-mono text-[11px] bg-red-500/10 px-1.5 py-0.5 rounded">
+              <span className="line-through text-red-600 dark:text-red-400 font-mono text-[11px] bg-red-500/10 px-1.5 py-0.5 rounded break-all">
                 {task.diff.before}
               </span>
-              <ArrowRight className="w-3 h-3 text-text-muted" />
-              <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono text-[11px] bg-emerald-500/10 px-1.5 py-0.5 rounded">
+              <ArrowRight className="w-3 h-3 text-text-muted shrink-0" />
+              <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono text-[11px] bg-emerald-500/10 px-1.5 py-0.5 rounded break-all">
                 {task.diff.after}
               </span>
             </div>
@@ -1579,7 +1579,7 @@ function TaskCardItem({
       </div>
 
       {/* Right Column: Trust Score Diff Badge with 5-Pillar Breakdown Tooltip & Primary Action Buttons */}
-      <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-end md:items-end justify-between gap-2.5 flex-shrink-0 pt-2 md:pt-0">
+      <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-stretch sm:items-center md:items-end lg:items-center justify-between gap-2.5 flex-shrink-0 pt-2 md:pt-0 w-full md:w-auto">
         {/* Dynamic Trust Score Gain Badge with 5-Pillar Tooltip (Follow-up Item 7) */}
         <div className="relative group">
           <button

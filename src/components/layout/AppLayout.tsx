@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { MobileBottomNav } from "./MobileBottomNav";
 import { ToastContainer } from "@/components/ui/Toast";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
@@ -93,12 +94,15 @@ export function AppLayout({ children }: AppLayoutProps) {
         />
 
         {/* Page Content Viewport */}
-        <main className="flex-1 p-3.5 sm:p-5 lg:p-6 min-w-0 overflow-x-hidden">
-          <div className="max-w-7xl mx-auto space-y-5 w-full min-w-0">
+        <main className="flex-1 p-3.5 sm:p-5 lg:p-6 pb-24 sm:pb-24 lg:pb-6 min-w-0 overflow-x-hidden">
+          <div className="max-w-7xl 2xl:max-w-[1600px] mx-auto space-y-5 w-full min-w-0">
             {children}
           </div>
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar (Hidden on lg+ desktops & auth routes) */}
+      <MobileBottomNav onOpenMore={() => setMobileOpen(true)} />
 
       {/* Session Expired Safeguard Modal */}
       <Modal

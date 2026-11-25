@@ -16,6 +16,7 @@ import {
   getCanonicalDiscoverySources,
   DiscoverySourceRecord,
 } from "@/lib/discovery/sourceRecord";
+import { isCIStale, hasOwner } from "@/lib/cmdb-metrics";
 
 export {
   HEALTH_BANDS,
@@ -248,22 +249,13 @@ export function getDashboardMetrics(
   const operationalCIs = filteredCIs.filter((c) => c.operationalStatus === "Operational").length;
   const nonOperationalCIs = filteredCIs.filter((c) => c.operationalStatus !== "Operational").length;
 
-  // 3. Stale CIs (>14d quiet or missing lastDiscovered)
-  const now = Date.now();
-  const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
-
-  const staleCIsList = filteredCIs.filter((c) => {
-    if (!c.lastDiscovered) return true;
-    const time = new Date(c.lastDiscovered).getTime();
-    return isNaN(time) || now - time > FOURTEEN_DAYS_MS;
-  });
+  // 3. Stale CIs (derived from isCIStale predicate for 1:1 consistency with Freshness pillar)
+  const staleCIsList = filteredCIs.filter((c) => isCIStale(c.lastDiscovered, c.ciClass).isStale);
   const staleCount = staleCIsList.length;
   const stalePercent = Math.round((staleCount / safeTotal) * 100);
 
-  // 4. Missing Owner (unassigned / empty)
-  const missingOwnerList = filteredCIs.filter((c) => {
-    return !c.owner || c.owner.trim() === "" || c.owner.trim().toLowerCase() === "unassigned";
-  });
+  // 4. Missing Owner (derived from hasOwner predicate for 1:1 consistency with Ownership pillar)
+  const missingOwnerList = filteredCIs.filter((c) => !hasOwner(c));
   const missingOwnerCount = missingOwnerList.length;
   const missingOwnerPercent = Math.round((missingOwnerCount / safeTotal) * 100);
 
@@ -513,7 +505,7 @@ export function getDashboardMetrics(
 
   // 11. Discovery Sources Calculation (Priority 1, Item 1, 3, 7)
   // Shared single source model with /discovery-sources: exactly 6 sources including ServiceNow Bridge
-  const canonicalDiscovery = getCanonicalDiscoverySources(now);
+  const canonicalDiscovery = getCanonicalDiscoverySources();
   const computedDiscoverySources: ComputedDiscoverySource[] = canonicalDiscovery.map((s) => ({
     id: s.id,
     name: s.name,

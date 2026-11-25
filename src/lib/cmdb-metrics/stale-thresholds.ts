@@ -98,6 +98,12 @@ export const DEFAULT_STALE_THRESHOLD: StaleThresholdConfig = {
 };
 
 /**
+ * Canonical estate telemetry reference timestamp (November 20, 2026 17:00:00 UTC).
+ * Synchronized with the canonical discovery collector run and audit baseline.
+ */
+export const CANONICAL_ESTATE_NOW_MS = new Date("2026-11-20T17:00:00Z").getTime();
+
+/**
  * Returns the threshold configuration for a specific CI class.
  */
 export function getStaleThresholdForClass(ciClass: string): StaleThresholdConfig {
@@ -116,7 +122,7 @@ export function getStaleThresholdForClass(ciClass: string): StaleThresholdConfig
 export function isCIStale(
   lastDiscoveredIso: string | undefined,
   ciClass: string,
-  nowMs: number = Date.now()
+  nowMs: number = CANONICAL_ESTATE_NOW_MS
 ): { isStale: boolean; ageDays: number; thresholdDays: number; actionTaken: string } {
   const cfg = getStaleThresholdForClass(ciClass);
   if (!lastDiscoveredIso) {

@@ -510,7 +510,7 @@ export function CMDBDashboardView() {
       {/* ----------------------------------------------------------------------- */}
       {canViewAudit && !isExecutive && (
         <Card className="bg-surface shadow-card">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3">
             <div>
               <div className="flex items-center gap-2">
                 <CardTitle className="text-base font-bold text-text-default">

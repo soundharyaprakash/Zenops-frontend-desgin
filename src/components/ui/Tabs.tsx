@@ -54,11 +54,11 @@ export function Tabs({
   // If array of tabs is provided directly (legacy / simple view pattern)
   if (tabs && tabs.length > 0 && !children) {
     return (
-      <div className={cn("w-full overflow-x-auto", className)}>
+      <div className={cn("w-full overflow-x-auto scrollbar-none", className)}>
         <div
           role="tablist"
           className={cn(
-            "flex items-center space-x-1",
+            "flex items-center space-x-1 whitespace-nowrap min-w-max",
             variant === "underline"
               ? "border-b border-border"
               : "bg-elevated p-1 rounded-md border border-border"
@@ -124,7 +124,7 @@ export function TabsList({
   return (
     <div
       className={cn(
-        "flex items-center overflow-x-auto",
+        "flex items-center overflow-x-auto scrollbar-none whitespace-nowrap min-w-max",
         variant === "underline"
           ? "border-b border-border space-x-1"
           : "bg-elevated p-1 rounded-md border border-border space-x-1",

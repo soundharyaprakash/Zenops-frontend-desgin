@@ -202,7 +202,7 @@ export function Sidebar({
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs lg:hidden"
           onClick={onCloseMobile}
         />
       )}
@@ -210,15 +210,20 @@ export function Sidebar({
       {/* Sidebar Container */}
       <aside
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-40 flex flex-col bg-surface border-r border-border transition-all duration-200 ease-in-out shadow-subtle select-none text-default",
-          collapsed ? "w-16" : "w-64 xl:w-72",
+          "fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-surface border-r border-border transition-all duration-200 ease-in-out shadow-subtle select-none text-default w-72 max-w-[85vw]",
+          collapsed ? "lg:w-16" : "lg:w-64 xl:w-72",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         {/* Top Logo Header */}
         <div className="h-14 flex items-center justify-between gap-1.5 px-3 py-2 border-b border-border bg-surface transition-colors">
           <div className="flex-1 min-w-0">
-            <Logo collapsed={collapsed} size="sm" />
+            <div className="lg:hidden">
+              <Logo collapsed={false} size="sm" />
+            </div>
+            <div className="hidden lg:block">
+              <Logo collapsed={collapsed} size="sm" />
+            </div>
           </div>
           {/* Mobile Close Button */}
           {mobileOpen && (
@@ -260,13 +265,11 @@ export function Sidebar({
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
           {navSections.map((section, sIdx) => (
             <div key={sIdx} className="space-y-0.5">
-              {!collapsed && (
-                <div className="px-3 py-1.5">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-                    {section.title}
-                  </span>
-                </div>
-              )}
+              <div className={cn("px-3 py-1.5", collapsed && "lg:hidden")}>
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted">
+                  {section.title}
+                </span>
+              </div>
 
               {section.items.map((item) => {
                 const Icon = item.icon;
@@ -281,7 +284,7 @@ export function Sidebar({
                         ? "bg-selected text-primary font-semibold shadow-2xs"
                         : "text-secondary hover:text-default hover:bg-sunken",
                       item.highlight && !item.active && "text-brand-blue font-semibold",
-                      collapsed && "justify-center px-0 py-2.5"
+                      collapsed && "lg:justify-center lg:px-0 lg:py-2.5"
                     )}
                     title={collapsed ? item.name : undefined}
                   >
@@ -301,16 +304,21 @@ export function Sidebar({
                       )}
                     />
 
-                    {!collapsed && (
-                      <span className="truncate flex-1 tracking-tight leading-none">
-                        {item.name}
-                      </span>
-                    )}
+                    <span
+                      className={cn(
+                        "truncate flex-1 tracking-tight leading-none",
+                        collapsed && "lg:hidden"
+                      )}
+                    >
+                      {item.name}
+                    </span>
 
-                    {!collapsed && item.badge !== undefined && (
-                      <Lozenge variant={item.badgeVariant} size="sm">
-                        {item.badge}
-                      </Lozenge>
+                    {item.badge !== undefined && (
+                      <span className={cn(collapsed && "lg:hidden")}>
+                        <Lozenge variant={item.badgeVariant} size="sm">
+                          {item.badge}
+                        </Lozenge>
+                      </span>
                     )}
                   </Link>
                 );
@@ -320,21 +328,22 @@ export function Sidebar({
 
           {/* Advanced Group (Collapsible for Startup Simplicity) */}
           <div className="pt-2 border-t border-border/60 space-y-0.5">
-            {!collapsed ? (
-              <button
-                type="button"
-                onClick={() => setAdvancedExpanded(!advancedExpanded)}
-                className="w-full flex items-center justify-between px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted hover:text-default transition-colors"
-              >
-                <span>Advanced CMDB Modules</span>
-                <ChevronDown
-                  className={cn(
-                    "w-3.5 h-3.5 transition-transform",
-                    (advancedExpanded || isAnyAdvancedActive) && "transform rotate-180"
-                  )}
-                />
-              </button>
-            ) : null}
+            <button
+              type="button"
+              onClick={() => setAdvancedExpanded(!advancedExpanded)}
+              className={cn(
+                "w-full flex items-center justify-between px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted hover:text-default transition-colors",
+                collapsed && "lg:hidden"
+              )}
+            >
+              <span>Advanced CMDB Modules</span>
+              <ChevronDown
+                className={cn(
+                  "w-3.5 h-3.5 transition-transform",
+                  (advancedExpanded || isAnyAdvancedActive) && "transform rotate-180"
+                )}
+              />
+            </button>
 
             {(advancedExpanded || isAnyAdvancedActive || collapsed) && (
               <div className="space-y-0.5 animate-in fade-in duration-100">
@@ -350,7 +359,7 @@ export function Sidebar({
                         item.active
                           ? "bg-selected text-primary font-semibold shadow-2xs"
                           : "text-secondary hover:text-default hover:bg-sunken",
-                        collapsed && "justify-center px-0 py-2.5"
+                        collapsed && "lg:justify-center lg:px-0 lg:py-2.5"
                       )}
                       title={collapsed ? item.name : undefined}
                     >
@@ -365,11 +374,14 @@ export function Sidebar({
                         )}
                       />
 
-                      {!collapsed && (
-                        <span className="truncate flex-1 tracking-tight leading-none">
-                          {item.name}
-                        </span>
-                      )}
+                      <span
+                        className={cn(
+                          "truncate flex-1 tracking-tight leading-none",
+                          collapsed && "lg:hidden"
+                        )}
+                      >
+                        {item.name}
+                      </span>
                     </Link>
                   );
                 })}

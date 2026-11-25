@@ -191,7 +191,7 @@ export function DashboardCharts() {
           {/* Column 1: Open Data Quality Tasks (Tile counts match 1:1, Priority 1, Item 3 & Priority 4, Item 17) */}
           <Card className="bg-surface flex flex-col justify-between shadow-card">
             <div>
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3">
                 <div>
                   <div className="flex items-center gap-2">
                     <CardTitle className="text-base font-bold text-text-default">
@@ -350,7 +350,7 @@ export function DashboardCharts() {
           {/* Column 2: Discovery Sources Health (Calculated sync age vs scan interval - Priority 1, Item 4 & Priority 4, Item 18) */}
           <Card className="bg-surface border-border flex flex-col justify-between shadow-card">
             <div>
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3">
                 <div>
                   <div className="flex items-center gap-2">
                     <CardTitle className="text-base font-bold text-text-default">
@@ -444,7 +444,7 @@ export function DashboardCharts() {
           {/* Column 3: Business Services by Trust Score (Unified health bands & Target met / Below target - Priority 1, Item 6 & Priority 3, Item 12) */}
           <Card className="bg-surface flex flex-col justify-between shadow-card">
             <div>
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3">
                 <div>
                   <CardTitle className="text-base font-bold text-text-default">
                     Services by Trust Score

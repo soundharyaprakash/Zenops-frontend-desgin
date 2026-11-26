@@ -231,7 +231,7 @@ export function CIListTable({ items, onRetireCI }: CIListTableProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-1">
         <div className="flex items-center gap-2 flex-wrap">
           {selectedIds.length > 0 ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-selected-bg dark:bg-[#12243C] border border-primary/30 dark:border-primary/40 rounded text-xs text-primary animate-in fade-in slide-in-from-top-1 duration-200 shadow-xs">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-selected-bg dark:bg-primary/20 border border-primary/30 dark:border-primary/40 rounded text-xs text-primary animate-in fade-in slide-in-from-top-1 duration-200 shadow-xs">
               <span className="font-semibold">{selectedIds.length} CIs selected</span>
 
               <div className="h-4 w-px bg-primary/20 mx-1" />
@@ -337,7 +337,7 @@ export function CIListTable({ items, onRetireCI }: CIListTableProps) {
       <div className="bg-surface rounded-lg border border-border shadow-card dark:shadow-none overflow-hidden">
         <div className="overflow-x-auto min-w-0">
           <table className="w-full text-left border-collapse text-sm min-w-[880px]">
-            <thead className="bg-sunken dark:bg-[#0A101C] border-b border-border select-none sticky top-0 z-10">
+            <thead className="bg-sunken dark:bg-elevated/70 border-b border-border select-none sticky top-0 z-10">
               <tr className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
                 <th className="py-2.5 px-3 w-8 text-center">
                   <input
@@ -639,7 +639,7 @@ export function CIListTable({ items, onRetireCI }: CIListTableProps) {
         </div>
 
         {/* Pagination Bar */}
-        <div className="px-4 py-3 border-t border-border bg-sunken/40 dark:bg-[#080D18]/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-text-secondary">
+        <div className="px-4 py-3 border-t border-border bg-sunken/40 dark:bg-elevated/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-text-secondary">
           <div className="flex items-center gap-2.5">
             <span>Show:</span>
             <select

@@ -333,11 +333,13 @@ export function LoginForm() {
 
         <div className="space-y-2">
           {/* Google SSO */}
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="md"
             onClick={() => handleSocialLogin("google")}
             disabled={isSocialSubmitting !== null || isSubmitting}
-            className="w-full flex items-center justify-center gap-2.5 px-3 py-2.5 rounded-md border border-border bg-surface text-default text-xs font-semibold hover:bg-surface-hover hover:border-primary/50 hover:shadow-xs active:scale-[0.99] transition-all cursor-pointer group"
+            className="w-full justify-center gap-2.5 cursor-pointer group"
           >
             {isSocialSubmitting === "google" ? (
               <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -365,14 +367,16 @@ export function LoginForm() {
             <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold ml-1 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
               Active Access
             </span>
-          </button>
+          </Button>
 
           {/* Microsoft SSO */}
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="md"
             onClick={() => handleSocialLogin("microsoft")}
             disabled={isSocialSubmitting !== null || isSubmitting}
-            className="w-full flex items-center justify-center gap-2.5 px-3 py-2.5 rounded-md border border-border bg-surface text-default text-xs font-semibold hover:bg-surface-hover hover:border-primary/50 hover:shadow-xs active:scale-[0.99] transition-all cursor-pointer group"
+            className="w-full justify-center gap-2.5 cursor-pointer group"
           >
             {isSocialSubmitting === "microsoft" ? (
               <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -388,7 +392,7 @@ export function LoginForm() {
             <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold ml-1 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
               Active Access
             </span>
-          </button>
+          </Button>
 
           {/* Enterprise SSO (SAML/OIDC) Placeholder */}
           <button

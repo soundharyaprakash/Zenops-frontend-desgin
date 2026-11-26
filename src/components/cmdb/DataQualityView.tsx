@@ -937,8 +937,8 @@ export function DataQualityView() {
                       </div>
 
                       {/* 5-Pillar Breakdown Tooltip (Follow-up Item 7) */}
-                      <div className="absolute right-0 bottom-full mb-1.5 hidden group-hover:block z-50 p-3 bg-neutral-900 text-neutral-100 text-[11px] rounded shadow-2xl w-72 border border-neutral-700 animate-in fade-in duration-100">
-                        <div className="flex items-center justify-between border-b border-neutral-700 pb-1.5 mb-2">
+                      <div className="absolute right-0 bottom-full mb-1.5 hidden group-hover:block z-50 p-3 bg-neutral-900 text-neutral-100 text-[11px] rounded shadow-2xl w-72 border border-border animate-in fade-in duration-100">
+                        <div className="flex items-center justify-between border-b border-border pb-1.5 mb-2">
                           <span className="font-bold text-primary-200">5-Pillar Score Breakdown</span>
                           <span className="font-mono text-emerald-400 font-bold">+{combinedEffect.totalGain} pts Total</span>
                         </div>
@@ -954,7 +954,7 @@ export function DataQualityView() {
                             </div>
                           ))}
                         </div>
-                        <div className="mt-2 pt-1.5 border-t border-neutral-800 text-[10px] text-neutral-400">
+                        <div className="mt-2 pt-1.5 border-t border-border text-[10px] text-neutral-400">
                           Sum of pillar gains = +{combinedEffect.totalGain} pts. Fully compliant with max pillar weights.
                         </div>
                       </div>
@@ -1541,7 +1541,7 @@ function TaskCardItem({
               </button>
 
               {activeConfidenceInfo === task.id && (
-                <div className="absolute left-0 bottom-full mb-1 z-50 p-2.5 bg-neutral-900 text-neutral-100 text-[11px] rounded shadow-xl w-64 border border-neutral-700 animate-in fade-in duration-100">
+                <div className="absolute left-0 bottom-full mb-1 z-50 p-2.5 bg-neutral-900 text-neutral-100 text-[11px] rounded shadow-xl w-64 border border-border animate-in fade-in duration-100">
                   <p className="font-semibold text-primary-200">Confidence Attribution:</p>
                   <p className="text-neutral-300 mt-1 leading-snug">{confidenceExplanation}</p>
                 </div>
@@ -1593,8 +1593,8 @@ function TaskCardItem({
           </button>
 
           {/* 5-Pillar Breakdown Popover / Tooltip (Follow-up Item 7) */}
-          <div className="absolute right-0 bottom-full mb-1.5 hidden group-hover:block z-50 p-3 bg-neutral-900 text-neutral-100 text-[11px] rounded shadow-2xl w-64 border border-neutral-700 animate-in fade-in duration-100">
-            <div className="flex items-center justify-between border-b border-neutral-700 pb-1.5 mb-2">
+          <div className="absolute right-0 bottom-full mb-1.5 hidden group-hover:block z-50 p-3 bg-neutral-900 text-neutral-100 text-[11px] rounded shadow-2xl w-64 border border-border animate-in fade-in duration-100">
+            <div className="flex items-center justify-between border-b border-border pb-1.5 mb-2">
               <span className="font-bold text-primary-200">Pillar Contribution</span>
               <span className="font-mono text-emerald-400 font-bold">+{scoreGain} pts</span>
             </div>
@@ -1615,7 +1615,7 @@ function TaskCardItem({
                 </div>
               ))}
             </div>
-            <p className="mt-2 pt-1.5 border-t border-neutral-800 text-[10px] text-neutral-400 leading-tight">
+            <p className="mt-2 pt-1.5 border-t border-border text-[10px] text-neutral-400 leading-tight">
               {scoreGainDetail.explanation}
             </p>
           </div>

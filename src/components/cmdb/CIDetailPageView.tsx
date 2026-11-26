@@ -21,7 +21,7 @@ export function CIDetailPageView() {
         <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-500 mx-auto flex items-center justify-center">
           <AlertCircle className="w-6 h-6" />
         </div>
-        <h2 className="text-xl font-bold text-[#0A192F]">
+        <h2 className="text-xl font-bold text-default">
           Configuration Item Not Found
         </h2>
         <p className="text-sm text-slate-500">

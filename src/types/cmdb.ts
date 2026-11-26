@@ -181,7 +181,8 @@ export interface BusinessServiceItem {
   availabilityTarget: string;
   rto: string;
   rpo: string;
-  revenuePerHour: number | string;
+  revenuePerHour?: number | string;
+  currency?: string;
   userCount: number;
   slaReference: string;
   operationalStatus: OperationalStatus;
@@ -300,6 +301,7 @@ export interface CIItem {
   purchase_date?: string;
   cost?: number;
   currency?: string;
+  revenuePerHour?: number;
   gl_account?: string;
   lease_id?: string;
 
@@ -348,6 +350,8 @@ export type RelationshipType =
 
 export type DirectionType = "Upstream" | "Downstream" | "Bidirectional";
 export type CriticalityWeight = "Critical" | "High" | "Medium" | "Low";
+export type RelationshipSource = "manual" | "discovered";
+export type RelationshipStatus = "active" | "stale" | "pending-review";
 
 export interface CIRelationship {
   id: string;
@@ -362,6 +366,39 @@ export interface CIRelationship {
   criticalityWeight: CriticalityWeight;
   notes?: string;
   createdAt: string;
+  // Discovered / Audit metadata
+  source?: RelationshipSource;
+  confidence?: number;
+  lastSeen?: string;
+  status?: RelationshipStatus;
+}
+
+export interface BlastRadiusWeights {
+  baseScore: number;
+  dependentWeight: number;
+  tier0Weight: number;
+  tier1Weight: number;
+  tier2Weight: number;
+  minScore: number;
+  maxScore: number;
+}
+
+export interface ImpactAnalysisDependent {
+  ci: CIItem;
+  relationship: CIRelationship;
+  depth: number;
+  path: string[];
+  impactSeverity: "Severe" | "High" | "Moderate" | "Low";
+}
+
+export interface ImpactAnalysisResult {
+  targetCi: CIItem;
+  dependentCis: ImpactAnalysisDependent[];
+  affectedBusinessServices: CIItem[];
+  blastRadiusScore: number; // 0-100
+  riskLevel: "Severe" | "High" | "Moderate" | "Low";
+  riskExplanation: string;
+  impactSummary: string;
 }
 
 export interface DiscoverySource {

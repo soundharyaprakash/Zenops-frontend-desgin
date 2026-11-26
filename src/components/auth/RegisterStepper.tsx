@@ -197,7 +197,7 @@ export function RegisterStepper() {
         <div className="w-full h-1.5 bg-sunken rounded-full overflow-hidden">
           <div
             className={cn(
-              "h-full bg-gradient-to-r from-[#1F6BFF] via-[#19C8F0] to-[#3EF2B5] transition-all duration-300 ease-out",
+              "h-full bg-gradient-to-r from-brand-500 via-brand-cyan to-brand-mint transition-all duration-300 ease-out",
               step === 1 ? "w-1/2" : "w-full"
             )}
           />

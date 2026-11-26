@@ -70,8 +70,8 @@ const sumCounts = inventory.byClass.reduce((acc, c) => acc + c.count, 0);
 const sumPcts = inventory.byClass.reduce((acc, c) => acc + c.pct, 0);
 
 assert(
-  inventory.totalCIs === 39 && sumCounts === 39 && sumPcts === 100,
-  "Inventory reconciliation: sum(by-class) == total (39 CIs) and sum(pct) == 100%",
+  inventory.totalCIs === INITIAL_CIS.length && sumCounts === inventory.totalCIs && sumPcts === 100,
+  `Inventory reconciliation: sum(by-class) == total (${inventory.totalCIs} CIs) and sum(pct) == 100%`,
   { total: inventory.totalCIs, sumCounts, sumPcts, classesCount: inventory.byClass.length }
 );
 
@@ -90,7 +90,7 @@ assert(
     discovery.overlapRatePct === expectedOverlap &&
     discovery.discoveryCoveragePct === 95 &&
     discovery.discoveryCoverageLabel === "Inventory seen by >=1 source (last 14 d)",
-  "Discovery cross-model reconciliation: unique CIs (39) === inventory total (39), overlap computed, 14d coverage (95%)",
+  `Discovery cross-model reconciliation: unique CIs (${inventory.totalCIs}) === inventory total (${inventory.totalCIs}), overlap computed, 14d coverage (95%)`,
   {
     totalSources: discovery.totalSources,
     recordsIngested: discovery.recordsIngested,

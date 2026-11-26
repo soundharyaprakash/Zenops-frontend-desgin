@@ -60,7 +60,7 @@ interface CIFormProps {
 
 export function CIForm({ initialCI, isEdit = false }: CIFormProps) {
   const router = useRouter();
-  const { addCI, updateCI, showToast, activeTenant } = useCMDB();
+  const { addCI, updateCI, showToast, activeTenant, canEdit } = useCMDB();
 
   // Section 1: Identity & Classification
   const [name, setName] = useState(initialCI?.name || "");
@@ -98,6 +98,9 @@ export function CIForm({ initialCI, isEdit = false }: CIFormProps) {
   const [costCenter, setCostCenter] = useState(initialCI?.costCenter || "CC-INFRA-01");
   const [cost, setCost] = useState(initialCI?.cost ? String(initialCI.cost) : "1200");
   const [currency, setCurrency] = useState(initialCI?.currency || "USD");
+  const [revenuePerHour, setRevenuePerHour] = useState<string>(
+    initialCI?.revenuePerHour !== undefined ? String(initialCI.revenuePerHour) : ""
+  );
   const [poNumber, setPoNumber] = useState(initialCI?.po_number || "PO-99201");
   const [installDate, setInstallDate] = useState(
     initialCI?.installDate || new Date().toISOString().split("T")[0]
@@ -235,6 +238,10 @@ export function CIForm({ initialCI, isEdit = false }: CIFormProps) {
       costCenter,
       cost: Number(cost) || 0,
       currency,
+      revenuePerHour:
+        (ciClass === "Business Service" || ciClass === "Service Offering") && revenuePerHour.trim() !== ""
+          ? Number(revenuePerHour)
+          : undefined,
       po_number: poNumber,
       installDate,
       warrantyEnd,
@@ -751,6 +758,54 @@ export function CIForm({ initialCI, isEdit = false }: CIFormProps) {
               value={warrantyEnd}
               onChange={(e) => setWarrantyEnd(e.target.value)}
             />
+
+            {/* Business Service Revenue Exposure (Visible only to users with edit permissions) */}
+            {(ciClass === "Business Service" || ciClass === "Service Offering") && canEdit && (
+              <div className="col-span-full p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h5 className="font-bold text-xs text-text-default flex items-center gap-1.5">
+                      <DollarSign className="w-3.5 h-3.5 text-primary" />
+                      Business Service Revenue Exposure (CMDB Topology)
+                    </h5>
+                    <p className="text-[11px] text-text-secondary mt-0.5">
+                      Estimated hourly financial downtime exposure used for Topology Graph blast radius &amp; risk calculations.
+                    </p>
+                  </div>
+                  <Lozenge appearance="subtle" variant="info" size="xs">
+                    Editor Only
+                  </Lozenge>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="Revenue per Hour"
+                    type="number"
+                    placeholder="e.g. 85000"
+                    value={revenuePerHour}
+                    onChange={(e) => setRevenuePerHour(e.target.value)}
+                    helperText="Hourly gross revenue reliant on this business service"
+                  />
+                  <div>
+                    <label className="block text-xs font-semibold text-text-default mb-1">
+                      Currency
+                    </label>
+                    <select
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value)}
+                      className="w-full bg-surface border border-border rounded-input px-3 py-2 text-xs text-text-default focus:outline-none focus:border-primary cursor-pointer"
+                    >
+                      <option value="USD">USD ($)</option>
+                      <option value="EUR">EUR (€)</option>
+                      <option value="GBP">GBP (£)</option>
+                      <option value="CAD">CAD ($)</option>
+                      <option value="AUD">AUD ($)</option>
+                      <option value="INR">INR (₹)</option>
+                      <option value="JPY">JPY (¥)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

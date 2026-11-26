@@ -7,7 +7,7 @@
     "build": "node --max-old-space-size=4096 ./node_modules/next/dist/bin/next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node ./node_modules/typescript/bin/tsc src/tests/rbac.test.ts src/tests/cmdb-reconciliation.test.ts --outDir .dist-test --module commonjs --target es2020 --moduleResolution node --skipLibCheck --esModuleInterop && node .dist-test/tests/rbac.test.js && node .dist-test/tests/cmdb-reconciliation.test.js && powershell -Command \"Remove-Item -Recurse -Force .dist-test -ErrorAction SilentlyContinue\""
+    "test": "node ./node_modules/typescript/bin/tsc src/tests/rbac.test.ts src/tests/cmdb-reconciliation.test.ts src/tests/relationships.test.ts --outDir .dist-test --module commonjs --target es2020 --moduleResolution node --skipLibCheck --esModuleInterop && node .dist-test/tests/rbac.test.js && node .dist-test/tests/cmdb-reconciliation.test.js && node .dist-test/tests/relationships.test.js && powershell -Command \"Remove-Item -Recurse -Force .dist-test -ErrorAction SilentlyContinue\""
   },
   "dependencies": {
     "clsx": "^2.1.1",

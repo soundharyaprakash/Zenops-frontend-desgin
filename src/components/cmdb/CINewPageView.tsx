@@ -19,12 +19,12 @@ export function CINewPageView() {
         <div>
           <Link
             href="/cis"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#3478E8] transition-colors mb-2"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-primary transition-colors mb-2"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             Back to CI Inventory
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A192F] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-default tracking-tight">
             {mode === "single" ? "New Configuration Item" : "Bulk Upload Configuration Items (CSV)"}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">

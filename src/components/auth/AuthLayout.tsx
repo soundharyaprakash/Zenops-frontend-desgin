@@ -40,11 +40,11 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       {/* ------------------------------------------------------------------- */}
       <div className="hidden lg:flex lg:w-1/2 xl:w-5/12 bg-surface border-r border-border flex-col justify-between p-8 xl:p-12 relative overflow-hidden">
         {/* Subtle Brand Gradient Top Border Accent */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#1F6BFF] via-[#19C8F0] to-[#3EF2B5]" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-500 via-brand-cyan to-brand-mint" />
 
         {/* Ambient background blur circles */}
         <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -right-32 w-80 h-80 rounded-full bg-[#19C8F0]/5 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 -right-32 w-80 h-80 rounded-full bg-brand-cyan/5 blur-3xl pointer-events-none" />
 
         {/* Header Logo */}
         <div className="relative z-10">
@@ -59,7 +59,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
             </span>
             <h1 className="text-2xl xl:text-3xl font-extrabold tracking-tight text-default leading-tight">
               Know what you run. <br />
-              <span className="bg-gradient-to-r from-primary to-[#19C8F0] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-brand-cyan bg-clip-text text-transparent">
                 See the impact
               </span>{" "}
               before you change it.

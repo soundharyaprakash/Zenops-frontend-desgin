@@ -335,7 +335,7 @@ export function StagingView() {
         <CardContent className="p-0">
           <div className="overflow-x-auto min-w-0">
             <table className="w-full text-left border-collapse text-sm min-w-[720px]">
-              <thead className="bg-sunken dark:bg-[#0A101C] border-b border-border text-xs uppercase tracking-wider text-text-secondary select-none">
+              <thead className="bg-sunken dark:bg-elevated/70 border-b border-border text-xs uppercase tracking-wider text-text-secondary select-none">
                 <tr>
                   <th className="py-3 px-3.5">Record ID</th>
                   <th className="py-3 px-3.5">Feed Source</th>

@@ -34,21 +34,28 @@ export interface ToastMessage {
   message?: string;
 }
 
-export interface ImpactAnalysisResult {
-  targetCi: CIItem;
-  dependentCis: {
-    ci: CIItem;
-    relationship: CIRelationship;
-    depth: number;
-    impactSeverity: "Severe" | "High" | "Moderate" | "Low";
-  }[];
-  blastRadiusScore: number; // 0-100
-  riskLevel: "Severe" | "High" | "Moderate" | "Low";
-  impactSummary: string;
-}
+export {
+  type UserRole,
+  type TenantInfo,
+  type ImpactAnalysisResult,
+  type ImpactAnalysisDependent,
+  type BlastRadiusWeights,
+} from "@/types/cmdb";
+import {
+  UserRole,
+  TenantInfo,
+  ImpactAnalysisResult,
+  ImpactAnalysisDependent,
+  BlastRadiusWeights,
+} from "@/types/cmdb";
 
-export { type UserRole, type TenantInfo } from "@/types/cmdb";
-import { UserRole, TenantInfo } from "@/types/cmdb";
+export * from "@/lib/relationships/impact-logic";
+import {
+  DEFAULT_BLAST_RADIUS_WEIGHTS,
+  getNormalizedDependencies,
+  detectDependencyCycle,
+  computeImpactAnalysis,
+} from "@/lib/relationships/impact-logic";
 import { AVAILABLE_TENANTS } from "@/lib/constants";
 export { AVAILABLE_TENANTS } from "@/lib/constants";
 import { AuthService } from "@/services/auth-service";
@@ -78,8 +85,15 @@ interface CMDBContextType {
   // Relationships
   addRelationship: (rel: Omit<CIRelationship, "id" | "createdAt">) => void;
   deleteRelationship: (id: string) => void;
+  approveRelationship: (id: string) => void;
+  rejectRelationship: (id: string) => void;
   getCIRelationships: (ciId: string) => { parents: CIRelationship[]; children: CIRelationship[] };
-  getImpactAnalysis: (ciId: string) => ImpactAnalysisResult | null;
+  getImpactAnalysis: (
+    ciId: string,
+    mode?: "upstream" | "downstream",
+    maxDepth?: number,
+    weights?: BlastRadiusWeights
+  ) => ImpactAnalysisResult | null;
 
   // Data Quality
   approveDQTask: (taskId: string, actor?: string) => void;
@@ -722,11 +736,18 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
 
   // Relationships
   const addRelationship = (rel: Omit<CIRelationship, "id" | "createdAt">) => {
+    if (!canEdit) {
+      showToast("error", "Permission Denied", "You need editor or administrator privileges to add relationship edges.");
+      return;
+    }
     const id = `REL-${Date.now().toString().slice(-4)}`;
     const newRel: CIRelationship = {
       ...rel,
       id,
       createdAt: new Date().toISOString(),
+      source: rel.source || "manual",
+      status: rel.status || "active",
+      lastSeen: rel.lastSeen || new Date().toISOString(),
     };
     setRelationships((prev) => [...prev, newRel]);
     showToast(
@@ -737,8 +758,34 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteRelationship = (id: string) => {
+    if (!canEdit) {
+      showToast("error", "Permission Denied", "You need editor or administrator privileges to delete relationship edges.");
+      return;
+    }
     setRelationships((prev) => prev.filter((r) => r.id !== id));
     showToast("info", "Relationship Removed", "Dependency link disconnected.");
+  };
+
+  const approveRelationship = (id: string) => {
+    if (!canEdit) {
+      showToast("error", "Permission Denied", "You need editor or administrator privileges to approve relationships.");
+      return;
+    }
+    setRelationships((prev) =>
+      prev.map((r) =>
+        r.id === id ? { ...r, status: "active", lastSeen: new Date().toISOString() } : r
+      )
+    );
+    showToast("success", "Relationship Approved", "Discovered edge has been approved and activated.");
+  };
+
+  const rejectRelationship = (id: string) => {
+    if (!canEdit) {
+      showToast("error", "Permission Denied", "You need editor or administrator privileges to reject relationships.");
+      return;
+    }
+    setRelationships((prev) => prev.filter((r) => r.id !== id));
+    showToast("info", "Relationship Rejected", "Pending relationship edge was rejected and removed.");
   };
 
   const getCIRelationships = (ciId: string) => {
@@ -747,96 +794,14 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
     return { parents, children };
   };
 
-  // Impact Analysis (considers relationships and criticality)
-  const getImpactAnalysis = (ciId: string): ImpactAnalysisResult | null => {
-    const target = cis.find((c) => c.id === ciId);
-    if (!target) return null;
-
-    const visited = new Set<string>();
-    visited.add(ciId);
-
-    const dependents: ImpactAnalysisResult["dependentCis"] = [];
-
-    // Find all directly connected relationships (upstream callers and downstream providers)
-    relationships.forEach((rel) => {
-      let otherCiId: string | null = null;
-      if (rel.parentCiId === ciId) {
-        otherCiId = rel.childCiId;
-      } else if (rel.childCiId === ciId) {
-        otherCiId = rel.parentCiId;
-      }
-
-      if (otherCiId && !visited.has(otherCiId)) {
-        visited.add(otherCiId);
-        const relatedCi = cis.find((c) => c.id === otherCiId);
-        if (relatedCi) {
-          let impactSeverity: "Severe" | "High" | "Moderate" | "Low" = "Moderate";
-          if (relatedCi.businessCriticality.includes("Tier 1")) {
-            impactSeverity = "Severe";
-          } else if (relatedCi.businessCriticality.includes("Tier 2")) {
-            impactSeverity = "High";
-          } else if (relatedCi.businessCriticality.includes("Tier 3")) {
-            impactSeverity = "Moderate";
-          } else {
-            impactSeverity = "Low";
-          }
-
-          dependents.push({
-            ci: relatedCi,
-            relationship: rel,
-            depth: 1,
-            impactSeverity,
-          });
-        }
-      }
-    });
-
-    // 2nd degree search
-    const firstWaveIds = dependents.map((d) => d.ci.id);
-    relationships.forEach((rel) => {
-      firstWaveIds.forEach((wId) => {
-        let secondId: string | null = null;
-        if (rel.parentCiId === wId && !visited.has(rel.childCiId)) {
-          secondId = rel.childCiId;
-        } else if (rel.childCiId === wId && !visited.has(rel.parentCiId)) {
-          secondId = rel.parentCiId;
-        }
-
-        if (secondId && !visited.has(secondId)) {
-          visited.add(secondId);
-          const secondCi = cis.find((c) => c.id === secondId);
-          if (secondCi) {
-            dependents.push({
-              ci: secondCi,
-              relationship: rel,
-              depth: 2,
-              impactSeverity: secondCi.businessCriticality.includes("Tier 1") ? "High" : "Moderate",
-            });
-          }
-        }
-      });
-    });
-
-    // Calculate blast radius
-    const tier1Count = dependents.filter((d) => d.ci.businessCriticality.includes("Tier 1")).length;
-    const tier2Count = dependents.filter((d) => d.ci.businessCriticality.includes("Tier 2")).length;
-
-    let blastRadiusScore = 20 + dependents.length * 8 + tier1Count * 25 + tier2Count * 15;
-    blastRadiusScore = Math.min(100, Math.max(10, blastRadiusScore));
-
-    let riskLevel: "Severe" | "High" | "Moderate" | "Low" = "Moderate";
-    if (blastRadiusScore >= 80 || tier1Count > 0) riskLevel = "Severe";
-    else if (blastRadiusScore >= 60 || tier2Count > 0) riskLevel = "High";
-    else if (blastRadiusScore >= 35) riskLevel = "Moderate";
-    else riskLevel = "Low";
-
-    return {
-      targetCi: target,
-      dependentCis: dependents,
-      blastRadiusScore,
-      riskLevel,
-      impactSummary: `${dependents.length} interconnected CIs directly/indirectly affected (${tier1Count} Mission-Critical Tier 1 services).`,
-    };
+  // Impact Analysis (Full Cycle-Safe BFS with Depth, Paths, and Typed Weights)
+  const getImpactAnalysis = (
+    ciId: string,
+    mode: "upstream" | "downstream" = "upstream",
+    maxDepth = 6,
+    weights: BlastRadiusWeights = DEFAULT_BLAST_RADIUS_WEIGHTS
+  ): ImpactAnalysisResult | null => {
+    return computeImpactAnalysis(ciId, cis, relationships, mode, maxDepth, weights);
   };
 
   // Data Quality Tasks Actions
@@ -1306,6 +1271,8 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
         getCIById,
         addRelationship,
         deleteRelationship,
+        approveRelationship,
+        rejectRelationship,
         getCIRelationships,
         getImpactAnalysis,
         approveDQTask,

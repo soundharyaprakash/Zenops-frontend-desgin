@@ -53,7 +53,7 @@ export const JargonTooltip: React.FC<JargonTooltipProps> = ({
       <HelpCircle className="w-3 h-3 text-muted/80 group-hover:text-primary transition-colors inline shrink-0" />
 
       {isOpen && (
-        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 px-3 py-1.5 bg-neutral-900 border border-neutral-700 text-neutral-100 text-[11px] font-normal rounded-md shadow-xl whitespace-normal w-64 text-left pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 px-3 py-1.5 bg-neutral-900 border border-border text-neutral-100 text-[11px] font-normal rounded-md shadow-xl whitespace-normal w-64 text-left pointer-events-none animate-in fade-in zoom-in-95 duration-150">
           <span className="font-bold text-primary block mb-0.5">{term}</span>
           <span className="text-secondary leading-relaxed">{explanation}</span>
           <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-neutral-900" />

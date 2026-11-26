@@ -65,9 +65,14 @@ module.exports = {
 
         // ZenOps Brand Colors
         brand: {
+          DEFAULT: "var(--brand-500)",
+          400: "var(--brand-400)",
+          500: "var(--brand-500)",
+          600: "var(--brand-600)",
           blue: "#1F6BFF",
           cyan: "#19C8F0",
           mint: "#3EF2B5",
+          glow: "var(--brand-glow)",
         },
       },
       fontFamily: {
@@ -75,10 +80,12 @@ module.exports = {
         mono: ["Geist Mono", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
       },
       borderRadius: {
-        lozenge: "3px",
-        button: "3px",
-        input: "3px",
-        card: "8px",
+        lozenge: "4px",
+        button: "12px",
+        "button-sm": "10px",
+        "button-lg": "14px",
+        input: "10px",
+        card: "14px",
       },
       spacing: {
         18: "4.5rem",
@@ -93,6 +100,11 @@ module.exports = {
         card: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
         raised: "0 4px 8px -2px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06)",
         dropdown: "0 10px 18px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -4px rgba(0, 0, 0, 0.08)",
+        glass: "0 8px 24px rgba(31, 107, 255, 0.24), 0 1px 2px rgba(0, 0, 0, 0.10)",
+        "glass-hover": "0 12px 28px rgba(31, 107, 255, 0.36), 0 2px 4px rgba(0, 0, 0, 0.15)",
+        "glass-danger": "0 8px 24px rgba(220, 38, 38, 0.28), 0 1px 2px rgba(0, 0, 0, 0.10)",
+        "glass-danger-hover": "0 12px 28px rgba(220, 38, 38, 0.40), 0 2px 4px rgba(0, 0, 0, 0.15)",
+        "brand-glow": "0 0 20px rgba(31, 107, 255, 0.32)",
       },
       keyframes: {
         "fade-in-up": {

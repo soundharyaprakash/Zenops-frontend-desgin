@@ -41,7 +41,7 @@ export function ThemeToggle({ className, variant = "icon" }: ThemeToggleProps) {
       type="button"
       onClick={cycleTheme}
       className={cn(
-        "p-1.5 rounded-[3px] text-secondary hover:text-default hover:bg-sunken transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary flex items-center justify-center",
+        "p-1.5 rounded-button text-secondary hover:text-default hover:bg-sunken transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary flex items-center justify-center",
         className
       )}
       title={`Theme: ${getLabel()} (Click to toggle)`}

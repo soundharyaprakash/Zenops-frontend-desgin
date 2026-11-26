@@ -137,8 +137,11 @@ export function computeImpactAnalysis(
   const adj = new Map<string, { neighborId: string; relationship: CIRelationship }[]>();
 
   relationships.forEach((rel) => {
-    // Exclude pending-review edges from active operational impact analysis unless approved
-    if (rel.status === "pending-review") return;
+    // Only edges with status manual or discovered count.
+    // Pending and stale edges are shown on canvas but excluded from blast radius calculations.
+    if (rel.status === "pending-review" || rel.status === "pending" || rel.status === "stale") {
+      return;
+    }
     const normEdges = getNormalizedDependencies(rel);
     for (const norm of normEdges) {
       if (mode === "upstream") {
@@ -230,23 +233,21 @@ export function computeImpactAnalysis(
       d.ci.ciClass === "Server/VM"
   ).length;
 
-  // Formula: 20 + dependents*8 + tier1Count*25 + tier2Count*15, with Tier 0 and Tier 1 using weight 25
-  let blastRadiusScore =
-    weights.baseScore +
-    dependents.length * weights.dependentWeight +
-    tier0Count * weights.tier0Weight +
-    tier1Count * weights.tier1Weight +
-    tier2Count * weights.tier2Weight;
+  // Blast Radius Score Formula: min(100, 34 * number of Tier 0 services reached)
+  const blastRadiusScore = Math.min(100, Math.round(34 * tier0Count));
 
-  blastRadiusScore = Math.min(weights.maxScore, Math.max(weights.minScore, blastRadiusScore));
-
-  // Risk level:
-  // Severe if score >= 80 or tier0Count + tier1Count > 0; High if score >= 60 or tier2Count > 0; Moderate if >= 35; else Low
-  let riskLevel: "Severe" | "High" | "Moderate" | "Low" = "Moderate";
-  if (blastRadiusScore >= 80 || tier0Count + tier1Count > 0) riskLevel = "Severe";
-  else if (blastRadiusScore >= 60 || tier2Count > 0) riskLevel = "High";
-  else if (blastRadiusScore >= 35) riskLevel = "Moderate";
+  // Risk Level: >=75 SEVERE, >=40 HIGH, >0 MODERATE, 0 LOW
+  let riskLevel: "Severe" | "High" | "Moderate" | "Low" = "Low";
+  if (blastRadiusScore >= 75) riskLevel = "Severe";
+  else if (blastRadiusScore >= 40) riskLevel = "High";
+  else if (blastRadiusScore > 0) riskLevel = "Moderate";
   else riskLevel = "Low";
+
+  // Revenue at risk: sum of revenue/hr of the Tier 0 services reached
+  const revenueAtRisk = affectedBusinessServices.reduce((sum, svc) => {
+    return sum + (typeof svc.revenuePerHour === "number" ? svc.revenuePerHour : 0);
+  }, 0);
+  const revenueAtRiskFormatted = `$${revenueAtRisk.toLocaleString()}/hr`;
 
   // Actual maximum hop count reached among affected business services (or all dependents)
   const actualHops =
@@ -266,18 +267,24 @@ export function computeImpactAnalysis(
       riskExplanation = `Severe risk: propagates to ${tier0Count} Tier 0 Business Service(s) ('${affectedBusinessServices
         .map((s) => s.name)
         .join("', '")}') within ${actualHops} hop${actualHops === 1 ? "" : "s"}.`;
-    } else if (tier1Count > 0) {
-      riskExplanation = `Severe risk: impacts ${tier1Count} Tier 1 Mission-Critical application(s).`;
     } else {
-      riskExplanation = `Severe risk: high-density cascade across ${dependents.length} interconnected CIs (score ${blastRadiusScore}/100).`;
+      riskExplanation = `Severe risk: high-density cascade across ${dependents.length} interconnected CIs.`;
     }
   } else if (riskLevel === "High") {
-    riskExplanation = `High risk: impacts ${tier2Count} Tier 2 compute/container workload(s).`;
+    riskExplanation = `High risk: propagates to ${tier0Count} Tier 0 Business Service(s) within ${actualHops} hop${actualHops === 1 ? "" : "s"}.`;
   } else if (riskLevel === "Moderate") {
-    riskExplanation = `Moderate risk: affects ${dependents.length} localized peripheral component(s) (score ${blastRadiusScore}/100).`;
+    riskExplanation = `Moderate risk: propagates to ${tier0Count} Tier 0 Business Service(s) within ${actualHops} hop${actualHops === 1 ? "" : "s"}.`;
   } else {
-    riskExplanation = `Low risk: minimal propagation to peripheral infrastructure.`;
+    riskExplanation = `Low risk: minimal propagation to business services.`;
   }
+
+  const impactedPaths = dependents.map((d) => ({
+    ci: d.ci,
+    depth: d.depth,
+    path: d.path,
+  }));
+
+  const rootCauseCandidates = mode === "downstream" ? impactedPaths : undefined;
 
   return {
     targetCi: target,
@@ -287,5 +294,67 @@ export function computeImpactAnalysis(
     riskLevel,
     riskExplanation,
     impactSummary: `${dependents.length} interconnected CIs directly/indirectly affected (${tier0Count} Tier 0 services, ${tier1Count} Tier 1 apps).`,
+    revenueAtRisk,
+    revenueAtRiskFormatted,
+    impactedPaths,
+    rootCauseCandidates,
   };
+}
+
+export interface NodeNeighborRelationship {
+  ci: CIItem;
+  relationship: CIRelationship;
+  relType: string;
+  status: string;
+  criticality: string;
+}
+
+export interface NodeFocusRelationships {
+  dependsOn: NodeNeighborRelationship[];
+  usedBy: NodeNeighborRelationship[];
+}
+
+/**
+ * Returns the incoming ("Used by") and outgoing ("Depends on") relationships for a node.
+ */
+export function getNodeRelationships(
+  ciId: string,
+  relationships: CIRelationship[],
+  cis: CIItem[]
+): NodeFocusRelationships {
+  const dependsOn: NodeNeighborRelationship[] = [];
+  const usedBy: NodeNeighborRelationship[] = [];
+
+  for (const rel of relationships) {
+    const normEdges = getNormalizedDependencies(rel);
+    for (const norm of normEdges) {
+      if (norm.dependentId === ciId) {
+        // ciId depends on norm.providerId (outgoing dependency)
+        const otherCi = cis.find((c) => c.id === norm.providerId);
+        if (otherCi && !dependsOn.some((d) => d.ci.id === otherCi.id && d.relationship.id === rel.id)) {
+          dependsOn.push({
+            ci: otherCi,
+            relationship: rel,
+            relType: rel.relationshipType,
+            status: rel.status || "manual",
+            criticality: rel.criticalityWeight,
+          });
+        }
+      } else if (norm.providerId === ciId) {
+        // norm.dependentId depends on ciId (incoming dependent, i.e. used by)
+        const otherCi = cis.find((c) => c.id === norm.dependentId);
+        if (otherCi && !usedBy.some((u) => u.ci.id === otherCi.id && u.relationship.id === rel.id)) {
+          usedBy.push({
+            ci: otherCi,
+            relationship: rel,
+            relType: rel.relationshipType,
+            status: rel.status || "manual",
+            criticality: rel.criticalityWeight,
+          });
+        }
+      }
+    }
+  }
+
+  return { dependsOn, usedBy };
 }

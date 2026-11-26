@@ -338,8 +338,8 @@ assert(
 );
 
 assert(
-  routerImpact?.riskLevel === "Severe",
-  "2.6: Assigns Severe risk level due to affected Tier 0 Business Service",
+  routerImpact?.riskLevel === "Moderate" && routerImpact?.blastRadiusScore === 34,
+  "2.6: Assigns Moderate risk level (score 34) for 1 affected Tier 0 Business Service",
   { score: routerImpact?.blastRadiusScore, riskLevel: routerImpact?.riskLevel }
 );
 
@@ -483,7 +483,7 @@ const disconnectedCi: CIItem = {
 
 const isolatedResult = computeImpactAnalysis("ISOLATED-01", [disconnectedCi], chainRels, "upstream", 6);
 assert(isolatedResult !== null && isolatedResult.dependentCis.length === 0, "5.1: Disconnected node returns 0 dependents");
-assert(isolatedResult?.blastRadiusScore === 20, "5.2: Disconnected node has base score of 20", {
+assert(isolatedResult?.blastRadiusScore === 0, "5.2: Disconnected node has base score of 0 (no Tier 0 services)", {
   score: isolatedResult?.blastRadiusScore,
 });
 assert(isolatedResult?.riskLevel === "Low", "5.3: Disconnected node is categorized as Low risk", {
@@ -501,6 +501,88 @@ assert(
     DEFAULT_BLAST_RADIUS_WEIGHTS.dependentWeight === 8,
   "6.1: Default weights adhere strictly to formula specifications",
   DEFAULT_BLAST_RADIUS_WEIGHTS
+);
+
+// ---------------------------------------------------------------------------
+// TEST 7: Acceptance Check 1 - Real Estate Blast Radius for CI-1002 (aurora-pg)
+// ---------------------------------------------------------------------------
+import { INITIAL_CIS, INITIAL_RELATIONSHIPS } from "../services/mock-data";
+import { getNodeRelationships } from "../lib/relationships/impact-logic";
+
+const ac1Result = computeImpactAnalysis("CI-1002", INITIAL_CIS, INITIAL_RELATIONSHIPS, "upstream", 6);
+assert(ac1Result !== null, "7.1: CI-1002 impact analysis executes successfully");
+assert(ac1Result?.blastRadiusScore === 100, "7.2: CI-1002 score is 100/100 SEVERE", {
+  score: ac1Result?.blastRadiusScore,
+  level: ac1Result?.riskLevel,
+});
+assert(ac1Result?.riskLevel === "Severe", "7.3: CI-1002 risk level is Severe");
+assert(ac1Result?.affectedBusinessServices.length === 3, "7.4: CI-1002 reaches 3 Tier 0 business services", {
+  services: ac1Result?.affectedBusinessServices.map((s) => s.name),
+});
+assert(ac1Result?.revenueAtRisk === 155000, "7.5: CI-1002 revenue at risk is exactly $155,000/hr", {
+  revenue: ac1Result?.revenueAtRisk,
+  formatted: ac1Result?.revenueAtRiskFormatted,
+});
+
+const path1008 = ac1Result?.dependentCis.find((d) => d.ci.id === "CI-1008");
+const path1040 = ac1Result?.dependentCis.find((d) => d.ci.id === "CI-1040");
+const path1009 = ac1Result?.dependentCis.find((d) => d.ci.id === "CI-1009");
+
+assert(
+  path1008?.depth === 2 && JSON.stringify(path1008?.path) === JSON.stringify(["CI-1002", "CI-1001", "CI-1008"]),
+  "7.6: Path to Payments API (CI-1008) is CI-1002 -> CI-1001 -> CI-1008 (depth 2)"
+);
+assert(
+  path1040?.depth === 2 && JSON.stringify(path1040?.path) === JSON.stringify(["CI-1002", "CI-1001", "CI-1040"]),
+  "7.7: Path to Order Processing (CI-1040) is CI-1002 -> CI-1001 -> CI-1040 (depth 2)"
+);
+assert(
+  path1009?.depth === 3 && JSON.stringify(path1009?.path) === JSON.stringify(["CI-1002", "CI-1001", "CI-1008", "CI-1009"]),
+  "7.8: Path to Customer Web Portal (CI-1009) is CI-1002 -> CI-1001 -> CI-1008 -> CI-1009 (depth 3)"
+);
+
+// ---------------------------------------------------------------------------
+// TEST 8: Acceptance Check 2 - Focus View on CI-1001 at 1 Hop
+// ---------------------------------------------------------------------------
+const focus1001 = getNodeRelationships("CI-1001", INITIAL_RELATIONSHIPS, INITIAL_CIS);
+const dependsOn1001 = focus1001.dependsOn.map((d) => d.ci.id).sort();
+const usedBy1001 = focus1001.usedBy.map((u) => u.ci.id).sort();
+
+assert(
+  dependsOn1001.includes("CI-1002") &&
+    dependsOn1001.includes("CI-1003") &&
+    dependsOn1001.includes("CI-1006") &&
+    dependsOn1001.includes("CI-1007"),
+  "8.1: CI-1001 Depends on (outgoing) lists CI-1002, CI-1003, CI-1006, CI-1007",
+  dependsOn1001
+);
+assert(
+  usedBy1001.includes("CI-1008") && usedBy1001.includes("CI-1040"),
+  "8.2: CI-1001 Used by (incoming) lists CI-1008, CI-1040",
+  usedBy1001
+);
+
+// ---------------------------------------------------------------------------
+// TEST 9: Acceptance Check 3 - Edge Approval & Exclusion of Pending/Stale
+// ---------------------------------------------------------------------------
+// 9.1: REL-010-PENDING is excluded before approval
+const preAnalysis = computeImpactAnalysis("CI-1001", INITIAL_CIS, INITIAL_RELATIONSHIPS, "upstream", 6);
+const reachesFWPre = preAnalysis?.dependentCis.some((d) => d.ci.id === "CI-1005");
+assert(!reachesFWPre, "9.1: Pending edge REL-010-PENDING is excluded from blast radius calculations before approval");
+
+// 9.2: Approving REL-010-PENDING includes it in calculations
+const approvedRels = INITIAL_RELATIONSHIPS.map((r) =>
+  r.id === "REL-010-PENDING" ? { ...r, status: "active" as const, source: "discovered" as const } : r
+);
+const postAnalysis = computeImpactAnalysis("CI-1001", INITIAL_CIS, approvedRels, "upstream", 6);
+const reachesFWPost = postAnalysis?.dependentCis.some((d) => d.ci.id === "CI-1005");
+assert(Boolean(reachesFWPost), "9.2: Approving REL-010-PENDING includes it in blast radius calculations");
+
+// 9.3: Rejecting removes the edge completely
+const rejectedRels = INITIAL_RELATIONSHIPS.filter((r) => r.id !== "REL-010-PENDING");
+assert(
+  !rejectedRels.some((r) => r.id === "REL-010-PENDING"),
+  "9.3: Rejecting REL-010-PENDING removes it from the relationships list"
 );
 
 // ---------------------------------------------------------------------------

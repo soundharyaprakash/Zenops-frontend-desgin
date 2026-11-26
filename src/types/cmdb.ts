@@ -351,7 +351,7 @@ export type RelationshipType =
 export type DirectionType = "Upstream" | "Downstream" | "Bidirectional";
 export type CriticalityWeight = "Critical" | "High" | "Medium" | "Low";
 export type RelationshipSource = "manual" | "discovered";
-export type RelationshipStatus = "active" | "stale" | "pending-review";
+export type RelationshipStatus = "active" | "stale" | "pending-review" | "pending";
 
 export interface CIRelationship {
   id: string;
@@ -399,6 +399,10 @@ export interface ImpactAnalysisResult {
   riskLevel: "Severe" | "High" | "Moderate" | "Low";
   riskExplanation: string;
   impactSummary: string;
+  revenueAtRisk?: number;
+  revenueAtRiskFormatted?: string;
+  impactedPaths?: { depth: number; path: string[]; ci: CIItem }[];
+  rootCauseCandidates?: { ci: CIItem; depth: number; path: string[] }[];
 }
 
 export interface DiscoverySource {

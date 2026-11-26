@@ -159,7 +159,7 @@ export function RelationshipGraph() {
   const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [drawerOpen, setDrawerOpen] = useState<boolean>(true);
+  const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [liveTraffic, setLiveTraffic] = useState<boolean>(true);
   const [collapsedTiers, setCollapsedTiers] = useState<Set<number>>(new Set());
@@ -370,11 +370,11 @@ export function RelationshipGraph() {
   );
 
   const isFilterActive = activeFilterCount > 0;
-  const safeTier0 = tier0CIs.length > 0 ? tier0CIs : isFilterActive ? [] : cis.slice(0, 6).filter(matchesFilter);
-  const safeTier1 = tier1CIs.length > 0 ? tier1CIs : isFilterActive ? [] : cis.slice(6, 9).filter(matchesFilter);
-  const safeTier2 = tier2CIs.length > 0 ? tier2CIs : isFilterActive ? [] : cis.slice(9, 11).filter(matchesFilter);
-  const safeTier3 = tier3CIs.length > 0 ? tier3CIs : isFilterActive ? [] : cis.slice(11, 14).filter(matchesFilter);
-  const safeTier4 = tier4CIs.length > 0 ? tier4CIs : isFilterActive ? [] : cis.slice(14, 15).filter(matchesFilter);
+  const safeTier0 = tier0CIs;
+  const safeTier1 = tier1CIs;
+  const safeTier2 = tier2CIs;
+  const safeTier3 = tier3CIs;
+  const safeTier4 = tier4CIs;
 
   const totalVisibleNodes =
     safeTier0.length + safeTier1.length + safeTier2.length + safeTier3.length + safeTier4.length;
@@ -397,25 +397,58 @@ export function RelationshipGraph() {
       }
     });
 
-    setNodePositions(newPositions);
+    setNodePositions((prev) => {
+      if (prev.size !== newPositions.size) return newPositions;
+      for (const [id, pos] of newPositions.entries()) {
+        const p = prev.get(id);
+        if (
+          !p ||
+          Math.abs(p.x - pos.x) > 0.5 ||
+          Math.abs(p.y - pos.y) > 0.5 ||
+          Math.abs(p.width - pos.width) > 0.5 ||
+          Math.abs(p.height - pos.height) > 0.5
+        ) {
+          return newPositions;
+        }
+      }
+      return prev;
+    });
   }, []);
 
-  useLayoutEffect(() => {
-    updateNodePositions();
-    const timer = setTimeout(updateNodePositions, 100);
-    return () => clearTimeout(timer);
+  const visibleNodesHash = useMemo(() => {
+    return [
+      safeTier0.map((c) => c.id).join(","),
+      safeTier1.map((c) => c.id).join(","),
+      safeTier2.map((c) => c.id).join(","),
+      safeTier3.map((c) => c.id).join(","),
+      safeTier4.map((c) => c.id).join(","),
+      Array.from(collapsedTiers).sort().join(","),
+      zoomLevel,
+      panOffset.x,
+      panOffset.y,
+      focusMode ? selectedCiId : "",
+      focusDepth,
+    ].join("|");
   }, [
-    updateNodePositions,
-    zoomLevel,
-    panOffset,
-    collapsedTiers,
     safeTier0,
     safeTier1,
     safeTier2,
     safeTier3,
     safeTier4,
+    collapsedTiers,
+    zoomLevel,
+    panOffset.x,
+    panOffset.y,
     focusMode,
+    selectedCiId,
+    focusDepth,
   ]);
+
+  useLayoutEffect(() => {
+    updateNodePositions();
+    const timer = setTimeout(updateNodePositions, 80);
+    return () => clearTimeout(timer);
+  }, [visibleNodesHash, updateNodePositions]);
 
   useEffect(() => {
     window.addEventListener("resize", updateNodePositions);
@@ -509,7 +542,6 @@ export function RelationshipGraph() {
     setSelectedCiId(id);
     setSelectedEdgeId(null);
     setDrawerOpen(true);
-    setFocusMode(true);
   };
 
   // Edge selection handler
@@ -1238,7 +1270,7 @@ export function RelationshipGraph() {
                                 : isImpacted
                                 ? "bg-danger/10 border-danger ring-2 ring-danger/40 shadow-xs"
                                 : "bg-surface border-border hover:border-border-strong hover:bg-sunken",
-                              isFaded && "opacity-10 pointer-events-none filter grayscale"
+                              isFaded && "opacity-25 hover:opacity-100 hover:filter-none transition-all cursor-pointer filter grayscale(75%)"
                             )}
                           >
                             <div className="flex items-center justify-between gap-1 mb-1">
@@ -1326,7 +1358,7 @@ export function RelationshipGraph() {
                                 : isImpacted
                                 ? "bg-danger/10 border-danger ring-2 ring-danger/40 shadow-xs"
                                 : "bg-surface border-border hover:border-border-strong hover:bg-sunken",
-                              isFaded && "opacity-10 pointer-events-none filter grayscale"
+                              isFaded && "opacity-25 hover:opacity-100 hover:filter-none transition-all cursor-pointer filter grayscale(75%)"
                             )}
                           >
                             <div className="flex items-center justify-between gap-1 mb-1">
@@ -1412,7 +1444,7 @@ export function RelationshipGraph() {
                                 : isImpacted
                                 ? "bg-danger/10 border-danger ring-2 ring-danger/40 shadow-xs"
                                 : "bg-surface border-border hover:border-border-strong hover:bg-sunken",
-                              isFaded && "opacity-10 pointer-events-none filter grayscale"
+                              isFaded && "opacity-25 hover:opacity-100 hover:filter-none transition-all cursor-pointer filter grayscale(75%)"
                             )}
                           >
                             <div className="flex items-center justify-between gap-1 mb-1">
@@ -1498,7 +1530,7 @@ export function RelationshipGraph() {
                                 : isImpacted
                                 ? "bg-danger/10 border-danger ring-2 ring-danger/40 shadow-xs"
                                 : "bg-surface border-border hover:border-border-strong hover:bg-sunken",
-                              isFaded && "opacity-10 pointer-events-none filter grayscale"
+                              isFaded && "opacity-25 hover:opacity-100 hover:filter-none transition-all cursor-pointer filter grayscale(75%)"
                             )}
                           >
                             <div className="flex items-center justify-between gap-1 mb-1">
@@ -1584,7 +1616,7 @@ export function RelationshipGraph() {
                                 : isImpacted
                                 ? "bg-danger/10 border-danger ring-2 ring-danger/40 shadow-xs"
                                 : "bg-surface border-border hover:border-border-strong hover:bg-sunken",
-                              isFaded && "opacity-10 pointer-events-none filter grayscale"
+                              isFaded && "opacity-25 hover:opacity-100 hover:filter-none transition-all cursor-pointer filter grayscale(75%)"
                             )}
                           >
                             <div className="flex items-center justify-between gap-1 mb-1">
@@ -1757,9 +1789,9 @@ export function RelationshipGraph() {
             ? `${selectedCi.name} (${selectedCi.id})`
             : "Inspection"
         }
-        size="lg"
+        size="xl"
       >
-        <div className="p-5 space-y-5 text-xs text-text-default">
+        <div className="space-y-4 text-xs text-text-default">
           {/* =================================================================== */}
           {/* A. EDGE DETAILS DRAWER VIEW (WHEN AN EDGE IS CLICKED) */}
           {/* =================================================================== */}
@@ -2191,15 +2223,20 @@ export function RelationshipGraph() {
               </div>
 
               {/* Action Buttons */}
-              <div className="pt-4 border-t border-border flex items-center justify-between gap-2">
-                <Button size="sm" variant="primary" onClick={handleAttachToChange}>
-                  Attach to Change Record
-                </Button>
-                <Link href={`/cis/${selectedCi.id}`}>
-                  <Button size="sm" variant="outline">
-                    Open CI Full Profile
+              <div className="pt-4 border-t border-border flex items-center justify-between gap-2 sticky bottom-0 bg-surface/95 backdrop-blur-xs py-2">
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant="primary" onClick={handleAttachToChange}>
+                    Attach to Change
                   </Button>
-                </Link>
+                  <Link href={`/cis/${selectedCi.id}`}>
+                    <Button size="sm" variant="outline">
+                      Full Profile &rarr;
+                    </Button>
+                  </Link>
+                </div>
+                <Button size="sm" variant="ghost" onClick={() => setDrawerOpen(false)}>
+                  Close
+                </Button>
               </div>
             </div>
           ) : null}

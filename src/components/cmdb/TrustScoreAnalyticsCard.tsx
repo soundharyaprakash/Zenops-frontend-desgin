@@ -121,27 +121,29 @@ export function TrustScoreAnalyticsCard() {
             type="button"
             onClick={() => setActiveTab("histogram")}
             className={cn(
-              "px-2.5 py-1 rounded font-medium transition-all duration-150 flex items-center gap-1.5 shrink-0",
+              "px-2.5 py-1 rounded font-medium transition-all duration-150 flex items-center gap-1.5 shrink-0 text-xs",
               activeTab === "histogram"
                 ? "bg-surface text-primary shadow-xs font-semibold"
                 : "text-text-secondary hover:text-text-default"
             )}
+            title="Distribution Histogram"
           >
-            <BarChart3 className="w-34.5 h-4.5" />
-            
+            <BarChart3 className="w-3.5 h-3.5 shrink-0" />
+            <span>Distribution</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("gauge")}
             className={cn(
-              "px-2.5 py-1 rounded font-medium transition-all duration-150 flex items-center gap-1.5 shrink-0",
+              "px-2.5 py-1 rounded font-medium transition-all duration-150 flex items-center gap-1.5 shrink-0 text-xs",
               activeTab === "gauge"
                 ? "bg-surface text-primary shadow-xs font-semibold"
                 : "text-text-secondary hover:text-text-default"
             )}
+            title="Gauge & Pillars"
           >
-            <Gauge className="w-3.5 h-3.5" />
+            <Gauge className="w-3.5 h-3.5 shrink-0" />
             <span>Gauge & Pillars</span>
           </button>
         </div>
@@ -153,7 +155,7 @@ export function TrustScoreAnalyticsCard() {
       <CardContent className="p-4 sm:p-5 flex-1 flex flex-col justify-center min-w-0">
         {/* TAB 1: ANIMATED 5-TIER HISTOGRAM (DEFAULT) */}
         {activeTab === "histogram" && (
-          <div className="space-y-3.5 animate-fade-in-up w-full min-w-0">
+          <div className="space-y-3 animate-fade-in-up w-full min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-text-muted pb-1.5 border-b border-border/60">
               <span className="font-semibold uppercase tracking-wider text-[11px] text-text-default">
                 CI Distribution Across Health Bands
@@ -164,7 +166,7 @@ export function TrustScoreAnalyticsCard() {
             </div>
 
             {/* Vertical Bar Histogram */}
-            <div className="grid grid-cols-5 gap-2 sm:gap-3 items-end pt-3 pb-1 select-none w-full min-w-0">
+            <div className="grid grid-cols-5 gap-1.5 sm:gap-2.5 items-end pt-2 pb-1 select-none w-full min-w-0">
               {bands.map((band) => {
                 const isHovered = hoveredBand === band.range;
                 const barHeightPct = Math.max(14, Math.round((band.count / maxBandCount) * 100));
@@ -177,7 +179,7 @@ export function TrustScoreAnalyticsCard() {
                     onMouseLeave={() => setHoveredBand(null)}
                   >
                     {/* Count & Pct badge */}
-                    <div className="text-center w-full">
+                    <div className="text-center w-full min-w-0">
                       <span
                         className={cn(
                           "font-mono text-xs font-bold block transition-all truncate",
@@ -192,7 +194,7 @@ export function TrustScoreAnalyticsCard() {
                     </div>
 
                     {/* Animated Histogram Column */}
-                    <div className="w-full bg-sunken rounded-t-md h-24 sm:h-28 relative overflow-hidden border border-border/60 flex items-end">
+                    <div className="w-full bg-sunken rounded-t-md h-20 sm:h-24 relative overflow-hidden border border-border/60 flex items-end">
                       <div
                         className={cn(
                           "w-full rounded-t-md transition-all duration-700 ease-out relative group-hover:brightness-110 shadow-xs"
@@ -208,7 +210,7 @@ export function TrustScoreAnalyticsCard() {
                     </div>
 
                     {/* Band Range Label */}
-                    <div className="text-center w-full min-w-0 space-y-0.5 pt-0.5">
+                    <div className="text-center w-full min-w-0 space-y-0.5 pt-1">
                       <span className="font-mono text-[10px] sm:text-[11px] font-semibold text-text-default block truncate">
                         {band.range}
                       </span>
@@ -222,7 +224,7 @@ export function TrustScoreAnalyticsCard() {
             </div>
 
             {/* Bottom Health Bands Legend (Separated cleanly below bars without overlap) */}
-            <div className="pt-2.5 mt-2 border-t border-border/80 flex flex-wrap items-center justify-between text-[10px] sm:text-[11px] text-text-muted gap-2">
+            <div className="pt-2.5 mt-2.5 border-t border-border/70 flex flex-wrap items-center justify-between text-[10px] sm:text-[11px] text-text-muted gap-2">
               <span className="flex items-center gap-1.5 text-success font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-success shrink-0" />
                 &ge;80 Healthy ({bands[0].count} CIs)
@@ -245,7 +247,7 @@ export function TrustScoreAnalyticsCard() {
             <div className="flex flex-col md:flex-row items-center justify-around gap-6">
               {/* Semi-Circular Speedometer Gauge with Single Hue and 80% Threshold Band */}
               <div className="relative flex flex-col items-center justify-center shrink-0 select-none">
-                <svg width="200" height="115" viewBox="0 0 220 125" className="overflow-visible max-w-full">
+                <svg width="190" height="110" viewBox="0 0 220 125" className="overflow-visible max-w-full">
                   <defs>
                     {/* Single Hue Cyan-to-Blue Linear Gradient */}
                     <linearGradient id="singleHueGauge" x1="0" y1="0" x2="1" y2="0">
@@ -292,7 +294,7 @@ export function TrustScoreAnalyticsCard() {
                 </svg>
 
                 {/* Weighted Score Readout */}
-                <div className="mt-[-24px] text-center space-y-0.5">
+                <div className="mt-[-20px] text-center space-y-0.5">
                   <div className="flex items-baseline justify-center gap-0.5">
                     <span className="font-mono text-2xl sm:text-3xl font-black text-text-default tracking-tight">
                       {avgScore}
@@ -325,13 +327,13 @@ export function TrustScoreAnalyticsCard() {
                   <span className="font-mono text-[10px]">Actual &bull; Pts</span>
                 </div>
 
-                <div className="grid grid-cols-5 gap-1.5 sm:gap-2 pt-1 items-end h-28 sm:h-32 select-none w-full min-w-0">
+                <div className="grid grid-cols-5 gap-1.5 sm:gap-2 pt-1 pb-1 items-end select-none w-full min-w-0">
                   {pillars.map((pillar) => {
                     const isHovered = hoveredPillar === pillar.id;
                     return (
                       <div
                         key={pillar.id}
-                        className="flex flex-col items-center justify-end h-full gap-1 cursor-pointer group min-w-0"
+                        className="flex flex-col items-center justify-end gap-1 cursor-pointer group min-w-0"
                         onMouseEnter={() => setHoveredPillar(pillar.id)}
                         onMouseLeave={() => setHoveredPillar(null)}
                       >
@@ -346,7 +348,7 @@ export function TrustScoreAnalyticsCard() {
                         </span>
 
                         {/* Vertical animated bar column */}
-                        <div className="w-full bg-sunken rounded-t-md h-20 sm:h-24 relative overflow-hidden border border-border/40 flex items-end">
+                        <div className="w-full bg-sunken rounded-t-md h-18 sm:h-22 relative overflow-hidden border border-border/40 flex items-end">
                           <div
                             className="w-full rounded-t-md transition-all duration-700 ease-out relative group-hover:brightness-110 shadow-xs"
                             style={{
@@ -360,29 +362,31 @@ export function TrustScoreAnalyticsCard() {
                         </div>
 
                         {/* Pillar label & weight */}
-                        <span
-                          className="text-[9px] sm:text-[10px] font-bold text-text-default text-center mt-0.5 leading-tight truncate w-full"
-                          title={pillar.label}
-                        >
-                          {pillar.label}
-                        </span>
-                        <span className="text-[8px] sm:text-[9px] font-mono text-text-muted truncate">
-                          {pillar.weightLabel}
-                        </span>
+                        <div className="text-center w-full min-w-0 space-y-0.5 pt-0.5">
+                          <span
+                            className="text-[9px] sm:text-[10px] font-bold text-text-default block leading-tight truncate w-full"
+                            title={pillar.label}
+                          >
+                            {pillar.label}
+                          </span>
+                          <span className="text-[8px] sm:text-[9px] font-mono text-text-muted block truncate">
+                            {pillar.weightLabel}
+                          </span>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
 
                 {/* Dynamic Pillar Explainer */}
-                <div className="p-2 rounded-md bg-sunken border border-border/70 text-[11px] flex items-center justify-between min-h-[34px] w-full min-w-0">
+                <div className="mt-3 p-2 sm:p-2.5 rounded-md bg-sunken border border-border/70 text-[11px] flex items-center justify-between min-h-[36px] w-full min-w-0">
                   {hoveredPillar ? (
                     (() => {
                       const p = pillars.find((x) => x.id === hoveredPillar);
                       if (!p) return null;
                       return (
-                        <div className="flex items-center justify-between w-full min-w-0">
-                          <div className="truncate mr-2 min-w-0 flex-1">
+                        <div className="flex items-center justify-between w-full min-w-0 gap-2">
+                          <div className="truncate min-w-0 flex-1">
                             <span className="font-semibold text-text-default">{p.label}: </span>
                             <span className="text-text-secondary">{p.description}</span>
                           </div>

@@ -59,9 +59,9 @@ import {
 import { AVAILABLE_TENANTS } from "@/lib/constants";
 export { AVAILABLE_TENANTS } from "@/lib/constants";
 import { AuthService } from "@/services/auth-service";
-import { AuthSession } from "@/types/auth";
+import { AuthSession, User } from "@/types/auth";
 
-export type { AuthSession };
+export type { AuthSession, User };
 
 interface CMDBContextType {
   cis: CIItem[];
@@ -126,6 +126,8 @@ interface CMDBContextType {
   session: AuthSession | null;
   currentUser: AuthSession | null;
   logout: () => void;
+  switchUser: (newSession: AuthSession) => void;
+  updateUserProfile: (updates: Partial<User>) => void;
   canEdit: boolean;
   canMerge: boolean;
   canRetire: boolean;
@@ -179,6 +181,28 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
     AuthService.clearSession();
     setSession(null);
     window.location.href = "/login?banner=signed-out";
+  };
+
+  const switchUser = (newSession: AuthSession) => {
+    AuthService.setSession(newSession);
+    setSession(newSession);
+    setUserRole(newSession.role);
+    setActiveTenant(newSession.tenantName);
+    showToast("success", "Persona Switched", `Active session is now ${newSession.name} (${newSession.role})`);
+  };
+
+  const updateUserProfile = (updates: Partial<User>) => {
+    if (!session) return;
+    const updated = AuthService.updateUserProfile(session.userId, updates);
+    if (updated) {
+      const refreshed = AuthService.getSession();
+      if (refreshed) {
+        setSession(refreshed);
+        setUserRole(refreshed.role);
+        setActiveTenant(refreshed.tenantName);
+      }
+      showToast("success", "Profile Saved", "Your profile details have been successfully updated.");
+    }
   };
 
   const canEdit = userRole === "Editor" || userRole === "CMDB Owner" || userRole === "Admin";
@@ -1297,6 +1321,8 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
         session,
         currentUser: session,
         logout,
+        switchUser,
+        updateUserProfile,
         canEdit,
         canMerge,
         canRetire,

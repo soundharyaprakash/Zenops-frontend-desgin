@@ -23,6 +23,7 @@ import {
   Lock,
   ChevronDown,
   Sparkles,
+  User,
   X,
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
@@ -83,6 +84,12 @@ export function Sidebar({
           href: "/dashboard",
           icon: LayoutDashboard,
           active: pathname === "/dashboard" || pathname === "/",
+        },
+        {
+          name: "User Profile",
+          href: "/profile",
+          icon: User,
+          active: pathname === "/profile",
         },
       ],
     },

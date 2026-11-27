@@ -18,6 +18,7 @@ import {
   CheckCircle,
   HelpCircle,
   LogOut,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Lozenge } from "@/components/ui/Lozenge";
@@ -402,17 +403,28 @@ export function Header({ onOpenMobileSidebar, collapsed }: HeaderProps) {
 
             {profileOpen && (
               <div className="absolute right-0 mt-1.5 w-[calc(100vw-24px)] max-w-xs sm:w-64 bg-surface border border-border rounded-card shadow-dropdown p-2.5 z-50 text-sm animate-in fade-in zoom-in-95 duration-100">
-                <div className="px-2.5 py-2 border-b border-border">
-                  <p className="font-bold text-default text-sm truncate">{session?.name || "Sarah Jenkins"}</p>
-                  <p className="text-xs text-muted truncate">{session?.email || "sarah.jenkins@gmail.com"}</p>
-                  <div className="mt-1.5 flex items-center gap-1.5">
-                    <Lozenge variant="info" size="sm">
-                      {userRole}
-                    </Lozenge>
-                    <span className="text-xs text-muted truncate max-w-[120px]">
-                      {session?.title || "Platform Eng"}
-                    </span>
+                <div className="px-2.5 py-2 border-b border-border space-y-2">
+                  <div>
+                    <p className="font-bold text-default text-sm truncate">{session?.name || "Sarah Jenkins"}</p>
+                    <p className="text-xs text-muted truncate">{session?.email || "sarah.jenkins@gmail.com"}</p>
+                    <div className="mt-1.5 flex items-center gap-1.5">
+                      <Lozenge variant="info" size="sm">
+                        {userRole}
+                      </Lozenge>
+                      <span className="text-xs text-muted truncate max-w-[120px]">
+                        {session?.title || "Platform Eng"}
+                      </span>
+                    </div>
                   </div>
+
+                  <Link
+                    href="/profile"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center justify-center gap-1.5 w-full px-2.5 py-1.5 rounded-button bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-colors"
+                  >
+                    <User className="w-3.5 h-3.5" />
+                    <span>View User Profile & Identity</span>
+                  </Link>
                 </div>
 
                 {/* Role Switcher Matrix */}
@@ -443,6 +455,13 @@ export function Header({ onOpenMobileSidebar, collapsed }: HeaderProps) {
                 </div>
 
                 <div className="pt-1.5 space-y-0.5 text-secondary">
+                  <Link
+                    href="/profile"
+                    onClick={() => setProfileOpen(false)}
+                    className="block px-2.5 py-1.5 rounded-[3px] hover:bg-sunken text-default transition-colors text-xs font-medium"
+                  >
+                    My Profile & Settings
+                  </Link>
                   <Link
                     href="/getting-started"
                     onClick={() => setProfileOpen(false)}

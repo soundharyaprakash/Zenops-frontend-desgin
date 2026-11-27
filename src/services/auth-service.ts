@@ -845,6 +845,71 @@ export class AuthService {
   }
 
   /**
+   * Get all registered & seeded users
+   */
+  public static getAllUsers(): User[] {
+    return this.getUsers();
+  }
+
+  /**
+   * Update a user's profile information and sync session if active
+   */
+  public static updateUserProfile(userId: string, updates: Partial<User>): User | null {
+    const users = this.getUsers();
+    const idx = users.findIndex((u) => u.id === userId);
+    if (idx === -1) return null;
+
+    users[idx] = {
+      ...users[idx],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+    this.saveUsers(users);
+
+    const session = this.getSession();
+    if (session && session.userId === userId) {
+      const updatedSession: AuthSession = {
+        ...session,
+        name: updates.name ?? session.name,
+        title: updates.title ?? session.title,
+        role: updates.role ?? session.role,
+        tenantName: updates.tenantName ?? session.tenantName,
+      };
+      this.setSession(updatedSession);
+    }
+
+    return users[idx];
+  }
+
+  /**
+   * Switch the active session to one of the seeded demo accounts by email
+   */
+  public static switchToDemoUser(email: string): AuthSession | null {
+    const users = this.getUsers();
+    const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+    if (!user) return null;
+
+    const session: AuthSession = {
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      title: user.title,
+      tenantId: user.tenantId,
+      tenantName: user.tenantName,
+      tenantDomain: user.tenantDomain,
+      availableTenants: user.availableTenants || AVAILABLE_TENANTS,
+      groups: user.groups,
+      services: user.services,
+      onboardingCompleted: true,
+      expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+    };
+
+    this.setSession(session);
+    return session;
+  }
+
+  /**
    * Get list of demo accounts for dev mode quick-fill (Aligned with All 12 Human RBAC Roles)
    */
   public static getDemoAccounts() {

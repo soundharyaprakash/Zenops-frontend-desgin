@@ -127,8 +127,8 @@ export function TrustScoreAnalyticsCard() {
                 : "text-text-secondary hover:text-text-default"
             )}
           >
-            <BarChart3 className="w-3.5 h-3.5" />
-            <span>Histogram</span>
+            <BarChart3 className="w-34.5 h-4.5" />
+            
           </button>
 
           <button

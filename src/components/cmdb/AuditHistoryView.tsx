@@ -667,15 +667,7 @@ export function AuditHistoryView() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleVerifyIntegrity}
-            disabled={isVerifying}
-            leftIcon={<ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />}
-          >
-            {isVerifying ? "Verifying Hash Chain..." : "Verify Integrity"}
-          </Button>
+         
 
           <Button
             variant="secondary"

@@ -146,7 +146,7 @@ export function Sidebar({
           active: pathname.startsWith("/attestation-campaigns"),
         },
         {
-          name: "Immutable Audit History",
+          name: "Audit History",
           href: "/audit-history",
           icon: History,
           active: pathname.startsWith("/audit-history"),

@@ -1783,49 +1783,75 @@ export function RelationshipGraph() {
         }}
         maxWidth="5xl"
         showCloseButton={false}
-      >
-        {/* Custom Modal Header */}
-        <div className="px-6 py-4 border-b border-border bg-elevated/40 flex items-center justify-between shrink-0 sticky top-0 z-20 rounded-t-2xl backdrop-blur-md">
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
-              {selectedEdge ? <Network className="w-5 h-5 text-primary" /> : selectedCi ? getClassIcon(selectedCi.ciClass) : null}
-            </span>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-base font-bold text-foreground truncate">
-                  {selectedEdge ? `Relationship: ${selectedEdge.id}` : selectedCi?.name}
-                </h3>
-                <span className="font-mono text-xs px-2 py-0.5 rounded bg-sunken border border-border text-text-muted">
-                  {selectedEdge ? `${selectedEdge.relationshipType}` : selectedCi?.id}
-                </span>
-                {selectedCi && (
-                  <Lozenge appearance="subtle" variant="info">
-                    {selectedCi.ciClass}
-                  </Lozenge>
-                )}
+        header={
+          <div className="px-6 py-4 border-b border-border bg-elevated/40 flex items-center justify-between shrink-0 rounded-t-2xl backdrop-blur-md">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+                {selectedEdge ? <Network className="w-5 h-5 text-primary" /> : selectedCi ? getClassIcon(selectedCi.ciClass) : null}
+              </span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-base font-bold text-foreground truncate">
+                    {selectedEdge ? `Relationship: ${selectedEdge.id}` : selectedCi?.name}
+                  </h3>
+                  <span className="font-mono text-xs px-2 py-0.5 rounded bg-sunken border border-border text-text-muted">
+                    {selectedEdge ? `${selectedEdge.relationshipType}` : selectedCi?.id}
+                  </span>
+                  {selectedCi && (
+                    <Lozenge appearance="subtle" variant="info">
+                      {selectedCi.ciClass}
+                    </Lozenge>
+                  )}
+                </div>
+                <p className="text-xs text-text-muted mt-0.5 truncate">
+                  {selectedEdge
+                    ? `${selectedEdge.parentCiName} (${selectedEdge.parentCiId}) → ${selectedEdge.childCiName} (${selectedEdge.childCiId})`
+                    : `${selectedCi?.ciClass} • ${selectedCi?.businessCriticality} • ${selectedCi?.environment}`}
+                </p>
               </div>
-              <p className="text-xs text-text-muted mt-0.5 truncate">
-                {selectedEdge
-                  ? `${selectedEdge.parentCiName} (${selectedEdge.parentCiId}) → ${selectedEdge.childCiName} (${selectedEdge.childCiId})`
-                  : `${selectedCi?.ciClass} • ${selectedCi?.businessCriticality} • ${selectedCi?.environment}`}
-              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {selectedCi && <OperationalBadge status={selectedCi.operationalStatus} />}
+              <button
+                onClick={() => {
+                  setDrawerOpen(false);
+                  setSelectedEdgeId(null);
+                }}
+                className="p-1.5 rounded-lg text-text-muted hover:text-foreground hover:bg-elevated transition-colors"
+                aria-label="Close dialog"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {selectedCi && <OperationalBadge status={selectedCi.operationalStatus} />}
-            <button
+        }
+        footer={
+          <div className="px-6 py-3.5 border-t border-border bg-surface/95 backdrop-blur-md flex items-center justify-between shrink-0 rounded-b-2xl">
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="primary" onClick={handleAttachToChange}>
+                Attach to Change Record
+              </Button>
+              {selectedCi && (
+                <Link href={`/cis/${selectedCi.id}`}>
+                  <Button size="sm" variant="outline">
+                    Open CI Full Profile &rarr;
+                  </Button>
+                </Link>
+              )}
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
               onClick={() => {
                 setDrawerOpen(false);
                 setSelectedEdgeId(null);
               }}
-              className="p-1.5 rounded-lg text-text-muted hover:text-foreground hover:bg-elevated transition-colors"
-              aria-label="Close dialog"
             >
-              <X className="w-5 h-5" />
-            </button>
+              Close
+            </Button>
           </div>
-        </div>
-
+        }
+      >
         <div className="p-5 sm:p-6 text-xs text-text-default flex-1">
           {/* =================================================================== */}
           {/* A. EDGE DETAILS DRAWER VIEW (WHEN AN EDGE IS CLICKED) */}
@@ -2269,32 +2295,6 @@ export function RelationshipGraph() {
               </div>
             </div>
           ) : null}
-        </div>
-
-        {/* Modal Sticky Footer */}
-        <div className="px-6 py-3.5 border-t border-border bg-surface/95 backdrop-blur-md flex items-center justify-between shrink-0 sticky bottom-0 z-20 rounded-b-2xl">
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="primary" onClick={handleAttachToChange}>
-              Attach to Change Record
-            </Button>
-            {selectedCi && (
-              <Link href={`/cis/${selectedCi.id}`}>
-                <Button size="sm" variant="outline">
-                  Open CI Full Profile &rarr;
-                </Button>
-              </Link>
-            )}
-          </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              setDrawerOpen(false);
-              setSelectedEdgeId(null);
-            }}
-          >
-            Close
-          </Button>
         </div>
       </Modal>
 

@@ -19,7 +19,7 @@ export function RelationshipsView() {
   }
 
   return (
-    <div className="space-y-6 pb-12 animate-fade-in-up">
+    <div className="space-y-6 pb-12 animate-in fade-in duration-200">
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-text-default tracking-tight">
           CI Relationships & Topology

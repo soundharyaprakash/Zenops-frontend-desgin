@@ -65,7 +65,6 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/Button";
 import { Lozenge, OperationalBadge, CriticalityBadge, TrustScoreBadge } from "@/components/ui/Lozenge";
 import { Modal } from "@/components/ui/Modal";
-import { Drawer } from "@/components/ui/Drawer";
 import { Select } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
 import { useCMDB, detectDependencyCycle, getNormalizedDependencies } from "@/context/cmdb-context";
@@ -1764,7 +1763,7 @@ export function RelationshipGraph() {
                     Attach to Change
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => setDrawerOpen(true)}>
-                    Inspection Drawer &rarr;
+                    View Full Impact Popup &rarr;
                   </Button>
                 </div>
               </CardContent>
@@ -1774,24 +1773,60 @@ export function RelationshipGraph() {
       </div>
 
       {/* ----------------------------------------------------------------------- */}
-      {/* 5. SLIDE-OVER INSPECTION DRAWER (CI CLICKED OR EDGE CLICKED) */}
+      {/* 5. CENTERED FULL INSPECTION MODAL (CI CLICKED OR EDGE CLICKED) */}
       {/* ----------------------------------------------------------------------- */}
-      <Drawer
+      <Modal
         isOpen={drawerOpen}
         onClose={() => {
           setDrawerOpen(false);
           setSelectedEdgeId(null);
         }}
-        title={
-          selectedEdge
-            ? `Relationship: ${selectedEdge.id}`
-            : selectedCi
-            ? `${selectedCi.name} (${selectedCi.id})`
-            : "Inspection"
-        }
-        size="xl"
+        maxWidth="5xl"
+        showCloseButton={false}
       >
-        <div className="space-y-4 text-xs text-text-default">
+        {/* Custom Modal Header */}
+        <div className="px-6 py-4 border-b border-border bg-elevated/40 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+              {selectedEdge ? <Network className="w-5 h-5 text-primary" /> : selectedCi ? getClassIcon(selectedCi.ciClass) : null}
+            </span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-base font-bold text-foreground truncate">
+                  {selectedEdge ? `Relationship: ${selectedEdge.id}` : selectedCi?.name}
+                </h3>
+                <span className="font-mono text-xs px-2 py-0.5 rounded bg-sunken border border-border text-text-muted">
+                  {selectedEdge ? `${selectedEdge.relationshipType}` : selectedCi?.id}
+                </span>
+                {selectedCi && (
+                  <Lozenge appearance="subtle" variant="info">
+                    {selectedCi.ciClass}
+                  </Lozenge>
+                )}
+              </div>
+              <p className="text-xs text-text-muted mt-0.5 truncate">
+                {selectedEdge
+                  ? `${selectedEdge.parentCiName} (${selectedEdge.parentCiId}) → ${selectedEdge.childCiName} (${selectedEdge.childCiId})`
+                  : `${selectedCi?.ciClass} • ${selectedCi?.businessCriticality} • ${selectedCi?.environment}`}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {selectedCi && <OperationalBadge status={selectedCi.operationalStatus} />}
+            <button
+              onClick={() => {
+                setDrawerOpen(false);
+                setSelectedEdgeId(null);
+              }}
+              className="p-1.5 rounded-lg text-text-muted hover:text-foreground hover:bg-elevated transition-colors"
+              aria-label="Close dialog"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6 overflow-y-auto max-h-[72vh] text-xs text-text-default">
           {/* =================================================================== */}
           {/* A. EDGE DETAILS DRAWER VIEW (WHEN AN EDGE IS CLICKED) */}
           {/* =================================================================== */}
@@ -1920,120 +1955,214 @@ export function RelationshipGraph() {
             </div>
           ) : selectedCi ? (
             /* =================================================================== */
-            /* B. CI INSPECTION DRAWER VIEW (WHEN A NODE IS CLICKED) */
+            /* B. CI INSPECTION VIEW (WHEN A NODE IS CLICKED) */
             /* =================================================================== */
-            <div className="space-y-4">
-              {/* Header info */}
-              <div className="flex items-center justify-between border-b border-border pb-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="p-1.5 rounded-card bg-primary/10 text-primary">
-                    {getClassIcon(selectedCi.ciClass)}
-                  </span>
-                  <div>
-                    <h4 className="font-bold text-sm text-text-default">{selectedCi.name}</h4>
-                    <span className="font-mono text-text-muted text-[11px]">{selectedCi.id}</span>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* LEFT COLUMN: Blast Radius, Impact Metrics, Focus Controls */}
+              <div className="lg:col-span-6 space-y-4">
+                {/* Upstream Mode: Blast Radius Score & Revenue Metric Tiles */}
+                {graphMode === "upstream" && selectedImpact && (
+                  <div className="space-y-3">
+                    <div
+                      className={cn(
+                        "p-4 rounded-card border space-y-2.5",
+                        selectedImpact.riskLevel === "Severe"
+                          ? "bg-danger/10 border-danger/30"
+                          : selectedImpact.riskLevel === "High"
+                          ? "bg-warning/10 border-warning/30"
+                          : "bg-primary/10 border-primary/30"
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm text-text-default">
+                          Blast Radius Score: {selectedImpact.blastRadiusScore}/100
+                        </span>
+                        <span
+                          className={cn(
+                            "px-2.5 py-0.5 rounded text-[10px] font-bold uppercase",
+                            selectedImpact.riskLevel === "Severe"
+                              ? "bg-danger text-white"
+                              : selectedImpact.riskLevel === "High"
+                              ? "bg-warning text-black"
+                              : "bg-primary text-white"
+                          )}
+                        >
+                          {selectedImpact.riskLevel}
+                        </span>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="w-full bg-border rounded-full h-2 overflow-hidden">
+                        <div
+                          className={cn(
+                            "h-full rounded-full transition-all duration-300",
+                            selectedImpact.riskLevel === "Severe"
+                              ? "bg-danger"
+                              : selectedImpact.riskLevel === "High"
+                              ? "bg-warning"
+                              : "bg-primary"
+                          )}
+                          style={{ width: `${selectedImpact.blastRadiusScore}%` }}
+                        />
+                      </div>
+
+                      <p className="text-xs text-text-secondary leading-relaxed pt-1">
+                        {selectedImpact.riskExplanation}
+                      </p>
+                    </div>
+
+                    {/* Impact Metric Tiles */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3.5 rounded-card bg-sunken/60 border border-border">
+                        <span className="text-[10px] text-text-muted uppercase block font-semibold">
+                          Impacted CIs
+                        </span>
+                        <span className="font-mono font-bold text-xl text-text-default">
+                          {selectedImpact.dependentCis.length}
+                        </span>
+                        <span className="text-[10px] text-text-muted block mt-0.5">
+                          across {selectedImpact.affectedBusinessServices.length} business services
+                        </span>
+                      </div>
+
+                      <div className="p-3.5 rounded-card bg-sunken/60 border border-border">
+                        <span className="text-[10px] text-text-muted uppercase block font-semibold">
+                          Revenue At Risk
+                        </span>
+                        <span className="font-mono font-bold text-xl text-warning">
+                          ${selectedImpact.revenueAtRisk?.toLocaleString() || 0}/hr
+                        </span>
+                        <span className="text-[10px] text-text-muted block mt-0.5">instant downtime exposure</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Lozenge appearance="subtle" variant="info">
-                    {selectedCi.ciClass}
-                  </Lozenge>
-                  <OperationalBadge status={selectedCi.operationalStatus} />
+                )}
+
+                {/* Downstream Mode: Root Cause Candidates */}
+                {graphMode === "downstream" && (
+                  <div className="space-y-3">
+                    <div className="p-3 rounded-card bg-primary/10 border border-primary/30 space-y-1">
+                      <span className="font-bold text-xs text-text-default">Downstream Root Cause Analysis</span>
+                      <p className="text-[11px] text-text-secondary leading-snug">
+                        Tracing all infrastructure providers and storage dependencies that {selectedCi.name} relies upon.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h5 className="font-bold text-xs uppercase tracking-wider text-text-secondary">
+                        Root Cause Candidates ({selectedImpact?.dependentCis.length || 0})
+                      </h5>
+
+                      {(!selectedImpact || selectedImpact.dependentCis.length === 0) ? (
+                        <div className="p-3 rounded-card bg-sunken text-center text-text-muted text-xs">
+                          This CI does not depend on any underlying infrastructure components.
+                        </div>
+                      ) : (
+                        <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                          {selectedImpact.dependentCis.map((dep, idx) => (
+                            <div
+                              key={`${dep.ci.id}-${idx}`}
+                              className="p-2.5 rounded-card bg-sunken/50 border border-border space-y-1"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-semibold text-xs text-text-default flex items-center gap-1.5">
+                                  {getClassIcon(dep.ci.ciClass)}
+                                  {dep.ci.name}
+                                </span>
+                                <span className="font-mono text-[9px] text-text-muted">Hop {dep.depth}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-[10px] font-mono text-text-muted">
+                                <span>Path:</span>
+                                {dep.path.map((step, sIdx) => (
+                                  <React.Fragment key={step}>
+                                    <span className="px-1 py-0.2 rounded bg-surface border border-border">{step}</span>
+                                    {sIdx < dep.path.length - 1 && <span>&rarr;</span>}
+                                  </React.Fragment>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Focus View Controls */}
+                <div className="p-3.5 rounded-card bg-sunken/40 border border-border space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-text-default">Topology Graph Focus</span>
+                    {focusMode && (
+                      <button
+                        onClick={() => setFocusMode(false)}
+                        className="text-[11px] text-primary hover:underline font-semibold"
+                      >
+                        Reset full graph
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFocusMode((f) => !f)}
+                      className={cn(
+                        "flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold border transition-all",
+                        focusMode ? "bg-brand-500 text-white border-brand-500 shadow-xs" : "bg-sunken text-text-muted border-border hover:bg-surface"
+                      )}
+                    >
+                      <Crosshair className="w-3.5 h-3.5" />
+                      <span>Focus: {focusMode ? "ON" : "OFF"}</span>
+                    </button>
+                    {focusMode && (
+                      <div className="flex items-center gap-1 pl-2 border-l border-border text-xs">
+                        <span className="text-text-muted text-[11px]">Radius:</span>
+                        <button
+                          type="button"
+                          onClick={() => setFocusDepth(1)}
+                          className={cn("px-2 py-0.5 rounded font-mono font-bold", focusDepth === 1 ? "bg-primary text-white" : "bg-sunken text-text-muted")}
+                        >
+                          1h
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFocusDepth(2)}
+                          className={cn("px-2 py-0.5 rounded font-mono font-bold", focusDepth === 2 ? "bg-primary text-white" : "bg-sunken text-text-muted")}
+                        >
+                          2h
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFocusDepth("all")}
+                          className={cn("px-2 py-0.5 rounded font-mono font-bold", focusDepth === "all" ? "bg-primary text-white" : "bg-sunken text-text-muted")}
+                        >
+                          All
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Upstream Mode: Blast Radius Score & Revenue Metric Tiles */}
-              {graphMode === "upstream" && selectedImpact && (
-                <div className="space-y-3">
-                  <div
-                    className={cn(
-                      "p-3.5 rounded-card border space-y-2",
-                      selectedImpact.riskLevel === "Severe"
-                        ? "bg-danger/10 border-danger/30"
-                        : selectedImpact.riskLevel === "High"
-                        ? "bg-warning/10 border-warning/30"
-                        : "bg-primary/10 border-primary/30"
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-text-default">
-                        Blast Radius Score: {selectedImpact.blastRadiusScore}/100
-                      </span>
-                      <span
-                        className={cn(
-                          "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
-                          selectedImpact.riskLevel === "Severe"
-                            ? "bg-danger text-white"
-                            : selectedImpact.riskLevel === "High"
-                            ? "bg-warning text-black"
-                            : "bg-primary text-white"
-                        )}
-                      >
-                        {selectedImpact.riskLevel}
-                      </span>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="w-full bg-border rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className={cn(
-                          "h-full rounded-full transition-all duration-300",
-                          selectedImpact.riskLevel === "Severe"
-                            ? "bg-danger"
-                            : selectedImpact.riskLevel === "High"
-                            ? "bg-warning"
-                            : "bg-primary"
-                        )}
-                        style={{ width: `${selectedImpact.blastRadiusScore}%` }}
-                      />
-                    </div>
-
-                    <p className="text-xs text-text-secondary leading-relaxed pt-1">
-                      {selectedImpact.riskExplanation}
-                    </p>
-                  </div>
-
-                  {/* Impact Metric Tiles */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-card bg-sunken/60 border border-border">
-                      <span className="text-[10px] text-text-muted uppercase block font-semibold">
-                        Impacted CIs
-                      </span>
-                      <span className="font-mono font-bold text-lg text-text-default">
-                        {selectedImpact.dependentCis.length}
-                      </span>
-                      <span className="text-[10px] text-text-muted block">
-                        across {selectedImpact.affectedBusinessServices.length} business services
-                      </span>
-                    </div>
-
-                    <div className="p-3 rounded-card bg-sunken/60 border border-border">
-                      <span className="text-[10px] text-text-muted uppercase block font-semibold">
-                        Revenue At Risk
-                      </span>
-                      <span className="font-mono font-bold text-lg text-warning">
-                        ${selectedImpact.revenueAtRisk?.toLocaleString() || 0}/hr
-                      </span>
-                      <span className="text-[10px] text-text-muted block">instant downtime exposure</span>
-                    </div>
-                  </div>
-
-                  {/* Propagation Path Sequence */}
+              {/* RIGHT COLUMN: Propagation Path Sequence, Depends On & Used By */}
+              <div className="lg:col-span-6 space-y-4">
+                {/* Propagation Path Sequence */}
+                {graphMode === "upstream" && selectedImpact && (
                   <div className="space-y-2">
-                    <h5 className="font-bold text-xs uppercase tracking-wider text-text-secondary">
-                      Propagation Path Sequence ({selectedImpact.dependentCis.length})
+                    <h5 className="font-bold text-xs uppercase tracking-wider text-text-secondary flex items-center justify-between">
+                      <span>Failure Propagation Paths ({selectedImpact.dependentCis.length})</span>
+                      <span className="font-normal text-[10px] text-text-muted">Topological hop trace</span>
                     </h5>
 
                     {selectedImpact.dependentCis.length === 0 ? (
-                      <div className="p-3 rounded-card bg-sunken text-center text-text-muted text-xs">
+                      <div className="p-3.5 rounded-card bg-sunken text-center text-text-muted text-xs">
                         No upstream consumers affected by this CI.
                       </div>
                     ) : (
-                      <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                      <div className="space-y-2 max-h-[190px] overflow-y-auto pr-1">
                         {selectedImpact.dependentCis.map((dep, idx) => (
                           <div
                             key={`${dep.ci.id}-${idx}`}
-                            className="p-2.5 rounded-card bg-sunken/50 border border-border space-y-1.5"
+                            className="p-2.5 rounded-card bg-sunken/60 border border-border space-y-1.5"
                           >
                             <div className="flex items-center justify-between">
                               <span className="font-semibold text-xs text-text-default flex items-center gap-1.5">
@@ -2069,103 +2198,20 @@ export function RelationshipGraph() {
                       </div>
                     )}
                   </div>
-                </div>
-              )}
-
-              {/* Downstream Mode: Root Cause Candidates */}
-              {graphMode === "downstream" && (
-                <div className="space-y-3">
-                  <div className="p-3 rounded-card bg-primary/10 border border-primary/30 space-y-1">
-                    <span className="font-bold text-xs text-text-default">Downstream Root Cause Analysis</span>
-                    <p className="text-[11px] text-text-secondary leading-snug">
-                      Tracing all infrastructure providers and storage dependencies that {selectedCi.name} relies upon.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h5 className="font-bold text-xs uppercase tracking-wider text-text-secondary">
-                      Root Cause Candidates ({selectedImpact?.dependentCis.length || 0})
-                    </h5>
-
-                    {(!selectedImpact || selectedImpact.dependentCis.length === 0) ? (
-                      <div className="p-3 rounded-card bg-sunken text-center text-text-muted text-xs">
-                        This CI does not depend on any underlying infrastructure components.
-                      </div>
-                    ) : (
-                      <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                        {selectedImpact.dependentCis.map((dep, idx) => (
-                          <div
-                            key={`${dep.ci.id}-${idx}`}
-                            className="p-2.5 rounded-card bg-sunken/50 border border-border space-y-1"
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="font-semibold text-xs text-text-default flex items-center gap-1.5">
-                                {getClassIcon(dep.ci.ciClass)}
-                                {dep.ci.name}
-                              </span>
-                              <span className="font-mono text-[9px] text-text-muted">Hop {dep.depth}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-[10px] font-mono text-text-muted">
-                              <span>Path:</span>
-                              {dep.path.map((step, sIdx) => (
-                                <React.Fragment key={step}>
-                                  <span className="px-1 py-0.2 rounded bg-surface border border-border">{step}</span>
-                                  {sIdx < dep.path.length - 1 && <span>&rarr;</span>}
-                                </React.Fragment>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Focus View Toggle & Split Relationships */}
-              <div className="pt-2 border-t border-border space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setFocusMode((f) => !f)}
-                      className={cn(
-                        "flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold border transition-all",
-                        focusMode ? "bg-brand-500 text-white border-brand-500" : "bg-sunken text-text-muted border-border"
-                      )}
-                    >
-                      <Crosshair className="w-3.5 h-3.5" />
-                      <span>Focus: {focusMode ? "ON" : "OFF"}</span>
-                    </button>
-                    {focusMode && (
-                      <span className="text-[11px] text-text-muted">
-                        Depth: {focusDepth === "all" ? "All hops" : `${focusDepth} hop`}
-                      </span>
-                    )}
-                  </div>
-
-                  {focusMode && (
-                    <button
-                      onClick={() => setFocusMode(false)}
-                      className="text-[11px] text-primary hover:underline font-semibold"
-                    >
-                      Show full graph
-                    </button>
-                  )}
-                </div>
+                )}
 
                 {/* Split Relationship Lists */}
-                <div className="space-y-3 pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   {/* Depends on (Outgoing Dependencies) */}
                   <div className="space-y-1.5">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1">
-                      <ArrowDownLeft className="w-3 h-3 text-cyan-400" />
+                      <ArrowDownLeft className="w-3.5 h-3.5 text-cyan-400" />
                       Depends on ({nodeRelBreakdown.dependsOn.length})
                     </span>
                     {nodeRelBreakdown.dependsOn.length === 0 ? (
                       <p className="text-[11px] text-text-muted italic pl-1">No outgoing dependencies</p>
                     ) : (
-                      <div className="space-y-1 max-h-[140px] overflow-y-auto">
+                      <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-0.5">
                         {nodeRelBreakdown.dependsOn.map((item) => (
                           <div
                             key={item.ci.id}
@@ -2191,13 +2237,13 @@ export function RelationshipGraph() {
                   {/* Used by (Incoming Dependents) */}
                   <div className="space-y-1.5">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1">
-                      <ArrowUpRight className="w-3 h-3 text-primary" />
+                      <ArrowUpRight className="w-3.5 h-3.5 text-primary" />
                       Used by ({nodeRelBreakdown.usedBy.length})
                     </span>
                     {nodeRelBreakdown.usedBy.length === 0 ? (
                       <p className="text-[11px] text-text-muted italic pl-1">No incoming dependents</p>
                     ) : (
-                      <div className="space-y-1 max-h-[140px] overflow-y-auto">
+                      <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-0.5">
                         {nodeRelBreakdown.usedBy.map((item) => (
                           <div
                             key={item.ci.id}
@@ -2221,27 +2267,36 @@ export function RelationshipGraph() {
                   </div>
                 </div>
               </div>
-
-              {/* Action Buttons */}
-              <div className="pt-4 border-t border-border flex items-center justify-between gap-2 sticky bottom-0 bg-surface/95 backdrop-blur-xs py-2">
-                <div className="flex items-center gap-2">
-                  <Button size="sm" variant="primary" onClick={handleAttachToChange}>
-                    Attach to Change
-                  </Button>
-                  <Link href={`/cis/${selectedCi.id}`}>
-                    <Button size="sm" variant="outline">
-                      Full Profile &rarr;
-                    </Button>
-                  </Link>
-                </div>
-                <Button size="sm" variant="ghost" onClick={() => setDrawerOpen(false)}>
-                  Close
-                </Button>
-              </div>
             </div>
           ) : null}
         </div>
-      </Drawer>
+
+        {/* Modal Sticky Footer */}
+        <div className="px-6 py-3.5 border-t border-border bg-surface flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="primary" onClick={handleAttachToChange}>
+              Attach to Change Record
+            </Button>
+            {selectedCi && (
+              <Link href={`/cis/${selectedCi.id}`}>
+                <Button size="sm" variant="outline">
+                  Open CI Full Profile &rarr;
+                </Button>
+              </Link>
+            )}
+          </div>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setDrawerOpen(false);
+              setSelectedEdgeId(null);
+            }}
+          >
+            Close
+          </Button>
+        </div>
+      </Modal>
 
       {/* ----------------------------------------------------------------------- */}
       {/* 6. ADD EDGE MODAL */}

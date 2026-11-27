@@ -10,7 +10,7 @@ export interface ModalProps {
   title?: string;
   description?: string;
   children: React.ReactNode;
-  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "4xl";
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "4xl" | "5xl";
   showCloseButton?: boolean;
 }
 
@@ -48,13 +48,14 @@ export function Modal({
     xl: "max-w-xl",
     "2xl": "max-w-2xl",
     "4xl": "max-w-4xl",
+    "5xl": "max-w-5xl",
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-150">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity cursor-pointer"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -64,7 +65,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative w-full bg-surface text-foreground rounded-lg border border-border-strong shadow-dropdown overflow-hidden z-10 transition-all",
+          "relative w-full bg-surface text-foreground rounded-xl border border-border-strong shadow-2xl overflow-hidden z-10 transition-all my-auto max-h-[92vh] flex flex-col",
           maxWidthStyles[maxWidth]
         )}
       >

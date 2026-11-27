@@ -427,33 +427,6 @@ export function Header({ onOpenMobileSidebar, collapsed }: HeaderProps) {
                   </Link>
                 </div>
 
-                {/* Role Switcher Matrix */}
-                <div className="py-2 border-b border-border">
-                  <p className="px-2.5 text-[10px] font-bold uppercase tracking-wider text-muted mb-1 flex items-center justify-between">
-                    <span>View as role (Demo)</span>
-                    <span className="text-[9px] text-primary font-normal">12 Roles</span>
-                  </p>
-                  <div className="space-y-0.5 max-h-56 overflow-y-auto scrollbar-thin pr-1">
-                    {ALL_HUMAN_ROLES.map((role) => (
-                      <button
-                        key={role}
-                        type="button"
-                        onClick={() => {
-                          setUserRole(role);
-                          setProfileOpen(false);
-                        }}
-                        className={cn(
-                          "w-full text-left px-2.5 py-1.5 rounded-[3px] flex items-center justify-between text-xs transition-colors",
-                          userRole === role ? "bg-selected text-primary font-semibold" : "hover:bg-sunken text-default"
-                        )}
-                      >
-                        <span className="truncate pr-2">{role}</span>
-                        {userRole === role && <Check className="w-3.5 h-3.5 text-primary shrink-0" />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 <div className="pt-1.5 space-y-0.5 text-secondary">
                   <Link
                     href="/profile"

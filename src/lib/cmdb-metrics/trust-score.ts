@@ -13,6 +13,7 @@ import { CIItem } from "../../types/cmdb";
 import { isCIStale } from "./stale-thresholds";
 
 export const ESTATE_TRUST_SCORE_LABEL = "Estate Trust Score";
+export const TRUST_SCORE_LABEL = "Trust Score";
 
 export interface TrustScorePillar {
   id: "freshness" | "completeness" | "consistency" | "topology" | "ownership";

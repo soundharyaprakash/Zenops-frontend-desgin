@@ -142,19 +142,6 @@ export function TrustScoreAnalyticsCard() {
             <span>Gauge & Pillars</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("services")}
-            className={cn(
-              "px-2.5 py-1 rounded font-medium transition-all duration-150 flex items-center gap-1.5 flex-shrink-0",
-              activeTab === "services"
-                ? "bg-surface text-primary shadow-xs font-semibold"
-                : "text-text-secondary hover:text-text-default"
-            )}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>Services</span>
-          </button>
         </div>
       </CardHeader>
 

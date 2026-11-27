@@ -51,7 +51,7 @@ import { getDashboardMetrics } from "@/lib/dashboard/metrics";
 import { PrimaryButton } from "@/components/shared/PrimaryButton";
 import {
   getTaskQueueMetrics,
-  ESTATE_TRUST_SCORE_LABEL,
+  TRUST_SCORE_LABEL,
 } from "@/lib/cmdb-metrics";
 
 export function CMDBDashboardView() {
@@ -350,7 +350,7 @@ export function CMDBDashboardView() {
 
           {/* Tile 2: Weighted Trust Score (Unified weighted formula - Priority 1, Item 5) */}
           <KpiCard
-            title={ESTATE_TRUST_SCORE_LABEL}
+            title={TRUST_SCORE_LABEL}
             value={`${dashboardData.weightedTrustScore}%`}
             subtitle="Weighted formula"
             icon={Award}

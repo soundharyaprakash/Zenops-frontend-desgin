@@ -52,7 +52,7 @@ export function Modal({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-[100] overflow-y-auto overflow-x-hidden animate-in fade-in duration-150">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity cursor-pointer"
@@ -60,41 +60,48 @@ export function Modal({
         aria-hidden="true"
       />
 
-      {/* Modal Dialog Card */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        className={cn(
-          "relative w-full bg-surface text-foreground rounded-xl border border-border-strong shadow-2xl overflow-hidden z-10 transition-all my-auto max-h-[92vh] flex flex-col",
-          maxWidthStyles[maxWidth]
-        )}
-      >
-        {(title || showCloseButton) && (
-          <div className="flex items-start justify-between px-5 py-3.5 border-b border-border bg-elevated/40">
-            <div>
-              {title && (
-                <h3 className="text-base font-bold text-foreground tracking-tight">
-                  {title}
-                </h3>
-              )}
-              {description && (
-                <p className="text-sm text-secondary mt-0.5">{description}</p>
+      {/* Screen Centering & Scroll Shell: ensures modal is centered both vertically and horizontally */}
+      <div className="flex min-h-screen items-center justify-center p-3 sm:p-5 md:p-8 pointer-events-none text-center">
+        {/* Modal Dialog Card */}
+        <div
+          role="dialog"
+          aria-modal="true"
+          className={cn(
+            "relative w-full bg-surface text-foreground rounded-2xl border border-border-strong shadow-2xl z-10 transition-all pointer-events-auto flex flex-col text-left my-auto max-h-[calc(100vh-2.5rem)] sm:max-h-[calc(100vh-4rem)]",
+            maxWidthStyles[maxWidth]
+          )}
+        >
+          {/* Header */}
+          {(title || showCloseButton) && (
+            <div className="flex items-center justify-between px-5 py-4 sm:px-6 sm:py-4.5 border-b border-border bg-elevated/40 shrink-0 rounded-t-2xl">
+              <div className="min-w-0 flex-1 pr-3">
+                {title && (
+                  <h3 className="text-base sm:text-lg font-bold text-foreground tracking-tight truncate">
+                    {title}
+                  </h3>
+                )}
+                {description && (
+                  <p className="text-xs sm:text-sm text-secondary mt-0.5 truncate">{description}</p>
+                )}
+              </div>
+              {showCloseButton && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-elevated transition-colors shrink-0"
+                  aria-label="Close dialog"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               )}
             </div>
-            {showCloseButton && (
-              <button
-                type="button"
-                onClick={onClose}
-                className="p-1 rounded-md text-muted hover:text-foreground hover:bg-elevated transition-colors"
-                aria-label="Close dialog"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        )}
+          )}
 
-        <div className="max-h-[82vh] overflow-y-auto">{children}</div>
+          {/* Dialog Body (scrollable inside the dialog) */}
+          <div className="flex-1 overflow-y-auto overscroll-contain flex flex-col">
+            {children}
+          </div>
+        </div>
       </div>
     </div>
   );

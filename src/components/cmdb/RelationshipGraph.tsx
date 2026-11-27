@@ -1785,7 +1785,7 @@ export function RelationshipGraph() {
         showCloseButton={false}
       >
         {/* Custom Modal Header */}
-        <div className="px-6 py-4 border-b border-border bg-elevated/40 flex items-center justify-between shrink-0">
+        <div className="px-6 py-4 border-b border-border bg-elevated/40 flex items-center justify-between shrink-0 sticky top-0 z-20 rounded-t-2xl backdrop-blur-md">
           <div className="flex items-center gap-3 min-w-0">
             <span className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
               {selectedEdge ? <Network className="w-5 h-5 text-primary" /> : selectedCi ? getClassIcon(selectedCi.ciClass) : null}
@@ -1826,7 +1826,7 @@ export function RelationshipGraph() {
           </div>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[72vh] text-xs text-text-default">
+        <div className="p-5 sm:p-6 text-xs text-text-default flex-1">
           {/* =================================================================== */}
           {/* A. EDGE DETAILS DRAWER VIEW (WHEN AN EDGE IS CLICKED) */}
           {/* =================================================================== */}
@@ -2272,7 +2272,7 @@ export function RelationshipGraph() {
         </div>
 
         {/* Modal Sticky Footer */}
-        <div className="px-6 py-3.5 border-t border-border bg-surface flex items-center justify-between shrink-0">
+        <div className="px-6 py-3.5 border-t border-border bg-surface/95 backdrop-blur-md flex items-center justify-between shrink-0 sticky bottom-0 z-20 rounded-b-2xl">
           <div className="flex items-center gap-2">
             <Button size="sm" variant="primary" onClick={handleAttachToChange}>
               Attach to Change Record
@@ -2308,7 +2308,7 @@ export function RelationshipGraph() {
           title="Add Architectural Relationship"
           maxWidth="md"
         >
-          <form onSubmit={handleAddSubmit} className="space-y-4 text-xs">
+          <form onSubmit={handleAddSubmit} className="space-y-4 text-xs p-5 sm:p-6">
             <div>
               <label className="block font-semibold text-text-default mb-1">Source / Parent CI</label>
               <select

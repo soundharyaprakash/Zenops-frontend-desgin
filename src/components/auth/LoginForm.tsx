@@ -219,18 +219,7 @@ export function LoginForm() {
         </div>
       )}
 
-      {/* ------------------------------------------------------------------- */}
-      {/* FRONTEND DEMO NOTICE */}
-      {/* ------------------------------------------------------------------- */}
-      <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-xs text-primary flex items-start gap-2.5">
-        <Sparkles className="w-4 h-4 text-brand-blue flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="font-semibold text-text-default">Pure Frontend Prototype</p>
-          <p className="text-text-secondary mt-0.5">
-            Enna credential kuduthalum ullam pogum — enter any email & password, or click Sign In directly.
-          </p>
-        </div>
-      </div>
+
 
       {/* ------------------------------------------------------------------- */}
       {/* LOGIN FORM */}
@@ -364,9 +353,7 @@ export function LoginForm() {
               </svg>
             )}
             <span className="font-medium text-default">Continue with Google</span>
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold ml-1 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-              Active Access
-            </span>
+            
           </Button>
 
           {/* Microsoft SSO */}
@@ -389,22 +376,7 @@ export function LoginForm() {
               </svg>
             )}
             <span className="font-medium text-default">Continue with Microsoft</span>
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold ml-1 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-              Active Access
-            </span>
-          </Button>
-
-          {/* Enterprise SSO (SAML/OIDC) Placeholder */}
-          <button
-            type="button"
-            disabled
-            className="w-full flex items-center justify-center gap-2.5 px-3 py-2 rounded-md border border-border bg-surface text-secondary text-xs font-semibold opacity-60 cursor-not-allowed hover:bg-surface"
-            title="Enterprise Single Sign-On via SAML 2.0 / OIDC with SCIM 2.0 directory group provisioning."
-          >
-            <Lock className="w-3.5 h-3.5 text-muted" />
-            <span>SSO (SAML / OIDC)</span>
-            <span className="text-[10px] text-muted font-normal">(Enterprise IdP)</span>
-          </button>
+            </Button>
         </div>
       </div>
 
@@ -457,8 +429,8 @@ export function LoginForm() {
                     account.role.includes("Admin")
                       ? "info"
                       : account.role.includes("Owner")
-                      ? "success"
-                      : "neutral"
+                        ? "success"
+                        : "neutral"
                   }
                   size="xs"
                 >

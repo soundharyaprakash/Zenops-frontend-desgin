@@ -157,12 +157,16 @@ export function DashboardCharts() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
           {/* Panel A: Trust Score Analytics (Animated Speedometer Gauge & 5-Dimension Pillars) */}
-          <TrustScoreAnalyticsCard />
+          <div className="min-w-0 w-full flex">
+            <TrustScoreAnalyticsCard />
+          </div>
 
           {/* Panel B: Radial Architecture Breakdown (Animated Donut & 100% Category Sync) */}
-          <RadialArchitectureChart />
+          <div className="min-w-0 w-full flex">
+            <RadialArchitectureChart />
+          </div>
         </div>
       </div>
 

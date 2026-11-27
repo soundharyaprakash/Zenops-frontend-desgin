@@ -84,43 +84,58 @@ export function TrustScoreAnalyticsCard() {
   const needleY = 100 - gaugeRadius * Math.sin(needleAngle);
 
   return (
-    <Card className="bg-surface border-border shadow-card overflow-hidden flex flex-col justify-between">
+    <Card className="bg-surface border-border shadow-card overflow-hidden flex flex-col justify-between w-full min-w-0">
       {/* ------------------------------------------------------------------- */}
       {/* HEADER */}
       {/* ------------------------------------------------------------------- */}
       <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/60 bg-sunken/20">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary flex items-center justify-center shadow-xs">
-              <Award className="w-4.5 h-4.5 animate-pulse" />
-            </div>
-            <div>
-              <CardTitle className="text-base font-bold text-text-default flex items-center gap-2">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary flex items-center justify-center shadow-xs shrink-0">
+            <Award className="w-4.5 h-4.5 animate-pulse" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <CardTitle className="text-sm sm:text-base font-bold text-text-default">
                 Trust Score Analytics
-                <Lozenge
-                  appearance="bold"
-                  variant={dashboardData.trustBand.lozengeVariant}
-                  size="xs"
-                >
-                  {dashboardData.trustBand.targetLabel}
-                </Lozenge>
               </CardTitle>
-              <CardDescription className="text-xs text-text-secondary mt-0.5">
-                Weighted algorithmic score: Freshness (30), Completeness (25), Consistency (20), Topology (15), Owner (10)
-              </CardDescription>
+              <Lozenge
+                appearance="bold"
+                variant={dashboardData.trustBand.lozengeVariant}
+                size="xs"
+              >
+                {dashboardData.trustBand.targetLabel}
+              </Lozenge>
             </div>
+            <CardDescription
+              className="text-xs text-text-secondary mt-0.5 truncate"
+              title="Weighted algorithmic score: Freshness (30), Completeness (25), Consistency (20), Topology (15), Owner (10)"
+            >
+              Weighted algorithmic score: Freshness (30), Completeness (25), Consistency (20), Topology (15), Owner (10)
+            </CardDescription>
           </div>
         </div>
 
-        {/* View Switcher Tabs - Flex wrap to prevent cut-off */}
-        <div className="inline-flex rounded-lg border border-border bg-sunken p-1 text-xs select-none max-w-full flex-wrap sm:flex-nowrap gap-0.5">
-          
+        {/* View Switcher Tabs - Flex-ready and responsive */}
+        <div className="inline-flex rounded-lg border border-border bg-sunken p-1 text-xs select-none shrink-0 gap-1 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => setActiveTab("histogram")}
+            className={cn(
+              "px-2.5 py-1 rounded font-medium transition-all duration-150 flex items-center gap-1.5 shrink-0",
+              activeTab === "histogram"
+                ? "bg-surface text-primary shadow-xs font-semibold"
+                : "text-text-secondary hover:text-text-default"
+            )}
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            <span>Histogram</span>
+          </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("gauge")}
             className={cn(
-              "px-2.5 py-1 rounded font-medium transition-all duration-150 flex items-center gap-1.5 flex-shrink-0",
+              "px-2.5 py-1 rounded font-medium transition-all duration-150 flex items-center gap-1.5 shrink-0",
               activeTab === "gauge"
                 ? "bg-surface text-primary shadow-xs font-semibold"
                 : "text-text-secondary hover:text-text-default"
@@ -129,28 +144,27 @@ export function TrustScoreAnalyticsCard() {
             <Gauge className="w-3.5 h-3.5" />
             <span>Gauge & Pillars</span>
           </button>
-
         </div>
       </CardHeader>
 
       {/* ------------------------------------------------------------------- */}
       {/* BODY CONTENT BY TAB */}
       {/* ------------------------------------------------------------------- */}
-      <CardContent className="p-4 sm:p-5 flex-1 flex flex-col justify-center">
+      <CardContent className="p-4 sm:p-5 flex-1 flex flex-col justify-center min-w-0">
         {/* TAB 1: ANIMATED 5-TIER HISTOGRAM (DEFAULT) */}
         {activeTab === "histogram" && (
-          <div className="space-y-4 animate-fade-in-up">
-            <div className="flex items-center justify-between text-xs text-text-muted pb-1 border-b border-border/60">
-              <span className="font-semibold uppercase tracking-wider text-[11px]">
+          <div className="space-y-3.5 animate-fade-in-up w-full min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-text-muted pb-1.5 border-b border-border/60">
+              <span className="font-semibold uppercase tracking-wider text-[11px] text-text-default">
                 CI Distribution Across Health Bands
               </span>
-              <span className="text-text-muted text-[11px]">
+              <span className="text-text-muted text-[10px] sm:text-[11px]">
                 Threshold: &ge;80 Healthy &bull; 70–79 At risk &bull; &lt;70 Critical
               </span>
             </div>
 
-            {/* Vertical Bar Histogram (Single hue with threshold bands) */}
-            <div className="grid grid-cols-5 gap-3 h-40 items-end pt-2 select-none">
+            {/* Vertical Bar Histogram */}
+            <div className="grid grid-cols-5 gap-2 sm:gap-3 items-end pt-3 pb-1 select-none w-full min-w-0">
               {bands.map((band) => {
                 const isHovered = hoveredBand === band.range;
                 const barHeightPct = Math.max(14, Math.round((band.count / maxBandCount) * 100));
@@ -158,27 +172,27 @@ export function TrustScoreAnalyticsCard() {
                 return (
                   <div
                     key={band.range}
-                    className="flex flex-col items-center justify-end h-full gap-1.5 cursor-pointer group"
+                    className="flex flex-col items-center justify-end gap-1.5 cursor-pointer group min-w-0"
                     onMouseEnter={() => setHoveredBand(band.range)}
                     onMouseLeave={() => setHoveredBand(null)}
                   >
                     {/* Count & Pct badge */}
-                    <div className="text-center">
+                    <div className="text-center w-full">
                       <span
                         className={cn(
-                          "font-mono text-xs font-bold block transition-all",
+                          "font-mono text-xs font-bold block transition-all truncate",
                           isHovered ? "text-primary scale-110" : "text-text-default"
                         )}
                       >
                         {band.count} CIs
                       </span>
-                      <span className="font-mono text-[10px] text-text-muted">
+                      <span className="font-mono text-[10px] text-text-muted block">
                         {band.pct}%
                       </span>
                     </div>
 
-                    {/* Animated Histogram Column (Single hue base with health band accents) */}
-                    <div className="w-full bg-sunken rounded-t-md h-28 relative overflow-hidden border border-border/60 flex items-end">
+                    {/* Animated Histogram Column */}
+                    <div className="w-full bg-sunken rounded-t-md h-24 sm:h-28 relative overflow-hidden border border-border/60 flex items-end">
                       <div
                         className={cn(
                           "w-full rounded-t-md transition-all duration-700 ease-out relative group-hover:brightness-110 shadow-xs"
@@ -194,29 +208,31 @@ export function TrustScoreAnalyticsCard() {
                     </div>
 
                     {/* Band Range Label */}
-                    <span className="font-mono text-[11px] font-semibold text-text-default text-center">
-                      {band.range}
-                    </span>
-                    <span className="text-[10px] text-text-muted text-center leading-tight">
-                      {band.label}
-                    </span>
+                    <div className="text-center w-full min-w-0 space-y-0.5 pt-0.5">
+                      <span className="font-mono text-[10px] sm:text-[11px] font-semibold text-text-default block truncate">
+                        {band.range}
+                      </span>
+                      <span className="text-[9px] sm:text-[10px] text-text-muted block truncate leading-tight">
+                        {band.label}
+                      </span>
+                    </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* Bottom Health Bands Legend */}
-            <div className="pt-2 border-t border-border flex flex-wrap items-center justify-between text-[11px] text-text-muted gap-2">
+            {/* Bottom Health Bands Legend (Separated cleanly below bars without overlap) */}
+            <div className="pt-2.5 mt-2 border-t border-border/80 flex flex-wrap items-center justify-between text-[10px] sm:text-[11px] text-text-muted gap-2">
               <span className="flex items-center gap-1.5 text-success font-medium">
-                <span className="w-2.5 h-2.5 rounded-full bg-success" />
+                <span className="w-2.5 h-2.5 rounded-full bg-success shrink-0" />
                 &ge;80 Healthy ({bands[0].count} CIs)
               </span>
               <span className="flex items-center gap-1.5 text-warning font-medium">
-                <span className="w-2.5 h-2.5 rounded-full bg-warning" />
+                <span className="w-2.5 h-2.5 rounded-full bg-warning shrink-0" />
                 60–79 At risk ({bands[1].count} CIs)
               </span>
               <span className="flex items-center gap-1.5 text-danger font-medium">
-                <span className="w-2.5 h-2.5 rounded-full bg-danger" />
+                <span className="w-2.5 h-2.5 rounded-full bg-danger shrink-0" />
                 &lt;60 Critical ({bands[2].count + bands[3].count + bands[4].count} CIs)
               </span>
             </div>
@@ -225,11 +241,11 @@ export function TrustScoreAnalyticsCard() {
 
         {/* TAB 2: GAUGE & 5-DIMENSION PILLARS (SECONDARY) */}
         {activeTab === "gauge" && (
-          <div className="space-y-5 animate-fade-in-up">
-            <div className="flex flex-col sm:flex-row items-center justify-around gap-6">
+          <div className="space-y-4 animate-fade-in-up w-full min-w-0">
+            <div className="flex flex-col md:flex-row items-center justify-around gap-6">
               {/* Semi-Circular Speedometer Gauge with Single Hue and 80% Threshold Band */}
-              <div className="relative flex flex-col items-center justify-center flex-shrink-0 select-none">
-                <svg width="220" height="125" viewBox="0 0 220 125" className="overflow-visible">
+              <div className="relative flex flex-col items-center justify-center shrink-0 select-none">
+                <svg width="200" height="115" viewBox="0 0 220 125" className="overflow-visible max-w-full">
                   <defs>
                     {/* Single Hue Cyan-to-Blue Linear Gradient */}
                     <linearGradient id="singleHueGauge" x1="0" y1="0" x2="1" y2="0">
@@ -276,16 +292,16 @@ export function TrustScoreAnalyticsCard() {
                 </svg>
 
                 {/* Weighted Score Readout */}
-                <div className="mt-[-28px] text-center space-y-0.5">
+                <div className="mt-[-24px] text-center space-y-0.5">
                   <div className="flex items-baseline justify-center gap-0.5">
-                    <span className="font-mono text-3xl font-black text-text-default tracking-tight">
+                    <span className="font-mono text-2xl sm:text-3xl font-black text-text-default tracking-tight">
                       {avgScore}
                     </span>
-                    <span className="font-mono text-lg font-bold text-text-muted">%</span>
+                    <span className="font-mono text-base sm:text-lg font-bold text-text-muted">%</span>
                   </div>
                   <span
                     className={cn(
-                      "text-[11px] font-semibold flex items-center justify-center gap-1",
+                      "text-[10px] sm:text-[11px] font-semibold flex items-center justify-center gap-1",
                       avgScore >= 80 ? "text-success" : avgScore >= 60 ? "text-warning" : "text-danger"
                     )}
                   >
@@ -295,42 +311,42 @@ export function TrustScoreAnalyticsCard() {
                         avgScore >= 80 ? "bg-success" : avgScore >= 60 ? "bg-warning" : "bg-danger"
                       )}
                     />
-                    Weighted score: {dashboardData.trustBand.targetLabel}
+                    Weighted: {dashboardData.trustBand.targetLabel}
                   </span>
                 </div>
               </div>
 
               {/* 5-Dimension Vertical Animated Pillars */}
-              <div className="w-full flex-1 max-w-sm space-y-2">
+              <div className="w-full flex-1 max-w-sm space-y-2 min-w-0">
                 <div className="flex items-center justify-between text-xs text-text-muted pb-1 border-b border-border/50">
                   <span className="font-semibold uppercase tracking-wider text-[10px]">
                     Formula Dimensions (Weights)
                   </span>
-                  <span className="font-mono text-[10px]">Actual &bull; Points</span>
+                  <span className="font-mono text-[10px]">Actual &bull; Pts</span>
                 </div>
 
-                <div className="grid grid-cols-5 gap-2 pt-1 items-end h-32 select-none">
+                <div className="grid grid-cols-5 gap-1.5 sm:gap-2 pt-1 items-end h-28 sm:h-32 select-none w-full min-w-0">
                   {pillars.map((pillar) => {
                     const isHovered = hoveredPillar === pillar.id;
                     return (
                       <div
                         key={pillar.id}
-                        className="flex flex-col items-center justify-end h-full gap-1 cursor-pointer group"
+                        className="flex flex-col items-center justify-end h-full gap-1 cursor-pointer group min-w-0"
                         onMouseEnter={() => setHoveredPillar(pillar.id)}
                         onMouseLeave={() => setHoveredPillar(null)}
                       >
                         {/* Score bubble on hover */}
                         <span
                           className={cn(
-                            "font-mono text-[10px] font-bold transition-all duration-150",
+                            "font-mono text-[9px] sm:text-[10px] font-bold transition-all duration-150 truncate",
                             isHovered ? "text-primary scale-110" : "text-text-muted opacity-80"
                           )}
                         >
                           {pillar.score}%
                         </span>
 
-                        {/* Vertical animated bar column - explicit background color ensures NO empty bars */}
-                        <div className="w-full bg-sunken rounded-t-md h-24 relative overflow-hidden border border-border/40 flex items-end">
+                        {/* Vertical animated bar column */}
+                        <div className="w-full bg-sunken rounded-t-md h-20 sm:h-24 relative overflow-hidden border border-border/40 flex items-end">
                           <div
                             className="w-full rounded-t-md transition-all duration-700 ease-out relative group-hover:brightness-110 shadow-xs"
                             style={{
@@ -343,11 +359,14 @@ export function TrustScoreAnalyticsCard() {
                           </div>
                         </div>
 
-                        {/* Pillar label & weight - NO TRUNCATION */}
-                        <span className="text-[10px] font-bold text-text-default text-center mt-0.5 leading-tight break-words">
+                        {/* Pillar label & weight */}
+                        <span
+                          className="text-[9px] sm:text-[10px] font-bold text-text-default text-center mt-0.5 leading-tight truncate w-full"
+                          title={pillar.label}
+                        >
                           {pillar.label}
                         </span>
-                        <span className="text-[9px] font-mono text-text-muted">
+                        <span className="text-[8px] sm:text-[9px] font-mono text-text-muted truncate">
                           {pillar.weightLabel}
                         </span>
                       </div>
@@ -356,27 +375,27 @@ export function TrustScoreAnalyticsCard() {
                 </div>
 
                 {/* Dynamic Pillar Explainer */}
-                <div className="p-2 rounded-md bg-sunken border border-border/70 text-[11px] flex items-center justify-between min-h-[34px]">
+                <div className="p-2 rounded-md bg-sunken border border-border/70 text-[11px] flex items-center justify-between min-h-[34px] w-full min-w-0">
                   {hoveredPillar ? (
                     (() => {
                       const p = pillars.find((x) => x.id === hoveredPillar);
                       if (!p) return null;
                       return (
-                        <div className="flex items-center justify-between w-full">
-                          <div className="truncate mr-2">
+                        <div className="flex items-center justify-between w-full min-w-0">
+                          <div className="truncate mr-2 min-w-0 flex-1">
                             <span className="font-semibold text-text-default">{p.label}: </span>
                             <span className="text-text-secondary">{p.description}</span>
                           </div>
-                          <span className="font-mono font-bold text-primary flex-shrink-0">
+                          <span className="font-mono font-bold text-primary shrink-0">
                             +{p.contribution} pts
                           </span>
                         </div>
                       );
                     })()
                   ) : (
-                    <div className="flex items-center gap-1.5 text-text-muted">
-                      <Info className="w-3.5 h-3.5 text-text-muted flex-shrink-0" />
-                      <span>Hover any pillar to inspect exact formula contribution</span>
+                    <div className="flex items-center gap-1.5 text-text-muted truncate">
+                      <Info className="w-3.5 h-3.5 text-text-muted shrink-0" />
+                      <span className="truncate">Hover any pillar to inspect formula points</span>
                     </div>
                   )}
                 </div>
@@ -387,7 +406,7 @@ export function TrustScoreAnalyticsCard() {
 
         {/* TAB 3: BUSINESS SERVICES SLA MATRIX */}
         {activeTab === "services" && (
-          <div className="space-y-3 animate-fade-in-up">
+          <div className="space-y-3 animate-fade-in-up w-full min-w-0">
             <div className="flex items-center justify-between text-xs text-text-muted pb-1 border-b border-border/60">
               <span className="font-semibold uppercase tracking-wider text-[11px]">
                 Business Services by Weighted CMDB Trust
@@ -415,10 +434,10 @@ export function TrustScoreAnalyticsCard() {
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div
-                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        className="w-2.5 h-2.5 rounded-full shrink-0"
                         style={{ backgroundColor: service.color }}
                       />
-                      <div>
+                      <div className="min-w-0">
                         <p className="font-semibold text-text-default truncate">{service.name}</p>
                         <span className="text-[10px] text-text-muted">
                           {service.tier} &bull; {service.count} mapped CIs
@@ -426,7 +445,7 @@ export function TrustScoreAnalyticsCard() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       <Lozenge
                         appearance="bold"
                         variant={service.band.lozengeVariant}
@@ -441,7 +460,7 @@ export function TrustScoreAnalyticsCard() {
                       >
                         {service.targetStatus.label}
                       </Lozenge>
-                      <div className="w-20 bg-sunken rounded-full h-2 overflow-hidden border border-border/60">
+                      <div className="w-16 sm:w-20 bg-sunken rounded-full h-2 overflow-hidden border border-border/60 hidden xs:block">
                         <div
                           className="h-full rounded-full transition-all duration-700 ease-out"
                           style={{
@@ -465,14 +484,16 @@ export function TrustScoreAnalyticsCard() {
       {/* ------------------------------------------------------------------- */}
       {/* FOOTER */}
       {/* ------------------------------------------------------------------- */}
-      <div className="px-4 py-2.5 bg-sunken/40 border-t border-border/60 flex items-center justify-between text-xs">
-        <span className="text-text-muted text-[11px] flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-primary" />
-          Weighted score: Freshness (30), Completeness (25), Consistency (20), Topology (15), Owner (10)
+      <div className="px-4 py-2.5 bg-sunken/40 border-t border-border/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+        <span className="text-text-muted text-[11px] flex items-center gap-1.5 min-w-0 truncate">
+          <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" />
+          <span className="truncate">
+            Weighted score: Freshness (30), Completeness (25), Consistency (20), Topology (15), Owner (10)
+          </span>
         </span>
         <Link
           href="/settings/trust-score"
-          className="text-primary font-semibold hover:underline text-[11px] flex items-center gap-1"
+          className="text-primary font-semibold hover:underline text-[11px] flex items-center gap-1 shrink-0"
         >
           Configure Weights &rarr;
         </Link>

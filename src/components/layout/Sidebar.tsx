@@ -80,7 +80,7 @@ export function Sidebar({
           highlight: true,
         },
         {
-          name: "Health Dashboard",
+          name: "CMDB Dashboard",
           href: "/dashboard",
           icon: LayoutDashboard,
           active: pathname === "/dashboard" || pathname === "/",

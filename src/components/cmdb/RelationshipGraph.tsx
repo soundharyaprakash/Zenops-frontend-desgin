@@ -71,7 +71,7 @@ import { useCMDB, detectDependencyCycle, getNormalizedDependencies } from "@/con
 import { getNodeRelationships, NodeNeighborRelationship } from "@/lib/relationships/impact-logic";
 import { cn } from "@/lib/utils";
 
-type GraphMode = "upstream" | "downstream";
+type GraphMode = "all" | "upstream" | "downstream";
 
 interface ServiceImpactRank {
   id: string;
@@ -145,7 +145,7 @@ export function RelationshipGraph() {
     showToast,
   } = useCMDB();
 
-  // Initial State: Open with CI-1002 (aurora-pg-payments-cluster) selected in Upstream mode
+  // Initial State: Open with CI-1002 (aurora-pg-payments-cluster) selected in All relations mode
   const [selectedCiId, setSelectedCiId] = useState<string>("CI-1002");
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<string>("");
@@ -153,7 +153,7 @@ export function RelationshipGraph() {
   const [filterTier, setFilterTier] = useState<string>("");
   const [filterCriticality, setFilterCriticality] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [graphMode, setGraphMode] = useState<GraphMode>("upstream");
+  const [graphMode, setGraphMode] = useState<GraphMode>("all");
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -166,6 +166,39 @@ export function RelationshipGraph() {
   // Focus View State
   const [focusMode, setFocusMode] = useState<boolean>(false);
   const [focusDepth, setFocusDepth] = useState<1 | 2 | "all">(1);
+
+  // Grouped CIs by Tier for CI Selector Dropdown (Tier 0 to Tier 4)
+  const groupedCisByTier = useMemo(() => {
+    const t0: CIItem[] = [];
+    const t1: CIItem[] = [];
+    const t2: CIItem[] = [];
+    const t3: CIItem[] = [];
+    const t4: CIItem[] = [];
+
+    cis.forEach((c) => {
+      const tier = getTierNumber(c.ciClass);
+      if (tier === 0) t0.push(c);
+      else if (tier === 1) t1.push(c);
+      else if (tier === 2) t2.push(c);
+      else if (tier === 3 || c.id === "CI-1006") t3.push(c);
+      else t4.push(c);
+    });
+
+    const sortByName = (a: CIItem, b: CIItem) => a.name.localeCompare(b.name);
+    t0.sort(sortByName);
+    t1.sort(sortByName);
+    t2.sort(sortByName);
+    t3.sort(sortByName);
+    t4.sort(sortByName);
+
+    return [
+      { label: "Tier 0 - Business Services", items: t0 },
+      { label: "Tier 1 - Applications", items: t1 },
+      { label: "Tier 2 - Compute & Containers", items: t2 },
+      { label: "Tier 3 - Databases & Storage", items: t3 },
+      { label: "Tier 4 - Network & Security", items: t4 },
+    ];
+  }, [cis]);
 
   // Add Edge Form State
   const [parentCiId, setParentCiId] = useState(cis[0]?.id || "");
@@ -222,10 +255,21 @@ export function RelationshipGraph() {
   // Selected CI & Impact Analysis Result (BFS Traversal)
   const selectedCi = useMemo(() => cis.find((c) => c.id === selectedCiId), [cis, selectedCiId]);
 
-  const selectedImpact = useMemo(() => {
+  // Dual Impact Analysis: Upstream (Change Impact) & Downstream (Root Cause)
+  const upstreamImpact = useMemo(() => {
     if (!selectedCi) return null;
-    return getImpactAnalysis(selectedCi.id, graphMode, 6);
-  }, [selectedCi, graphMode, getImpactAnalysis]);
+    return getImpactAnalysis(selectedCi.id, "upstream", 6);
+  }, [selectedCi, getImpactAnalysis]);
+
+  const downstreamImpact = useMemo(() => {
+    if (!selectedCi) return null;
+    return getImpactAnalysis(selectedCi.id, "downstream", 6);
+  }, [selectedCi, getImpactAnalysis]);
+
+  const selectedImpact = useMemo(() => {
+    if (graphMode === "downstream") return downstreamImpact;
+    return upstreamImpact;
+  }, [graphMode, upstreamImpact, downstreamImpact]);
 
   // Selected Edge
   const selectedEdge = useMemo(
@@ -233,29 +277,35 @@ export function RelationshipGraph() {
     [relationships, selectedEdgeId]
   );
 
-  // Set of Impacted Node IDs & Impacted Edge IDs for Highlighting
-  const impactedNodeIds = useMemo(() => {
-    if (!selectedImpact) return new Set<string>();
-    const set = new Set<string>();
-    set.add(selectedCiId);
-    selectedImpact.dependentCis.forEach((d) => set.add(d.ci.id));
-    return set;
-  }, [selectedImpact, selectedCiId]);
-
-  const impactedEdgeIds = useMemo(() => {
-    if (!selectedImpact) return new Set<string>();
-    return new Set<string>(selectedImpact.dependentCis.map((d) => d.relationship.id));
-  }, [selectedImpact]);
-
-  // Hop Depth Map for each impacted node (H1, H2, H3...)
-  const nodeHopMap = useMemo(() => {
+  // Hop Depth Maps: U1, U2, U3 for Upstream; D1, D2, D3 for Downstream
+  const upstreamNodeHopMap = useMemo(() => {
     const map = new Map<string, number>();
-    if (!selectedImpact) return map;
-    selectedImpact.dependentCis.forEach((d) => {
+    if (!upstreamImpact) return map;
+    upstreamImpact.dependentCis.forEach((d) => {
       map.set(d.ci.id, d.depth);
     });
     return map;
-  }, [selectedImpact]);
+  }, [upstreamImpact]);
+
+  const downstreamNodeHopMap = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!downstreamImpact) return map;
+    downstreamImpact.dependentCis.forEach((d) => {
+      map.set(d.ci.id, d.depth);
+    });
+    return map;
+  }, [downstreamImpact]);
+
+  // Sets of Impacted Edge IDs for Highlighting
+  const upstreamEdgeIds = useMemo(() => {
+    if (!upstreamImpact) return new Set<string>();
+    return new Set<string>(upstreamImpact.dependentCis.map((d) => d.relationship.id));
+  }, [upstreamImpact]);
+
+  const downstreamEdgeIds = useMemo(() => {
+    if (!downstreamImpact) return new Set<string>();
+    return new Set<string>(downstreamImpact.dependentCis.map((d) => d.relationship.id));
+  }, [downstreamImpact]);
 
   // Focused Node IDs in Focus Mode
   const focusedNodeIds = useMemo(() => {
@@ -498,15 +548,42 @@ export function RelationshipGraph() {
     if (!selectedCi) {
       return {
         headline:
-          "Select any CI to evaluate real-time architectural failure blast radius, impacted business services, and hourly financial exposure.",
+          "Select a CI from the Configuration Item dropdown or click any node to evaluate blast radius, impacted business services, and downstream root cause dependencies.",
         isWarning: false,
       };
     }
 
-    if (graphMode === "upstream") {
-      const tier0Services = selectedImpact?.affectedBusinessServices || [];
+    if (graphMode === "all") {
+      const tier0Services = upstreamImpact?.affectedBusinessServices || [];
       const tier0Count = tier0Services.length;
-      const revenue = selectedImpact?.revenueAtRisk || 0;
+      const revenue = upstreamImpact?.revenueAtRisk || 0;
+      const serviceNames = tier0Services.map((s) => s.name).join(", ");
+      const downCount = downstreamImpact?.dependentCis.length || 0;
+      const upCount = upstreamImpact?.dependentCis.length || 0;
+
+      if (tier0Count > 0) {
+        return {
+          headline: `All Relations: If ${selectedCi.name} fails, ${tier0Count} business service${
+            tier0Count === 1 ? "" : "s"
+          } stop (${serviceNames}) risking $${revenue.toLocaleString()}/hr • Tracing ${downCount} downstream infrastructure root cause dependenc${
+            downCount === 1 ? "y" : "ies"
+          }.`,
+          isWarning: true,
+        };
+      } else {
+        return {
+          headline: `All Relations: ${upCount} upstream consumer${
+            upCount === 1 ? "" : "s"
+          } affected ($0/hr direct revenue risk) • Tracing ${downCount} downstream infrastructure root cause dependenc${
+            downCount === 1 ? "y" : "ies"
+          }.`,
+          isWarning: false,
+        };
+      }
+    } else if (graphMode === "upstream") {
+      const tier0Services = upstreamImpact?.affectedBusinessServices || [];
+      const tier0Count = tier0Services.length;
+      const revenue = upstreamImpact?.revenueAtRisk || 0;
       const serviceNames = tier0Services.map((s) => s.name).join(", ");
 
       if (tier0Count > 0) {
@@ -517,7 +594,7 @@ export function RelationshipGraph() {
           isWarning: true,
         };
       } else {
-        const count = selectedImpact?.dependentCis.length || 0;
+        const count = upstreamImpact?.dependentCis.length || 0;
         return {
           headline: `If ${selectedCi.name} goes down, ${count} component${
             count === 1 ? "" : "s"
@@ -526,7 +603,7 @@ export function RelationshipGraph() {
         };
       }
     } else {
-      const candidates = selectedImpact?.rootCauseCandidates || selectedImpact?.dependentCis || [];
+      const candidates = downstreamImpact?.rootCauseCandidates || downstreamImpact?.dependentCis || [];
       return {
         headline: `Analyzing root cause dependencies for ${selectedCi.name}: walking down to ${
           candidates.length
@@ -534,13 +611,43 @@ export function RelationshipGraph() {
         isWarning: false,
       };
     }
-  }, [selectedCi, graphMode, selectedImpact]);
+  }, [selectedCi, graphMode, upstreamImpact, downstreamImpact]);
 
-  // Node selection handler
+  // Center/scroll canvas to node on first load
+  useEffect(() => {
+    if (selectedCiId) {
+      const timer = setTimeout(() => {
+        const el = nodeRefs.current.get(selectedCiId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+        }
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Node selection handler (scrolls to node, opens drawer, updates single source of truth)
   const handleNodeClick = (id: string) => {
     setSelectedCiId(id);
     setSelectedEdgeId(null);
     setDrawerOpen(true);
+    setTimeout(() => {
+      const el = nodeRefs.current.get(id);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+      }
+    }, 100);
+  };
+
+  // Dropdown CI selection handler (one source of truth)
+  const handleCiDropdownChange = (id: string) => {
+    if (!id) {
+      setSelectedCiId("");
+      setSelectedEdgeId(null);
+      setDrawerOpen(false);
+    } else {
+      handleNodeClick(id);
+    }
   };
 
   // Edge selection handler
@@ -698,17 +805,52 @@ export function RelationshipGraph() {
       {/* 1. TOP TOOLBAR & CONTROLS */}
       {/* ----------------------------------------------------------------------- */}
       <div className="p-3.5 rounded-card bg-surface border border-border shadow-xs flex flex-wrap items-center justify-between gap-3">
-        {/* Left: Mode Toggle & Jump Search */}
+        {/* Left: CI Selector Dropdown, View Mode Segmented Control, & Filters */}
         <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Mode Switcher */}
+          {/* 1. Configuration Item Dropdown (First control in toolbar) */}
+          <div className="relative min-w-[260px]">
+            <select
+              aria-label="Configuration Item"
+              value={selectedCiId || ""}
+              onChange={(e) => handleCiDropdownChange(e.target.value)}
+              className="w-full py-1.5 pl-3 pr-8 rounded-input text-xs font-semibold bg-sunken border border-border text-text-default focus:border-primary focus:outline-none cursor-pointer shadow-xs transition-colors"
+            >
+              <option value="">Select a CI...</option>
+              {groupedCisByTier.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.items.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.id})
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+
+          {/* 2. View Mode Segmented Control: [All relations | Upstream (Change Impact) | Downstream (Root Cause)] */}
           <div className="flex items-center bg-sunken rounded-button p-0.5 border border-border">
+            <button
+              type="button"
+              onClick={() => setGraphMode("all")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1 rounded-xs text-xs font-semibold transition-all",
+                graphMode === "all"
+                  ? "bg-primary text-primary-foreground shadow-xs"
+                  : "text-text-muted hover:text-text-default"
+              )}
+              title="Show both upstream blast radius and downstream root cause relations"
+            >
+              <Network className="w-3.5 h-3.5" />
+              <span>All relations</span>
+            </button>
             <button
               type="button"
               onClick={() => setGraphMode("upstream")}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1 rounded-xs text-xs font-semibold transition-all",
                 graphMode === "upstream"
-                  ? "bg-primary text-primary-foreground shadow-xs"
+                  ? "bg-danger text-white shadow-xs"
                   : "text-text-muted hover:text-text-default"
               )}
               title="Walk upward to consumers to evaluate blast radius when this CI fails"
@@ -968,17 +1110,37 @@ export function RelationshipGraph() {
               <span>&bull;</span>
               <span className="font-medium text-text-secondary">bottom = infrastructure</span>
               <span>&bull;</span>
-              <span className="inline-flex items-center gap-1 text-danger font-semibold">
-                <span className="w-2.5 h-2.5 rounded-xs border border-danger bg-danger/20" />
-                red box = affected
-              </span>
-              <span>&bull;</span>
-              <span className="text-danger font-mono font-bold">H1/H2/H3 = hops from failing CI</span>
-              <span>&bull;</span>
-              <span className="inline-flex items-center gap-1 text-danger font-semibold">
-                <span className="w-4 border-b-2 border-dashed border-danger animate-pulse" />
-                animated red line = failure path
-              </span>
+              {(graphMode === "all" || graphMode === "upstream") && (
+                <>
+                  <span className="inline-flex items-center gap-1 text-danger font-semibold">
+                    <span className="w-2.5 h-2.5 rounded-xs border border-danger bg-danger/20" />
+                    red box = upstream failure
+                  </span>
+                  <span>&bull;</span>
+                  <span className="text-danger font-mono font-bold">U1/U2/U3 = upstream hops</span>
+                  <span>&bull;</span>
+                  <span className="inline-flex items-center gap-1 text-danger font-semibold">
+                    <span className="w-4 border-b-2 border-dashed border-danger animate-pulse" />
+                    animated red line = failure path
+                  </span>
+                </>
+              )}
+              {graphMode === "all" && <span>&bull;</span>}
+              {(graphMode === "all" || graphMode === "downstream") && (
+                <>
+                  <span className="inline-flex items-center gap-1 text-brand-blue font-semibold">
+                    <span className="w-2.5 h-2.5 rounded-xs border border-primary bg-primary/20" />
+                    blue box = downstream root cause
+                  </span>
+                  <span>&bull;</span>
+                  <span className="text-brand-blue font-mono font-bold">D1/D2/D3 = downstream hops</span>
+                  <span>&bull;</span>
+                  <span className="inline-flex items-center gap-1 text-brand-blue font-semibold">
+                    <span className="w-4 border-b-2 border-dashed border-blue-500 animate-pulse" />
+                    animated blue line = dependency path
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
@@ -1111,6 +1273,28 @@ export function RelationshipGraph() {
                       <path d="M 10 1.5 L 2 5 L 10 8.5 z" fill="#EF4444" />
                     </marker>
                     <marker
+                      id="arrow-downstream"
+                      viewBox="0 0 10 10"
+                      refX="8"
+                      refY="5"
+                      markerWidth="7"
+                      markerHeight="7"
+                      orient="auto-start-reverse"
+                    >
+                      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#3B82F6" />
+                    </marker>
+                    <marker
+                      id="arrow-downstream-start"
+                      viewBox="0 0 10 10"
+                      refX="2"
+                      refY="5"
+                      markerWidth="7"
+                      markerHeight="7"
+                      orient="auto"
+                    >
+                      <path d="M 10 1.5 L 2 5 L 10 8.5 z" fill="#3B82F6" />
+                    </marker>
+                    <marker
                       id="arrow-start-manual"
                       viewBox="0 0 10 10"
                       refX="2"
@@ -1129,7 +1313,10 @@ export function RelationshipGraph() {
                     const pos2 = nodePositions.get(rel.childCiId);
                     if (!pos1 || !pos2) return null;
 
-                    const isFailure = impactedEdgeIds.has(rel.id);
+                    const showUpstream = graphMode === "all" || graphMode === "upstream";
+                    const showDownstream = graphMode === "all" || graphMode === "downstream";
+                    const isUpstreamFailure = showUpstream && upstreamEdgeIds.has(rel.id);
+                    const isDownstreamRoot = showDownstream && downstreamEdgeIds.has(rel.id);
                     const isSelectedEdge = selectedEdgeId === rel.id;
                     const isBidirectional = rel.relationshipType === "Connects to";
                     const isStale = isEdgeStale(rel);
@@ -1166,11 +1353,16 @@ export function RelationshipGraph() {
                     let markerEnd = "url(#arrow-manual)";
                     let markerStart = isBidirectional ? "url(#arrow-start-manual)" : undefined;
 
-                    if (isFailure) {
+                    if (isUpstreamFailure) {
                       strokeColor = "#EF4444";
                       strokeDash = "6 4";
                       markerEnd = "url(#arrow-failure)";
                       if (isBidirectional) markerStart = "url(#arrow-failure-start)";
+                    } else if (isDownstreamRoot) {
+                      strokeColor = "#3B82F6";
+                      strokeDash = "6 4";
+                      markerEnd = "url(#arrow-downstream)";
+                      if (isBidirectional) markerStart = "url(#arrow-downstream-start)";
                     } else if (isDiscovered) {
                       strokeColor = "#14B8A6";
                       strokeDash = "6 4";
@@ -1198,13 +1390,13 @@ export function RelationshipGraph() {
                           d={pathData}
                           fill="none"
                           stroke={strokeColor}
-                          strokeWidth={isFailure || isSelectedEdge ? 3.5 : 2}
+                          strokeWidth={isUpstreamFailure || isDownstreamRoot || isSelectedEdge ? 3.5 : 2}
                           strokeDasharray={strokeDash}
                           strokeOpacity={isStale ? 0.45 : 1}
                           markerEnd={markerEnd}
                           markerStart={markerStart}
                           className={cn(
-                            isFailure && liveTraffic && "animate-pulse"
+                            (isUpstreamFailure || isDownstreamRoot) && liveTraffic && "animate-pulse"
                           )}
                         />
                         {/* Invisible wider clickable hit-path */}
@@ -1243,8 +1435,12 @@ export function RelationshipGraph() {
                     <div className="flex flex-wrap gap-3">
                       {safeTier0.map((node) => {
                         const isSelected = node.id === selectedCiId;
-                        const isImpacted = impactedNodeIds.has(node.id);
-                        const hop = nodeHopMap.get(node.id);
+                        const showUpstream = graphMode === "all" || graphMode === "upstream";
+                        const showDownstream = graphMode === "all" || graphMode === "downstream";
+                        const uHop = showUpstream ? upstreamNodeHopMap.get(node.id) : undefined;
+                        const dHop = showDownstream ? downstreamNodeHopMap.get(node.id) : undefined;
+                        const isUpstream = uHop !== undefined;
+                        const isDownstream = dHop !== undefined;
                         const isFaded = focusedNodeIds !== null && !focusedNodeIds.has(node.id);
 
                         return (
@@ -1266,8 +1462,10 @@ export function RelationshipGraph() {
                               "border-l-brand-blue",
                               isSelected
                                 ? "bg-selected-bg border-primary ring-2 ring-primary/60 shadow-glass-hover"
-                                : isImpacted
+                                : isUpstream
                                 ? "bg-danger/10 border-danger ring-2 ring-danger/40 shadow-xs"
+                                : isDownstream
+                                ? "bg-primary/10 border-primary ring-2 ring-primary/40 shadow-xs"
                                 : "bg-surface border-border hover:border-border-strong hover:bg-sunken",
                               isFaded && "opacity-25 hover:opacity-100 hover:filter-none transition-all cursor-pointer filter grayscale(75%)"
                             )}
@@ -1278,9 +1476,14 @@ export function RelationshipGraph() {
                                 {node.id}
                               </span>
                               <div className="flex items-center gap-1">
-                                {isImpacted && hop !== undefined && (
+                                {isUpstream && (
                                   <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-danger text-white">
-                                    H{hop}
+                                    U{uHop}
+                                  </span>
+                                )}
+                                {isDownstream && (
+                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white">
+                                    D{dHop}
                                   </span>
                                 )}
                                 {isSelected && (
@@ -1331,8 +1534,12 @@ export function RelationshipGraph() {
                     <div className="flex flex-wrap gap-3">
                       {safeTier1.map((node) => {
                         const isSelected = node.id === selectedCiId;
-                        const isImpacted = impactedNodeIds.has(node.id);
-                        const hop = nodeHopMap.get(node.id);
+                        const showUpstream = graphMode === "all" || graphMode === "upstream";
+                        const showDownstream = graphMode === "all" || graphMode === "downstream";
+                        const uHop = showUpstream ? upstreamNodeHopMap.get(node.id) : undefined;
+                        const dHop = showDownstream ? downstreamNodeHopMap.get(node.id) : undefined;
+                        const isUpstream = uHop !== undefined;
+                        const isDownstream = dHop !== undefined;
                         const isFaded = focusedNodeIds !== null && !focusedNodeIds.has(node.id);
 
                         return (
@@ -1354,8 +1561,10 @@ export function RelationshipGraph() {
                               "border-l-purple-500",
                               isSelected
                                 ? "bg-selected-bg border-primary ring-2 ring-primary/60 shadow-glass-hover"
-                                : isImpacted
+                                : isUpstream
                                 ? "bg-danger/10 border-danger ring-2 ring-danger/40 shadow-xs"
+                                : isDownstream
+                                ? "bg-primary/10 border-primary ring-2 ring-primary/40 shadow-xs"
                                 : "bg-surface border-border hover:border-border-strong hover:bg-sunken",
                               isFaded && "opacity-25 hover:opacity-100 hover:filter-none transition-all cursor-pointer filter grayscale(75%)"
                             )}
@@ -1366,9 +1575,14 @@ export function RelationshipGraph() {
                                 {node.id}
                               </span>
                               <div className="flex items-center gap-1">
-                                {isImpacted && hop !== undefined && (
+                                {isUpstream && (
                                   <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-danger text-white">
-                                    H{hop}
+                                    U{uHop}
+                                  </span>
+                                )}
+                                {isDownstream && (
+                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white">
+                                    D{dHop}
                                   </span>
                                 )}
                                 {isSelected && (
@@ -1417,8 +1631,12 @@ export function RelationshipGraph() {
                     <div className="flex flex-wrap gap-3">
                       {safeTier2.map((node) => {
                         const isSelected = node.id === selectedCiId;
-                        const isImpacted = impactedNodeIds.has(node.id);
-                        const hop = nodeHopMap.get(node.id);
+                        const showUpstream = graphMode === "all" || graphMode === "upstream";
+                        const showDownstream = graphMode === "all" || graphMode === "downstream";
+                        const uHop = showUpstream ? upstreamNodeHopMap.get(node.id) : undefined;
+                        const dHop = showDownstream ? downstreamNodeHopMap.get(node.id) : undefined;
+                        const isUpstream = uHop !== undefined;
+                        const isDownstream = dHop !== undefined;
                         const isFaded = focusedNodeIds !== null && !focusedNodeIds.has(node.id);
 
                         return (
@@ -1440,8 +1658,10 @@ export function RelationshipGraph() {
                               "border-l-cyan-500",
                               isSelected
                                 ? "bg-selected-bg border-primary ring-2 ring-primary/60 shadow-glass-hover"
-                                : isImpacted
+                                : isUpstream
                                 ? "bg-danger/10 border-danger ring-2 ring-danger/40 shadow-xs"
+                                : isDownstream
+                                ? "bg-primary/10 border-primary ring-2 ring-primary/40 shadow-xs"
                                 : "bg-surface border-border hover:border-border-strong hover:bg-sunken",
                               isFaded && "opacity-25 hover:opacity-100 hover:filter-none transition-all cursor-pointer filter grayscale(75%)"
                             )}
@@ -1452,9 +1672,14 @@ export function RelationshipGraph() {
                                 {node.id}
                               </span>
                               <div className="flex items-center gap-1">
-                                {isImpacted && hop !== undefined && (
+                                {isUpstream && (
                                   <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-danger text-white">
-                                    H{hop}
+                                    U{uHop}
+                                  </span>
+                                )}
+                                {isDownstream && (
+                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white">
+                                    D{dHop}
                                   </span>
                                 )}
                                 {isSelected && (
@@ -1503,8 +1728,12 @@ export function RelationshipGraph() {
                     <div className="flex flex-wrap gap-3">
                       {safeTier3.map((node) => {
                         const isSelected = node.id === selectedCiId;
-                        const isImpacted = impactedNodeIds.has(node.id);
-                        const hop = nodeHopMap.get(node.id);
+                        const showUpstream = graphMode === "all" || graphMode === "upstream";
+                        const showDownstream = graphMode === "all" || graphMode === "downstream";
+                        const uHop = showUpstream ? upstreamNodeHopMap.get(node.id) : undefined;
+                        const dHop = showDownstream ? downstreamNodeHopMap.get(node.id) : undefined;
+                        const isUpstream = uHop !== undefined;
+                        const isDownstream = dHop !== undefined;
                         const isFaded = focusedNodeIds !== null && !focusedNodeIds.has(node.id);
 
                         return (
@@ -1526,8 +1755,10 @@ export function RelationshipGraph() {
                               "border-l-emerald-500",
                               isSelected
                                 ? "bg-selected-bg border-primary ring-2 ring-primary/60 shadow-glass-hover"
-                                : isImpacted
+                                : isUpstream
                                 ? "bg-danger/10 border-danger ring-2 ring-danger/40 shadow-xs"
+                                : isDownstream
+                                ? "bg-primary/10 border-primary ring-2 ring-primary/40 shadow-xs"
                                 : "bg-surface border-border hover:border-border-strong hover:bg-sunken",
                               isFaded && "opacity-25 hover:opacity-100 hover:filter-none transition-all cursor-pointer filter grayscale(75%)"
                             )}
@@ -1538,9 +1769,14 @@ export function RelationshipGraph() {
                                 {node.id}
                               </span>
                               <div className="flex items-center gap-1">
-                                {isImpacted && hop !== undefined && (
+                                {isUpstream && (
                                   <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-danger text-white">
-                                    H{hop}
+                                    U{uHop}
+                                  </span>
+                                )}
+                                {isDownstream && (
+                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white">
+                                    D{dHop}
                                   </span>
                                 )}
                                 {isSelected && (
@@ -1589,8 +1825,12 @@ export function RelationshipGraph() {
                     <div className="flex flex-wrap gap-3">
                       {safeTier4.map((node) => {
                         const isSelected = node.id === selectedCiId;
-                        const isImpacted = impactedNodeIds.has(node.id);
-                        const hop = nodeHopMap.get(node.id);
+                        const showUpstream = graphMode === "all" || graphMode === "upstream";
+                        const showDownstream = graphMode === "all" || graphMode === "downstream";
+                        const uHop = showUpstream ? upstreamNodeHopMap.get(node.id) : undefined;
+                        const dHop = showDownstream ? downstreamNodeHopMap.get(node.id) : undefined;
+                        const isUpstream = uHop !== undefined;
+                        const isDownstream = dHop !== undefined;
                         const isFaded = focusedNodeIds !== null && !focusedNodeIds.has(node.id);
 
                         return (
@@ -1612,8 +1852,10 @@ export function RelationshipGraph() {
                               "border-l-amber-500",
                               isSelected
                                 ? "bg-selected-bg border-primary ring-2 ring-primary/60 shadow-glass-hover"
-                                : isImpacted
+                                : isUpstream
                                 ? "bg-danger/10 border-danger ring-2 ring-danger/40 shadow-xs"
+                                : isDownstream
+                                ? "bg-primary/10 border-primary ring-2 ring-primary/40 shadow-xs"
                                 : "bg-surface border-border hover:border-border-strong hover:bg-sunken",
                               isFaded && "opacity-25 hover:opacity-100 hover:filter-none transition-all cursor-pointer filter grayscale(75%)"
                             )}
@@ -1624,9 +1866,14 @@ export function RelationshipGraph() {
                                 {node.id}
                               </span>
                               <div className="flex items-center gap-1">
-                                {isImpacted && hop !== undefined && (
+                                {isUpstream && (
                                   <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-danger text-white">
-                                    H{hop}
+                                    U{uHop}
+                                  </span>
+                                )}
+                                {isDownstream && (
+                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-primary text-white">
+                                    D{dHop}
                                   </span>
                                 )}
                                 {isSelected && (
@@ -1677,7 +1924,10 @@ export function RelationshipGraph() {
                 <span className="w-4 border-b-2 border-dotted border-slate-500 opacity-40" /> Stale (&gt;30d)
               </span>
               <span className="flex items-center gap-1.5 text-danger font-semibold">
-                <span className="w-4 border-b-2 border-dashed border-danger animate-pulse" /> Failure Path (animated)
+                <span className="w-4 border-b-2 border-dashed border-danger animate-pulse" /> Upstream Failure (animated)
+              </span>
+              <span className="flex items-center gap-1.5 text-brand-blue font-semibold">
+                <span className="w-4 border-b-2 border-dashed border-blue-500 animate-pulse" /> Downstream Root Cause (animated)
               </span>
             </div>
           </div>
@@ -1737,23 +1987,39 @@ export function RelationshipGraph() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3 text-xs">
-                {selectedImpact && graphMode === "upstream" && (
+                {/* Upstream or All relations: Blast Radius */}
+                {(graphMode === "all" || graphMode === "upstream") && upstreamImpact && (
                   <div
                     className={cn(
                       "p-3 rounded-card border space-y-1.5",
-                      selectedImpact.riskLevel === "Severe"
+                      upstreamImpact.riskLevel === "Severe"
                         ? "bg-danger/10 border-danger/30 text-danger"
-                        : selectedImpact.riskLevel === "High"
+                        : upstreamImpact.riskLevel === "High"
                         ? "bg-warning/10 border-warning/30 text-warning"
                         : "bg-primary/10 border-primary/30 text-primary"
                     )}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs">Blast Radius: {selectedImpact.riskLevel}</span>
-                      <span className="font-mono font-bold text-xs">{selectedImpact.blastRadiusScore}/100</span>
+                      <span className="font-bold text-xs">Blast Radius: {upstreamImpact.riskLevel}</span>
+                      <span className="font-mono font-bold text-xs">{upstreamImpact.blastRadiusScore}/100</span>
                     </div>
                     <p className="text-[11px] text-text-secondary leading-snug">
-                      {selectedImpact.riskExplanation}
+                      {upstreamImpact.riskExplanation}
+                    </p>
+                  </div>
+                )}
+
+                {/* Downstream Root Cause Info (when in Downstream mode) */}
+                {graphMode === "downstream" && downstreamImpact && (
+                  <div className="p-3 rounded-card border border-primary/30 bg-primary/10 text-primary space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs">Root Cause Dependencies</span>
+                      <span className="font-mono font-bold text-xs">{downstreamImpact.dependentCis.length} CIs</span>
+                    </div>
+                    <p className="text-[11px] text-text-secondary leading-snug">
+                      {downstreamImpact.dependentCis.length === 0
+                        ? "No downstream infrastructure dependencies."
+                        : `Tracing ${downstreamImpact.dependentCis.length} underlying dependencies across the stack.`}
                     </p>
                   </div>
                 )}
@@ -1986,34 +2252,34 @@ export function RelationshipGraph() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* LEFT COLUMN: Blast Radius, Impact Metrics, Focus Controls */}
               <div className="lg:col-span-6 space-y-4">
-                {/* Upstream Mode: Blast Radius Score & Revenue Metric Tiles */}
-                {graphMode === "upstream" && selectedImpact && (
+                {/* Blast Radius Score & Revenue Metric Tiles (Upstream or All Relations) */}
+                {(graphMode === "upstream" || graphMode === "all") && upstreamImpact && (
                   <div className="space-y-3">
                     <div
                       className={cn(
                         "p-4 rounded-card border space-y-2.5",
-                        selectedImpact.riskLevel === "Severe"
+                        upstreamImpact.riskLevel === "Severe"
                           ? "bg-danger/10 border-danger/30"
-                          : selectedImpact.riskLevel === "High"
+                          : upstreamImpact.riskLevel === "High"
                           ? "bg-warning/10 border-warning/30"
                           : "bg-primary/10 border-primary/30"
                       )}
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-sm text-text-default">
-                          Blast Radius Score: {selectedImpact.blastRadiusScore}/100
+                          Blast Radius Score: {upstreamImpact.blastRadiusScore}/100
                         </span>
                         <span
                           className={cn(
                             "px-2.5 py-0.5 rounded text-[10px] font-bold uppercase",
-                            selectedImpact.riskLevel === "Severe"
+                            upstreamImpact.riskLevel === "Severe"
                               ? "bg-danger text-white"
-                              : selectedImpact.riskLevel === "High"
+                              : upstreamImpact.riskLevel === "High"
                               ? "bg-warning text-black"
                               : "bg-primary text-white"
                           )}
                         >
-                          {selectedImpact.riskLevel}
+                          {upstreamImpact.riskLevel}
                         </span>
                       </div>
 
@@ -2022,18 +2288,18 @@ export function RelationshipGraph() {
                         <div
                           className={cn(
                             "h-full rounded-full transition-all duration-300",
-                            selectedImpact.riskLevel === "Severe"
+                            upstreamImpact.riskLevel === "Severe"
                               ? "bg-danger"
-                              : selectedImpact.riskLevel === "High"
+                              : upstreamImpact.riskLevel === "High"
                               ? "bg-warning"
                               : "bg-primary"
                           )}
-                          style={{ width: `${selectedImpact.blastRadiusScore}%` }}
+                          style={{ width: `${upstreamImpact.blastRadiusScore}%` }}
                         />
                       </div>
 
                       <p className="text-xs text-text-secondary leading-relaxed pt-1">
-                        {selectedImpact.riskExplanation}
+                        {upstreamImpact.riskExplanation}
                       </p>
                     </div>
 
@@ -2041,13 +2307,13 @@ export function RelationshipGraph() {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="p-3.5 rounded-card bg-sunken/60 border border-border">
                         <span className="text-[10px] text-text-muted uppercase block font-semibold">
-                          Impacted CIs
+                          Impacted CIs (Upstream)
                         </span>
                         <span className="font-mono font-bold text-xl text-text-default">
-                          {selectedImpact.dependentCis.length}
+                          {upstreamImpact.dependentCis.length}
                         </span>
                         <span className="text-[10px] text-text-muted block mt-0.5">
-                          across {selectedImpact.affectedBusinessServices.length} business services
+                          across {upstreamImpact.affectedBusinessServices.length} business services
                         </span>
                       </div>
 
@@ -2056,7 +2322,7 @@ export function RelationshipGraph() {
                           Revenue At Risk
                         </span>
                         <span className="font-mono font-bold text-xl text-warning">
-                          ${selectedImpact.revenueAtRisk?.toLocaleString() || 0}/hr
+                          ${upstreamImpact.revenueAtRisk?.toLocaleString() || 0}/hr
                         </span>
                         <span className="text-[10px] text-text-muted block mt-0.5">instant downtime exposure</span>
                       </div>
@@ -2064,8 +2330,8 @@ export function RelationshipGraph() {
                   </div>
                 )}
 
-                {/* Downstream Mode: Root Cause Candidates */}
-                {graphMode === "downstream" && (
+                {/* Downstream Root Cause Analysis (Downstream or All Relations) */}
+                {(graphMode === "downstream" || graphMode === "all") && downstreamImpact && (
                   <div className="space-y-3">
                     <div className="p-3 rounded-card bg-primary/10 border border-primary/30 space-y-1">
                       <span className="font-bold text-xs text-text-default">Downstream Root Cause Analysis</span>
@@ -2076,26 +2342,29 @@ export function RelationshipGraph() {
 
                     <div className="space-y-2">
                       <h5 className="font-bold text-xs uppercase tracking-wider text-text-secondary">
-                        Root Cause Candidates ({selectedImpact?.dependentCis.length || 0})
+                        Root Cause Candidates ({downstreamImpact.dependentCis.length})
                       </h5>
 
-                      {(!selectedImpact || selectedImpact.dependentCis.length === 0) ? (
+                      {downstreamImpact.dependentCis.length === 0 ? (
                         <div className="p-3 rounded-card bg-sunken text-center text-text-muted text-xs">
                           This CI does not depend on any underlying infrastructure components.
                         </div>
                       ) : (
-                        <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                          {selectedImpact.dependentCis.map((dep, idx) => (
+                        <div className="space-y-2 max-h-[190px] overflow-y-auto pr-1">
+                          {downstreamImpact.dependentCis.map((dep, idx) => (
                             <div
                               key={`${dep.ci.id}-${idx}`}
-                              className="p-2.5 rounded-card bg-sunken/50 border border-border space-y-1"
+                              onClick={() => handleNodeClick(dep.ci.id)}
+                              className="p-2.5 rounded-card bg-sunken/50 hover:bg-sunken border border-border space-y-1 cursor-pointer transition-colors"
                             >
                               <div className="flex items-center justify-between">
                                 <span className="font-semibold text-xs text-text-default flex items-center gap-1.5">
                                   {getClassIcon(dep.ci.ciClass)}
                                   {dep.ci.name}
                                 </span>
-                                <span className="font-mono text-[9px] text-text-muted">Hop {dep.depth}</span>
+                                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-primary text-white font-bold">
+                                  D{dep.depth}
+                                </span>
                               </div>
                               <div className="flex items-center gap-1 text-[10px] font-mono text-text-muted">
                                 <span>Path:</span>
@@ -2171,32 +2440,33 @@ export function RelationshipGraph() {
 
               {/* RIGHT COLUMN: Propagation Path Sequence, Depends On & Used By */}
               <div className="lg:col-span-6 space-y-4">
-                {/* Propagation Path Sequence */}
-                {graphMode === "upstream" && selectedImpact && (
+                {/* Propagation Path Sequence (Upstream or All Relations) */}
+                {(graphMode === "upstream" || graphMode === "all") && upstreamImpact && (
                   <div className="space-y-2">
                     <h5 className="font-bold text-xs uppercase tracking-wider text-text-secondary flex items-center justify-between">
-                      <span>Failure Propagation Paths ({selectedImpact.dependentCis.length})</span>
+                      <span>Failure Propagation Paths ({upstreamImpact.dependentCis.length})</span>
                       <span className="font-normal text-[10px] text-text-muted">Topological hop trace</span>
                     </h5>
 
-                    {selectedImpact.dependentCis.length === 0 ? (
+                    {upstreamImpact.dependentCis.length === 0 ? (
                       <div className="p-3.5 rounded-card bg-sunken text-center text-text-muted text-xs">
                         No upstream consumers affected by this CI.
                       </div>
                     ) : (
                       <div className="space-y-2 max-h-[190px] overflow-y-auto pr-1">
-                        {selectedImpact.dependentCis.map((dep, idx) => (
+                        {upstreamImpact.dependentCis.map((dep, idx) => (
                           <div
                             key={`${dep.ci.id}-${idx}`}
-                            className="p-2.5 rounded-card bg-sunken/60 border border-border space-y-1.5"
+                            onClick={() => handleNodeClick(dep.ci.id)}
+                            className="p-2.5 rounded-card bg-sunken/60 hover:bg-sunken border border-border space-y-1.5 cursor-pointer transition-colors"
                           >
                             <div className="flex items-center justify-between">
                               <span className="font-semibold text-xs text-text-default flex items-center gap-1.5">
                                 {getClassIcon(dep.ci.ciClass)}
                                 {dep.ci.name}
                               </span>
-                              <span className="px-1.5 py-0.5 rounded font-mono text-[9px] bg-danger/10 text-danger font-bold">
-                                Depth {dep.depth}
+                              <span className="px-1.5 py-0.5 rounded font-mono text-[9px] bg-danger text-white font-bold">
+                                U{dep.depth}
                               </span>
                             </div>
 

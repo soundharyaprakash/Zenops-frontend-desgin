@@ -36,15 +36,16 @@ import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
 
 export function UserProfileView() {
-  const { session, userRole, activeTenant, auditHistory, logout, updateUserProfile } = useCMDB();
+  const { session, userRole, activeTenant, auditHistory, logout, switchUser, updateUserProfile } = useCMDB();
 
-  const [activeTab, setActiveTab] = useState<"overview" | "permissions" | "activity">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "personas" | "permissions" | "activity">("overview");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Edit form state
   const [editName, setEditName] = useState(session?.name || "");
   const [editTitle, setEditTitle] = useState(session?.title || "");
 
+  const demoAccounts = AuthService.getDemoAccounts();
   const allUsers = AuthService.getAllUsers();
 
   // Find user's full data record
@@ -60,6 +61,13 @@ export function UserProfileView() {
       title: editTitle.trim(),
     });
     setIsEditModalOpen(false);
+  };
+
+  const handleSwitchPersona = (demoEmail: string) => {
+    const switched = AuthService.switchToDemoUser(demoEmail);
+    if (switched) {
+      switchUser(switched);
+    }
   };
 
   // Recent user activity from audit history
@@ -188,22 +196,21 @@ export function UserProfileView() {
             </div>
           </div>
 
-          {/* Account Security & Sign Out CTA */}
+          {/* Quick Persona Switcher CTA */}
           <div className="flex flex-col sm:flex-row md:flex-col items-start md:items-end justify-center gap-2 shrink-0 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-6">
             <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
-              Account Security
+              Demo Switcher
             </span>
             <Button
               size="sm"
-              variant="outline"
-              leftIcon={<LogOut className="w-3.5 h-3.5 text-danger" />}
-              onClick={logout}
-              className="hover:border-danger/40 hover:text-danger"
+              variant="primary"
+              leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+              onClick={() => setActiveTab("personas")}
             >
-              Sign Out & Switch User
+              Switch Persona (12 Roles)
             </Button>
             <span className="text-[10px] text-text-muted">
-              Sign out to log in with another demo account
+              Explore CMDB as Manager, Steward, Auditor, etc.
             </span>
           </div>
         </div>
@@ -274,6 +281,23 @@ export function UserProfileView() {
         >
           <UserIcon className="w-4 h-4" />
           <span>Identity & Directory Scopes</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("personas")}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all whitespace-nowrap",
+            activeTab === "personas"
+              ? "border-primary text-primary"
+              : "border-transparent text-text-muted hover:text-text-default"
+          )}
+        >
+          <Sparkles className="w-4 h-4 text-brand-blue" />
+          <span>Demo Personas ({demoAccounts.length})</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-primary/10 text-primary font-mono">
+            Switcher
+          </span>
         </button>
 
         <button
@@ -427,7 +451,91 @@ export function UserProfileView() {
         </div>
       )}
 
-      {/* TAB B: RBAC PERMISSIONS & PRIVILEGES */}
+      {/* TAB B: DEMO PERSONAS SWITCHER */}
+      {activeTab === "personas" && (
+        <div className="space-y-4">
+          <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-0.5">
+              <h4 className="font-bold text-sm text-text-default flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-brand-blue" />
+                Enterprise Role Simulation & Persona Testing
+              </h4>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Click any persona below to instantaneously switch your session. Test how the CMDB UI, governance safeguards, and RBAC matrix adapt dynamically to each user role.
+              </p>
+            </div>
+            <span className="text-xs font-mono font-bold text-primary shrink-0 px-3 py-1 bg-surface rounded-full border border-primary/30">
+              12 Roles Seeded
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {demoAccounts.map((account) => {
+              const isCurrent =
+                (session?.email || "").toLowerCase() === account.email.toLowerCase();
+
+              return (
+                <div
+                  key={account.email}
+                  className={cn(
+                    "p-4 rounded-xl border transition-all flex flex-col justify-between space-y-3",
+                    isCurrent
+                      ? "bg-selected-bg/40 border-primary ring-2 ring-primary/40 shadow-xs"
+                      : "bg-surface border-border hover:border-border-strong hover:bg-sunken/40"
+                  )}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Avatar name={account.name} size="md" presence={isCurrent ? "online" : undefined} />
+                        <div className="min-w-0">
+                          <h5 className="font-bold text-sm text-text-default truncate">{account.name}</h5>
+                          <span className="text-[11px] text-text-muted font-mono block truncate">
+                            {account.email}
+                          </span>
+                        </div>
+                      </div>
+
+                      {isCurrent && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary text-white shrink-0">
+                          Current User
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="pt-1">
+                      <Lozenge variant={isCurrent ? "primary" : "info"} size="xs">
+                        {account.role}
+                      </Lozenge>
+                    </div>
+
+                    <p className="text-xs text-text-secondary leading-relaxed pt-1">
+                      {account.note}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-border/80 flex items-center justify-between">
+                    <span className="text-[10px] text-text-muted font-mono">
+                      Pass: {account.password}
+                    </span>
+
+                    <Button
+                      size="xs"
+                      variant={isCurrent ? "outline" : "primary"}
+                      disabled={isCurrent}
+                      onClick={() => handleSwitchPersona(account.email)}
+                    >
+                      {isCurrent ? "Active Persona" : "Switch Persona"}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* TAB C: RBAC PERMISSIONS & PRIVILEGES */}
       {activeTab === "permissions" && (
         <div className="space-y-5">
           <Card className="p-5 bg-surface border border-border rounded-xl space-y-4">

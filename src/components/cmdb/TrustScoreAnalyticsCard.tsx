@@ -114,19 +114,7 @@ export function TrustScoreAnalyticsCard() {
 
         {/* View Switcher Tabs - Flex wrap to prevent cut-off */}
         <div className="inline-flex rounded-lg border border-border bg-sunken p-1 text-xs select-none max-w-full flex-wrap sm:flex-nowrap gap-0.5">
-          <button
-            type="button"
-            onClick={() => setActiveTab("histogram")}
-            className={cn(
-              "px-2.5 py-1 rounded font-medium transition-all duration-150 flex items-center gap-1.5 flex-shrink-0",
-              activeTab === "histogram"
-                ? "bg-surface text-primary shadow-xs font-semibold"
-                : "text-text-secondary hover:text-text-default"
-            )}
-          >
-            <BarChart3 className="w-3.5 h-3.5" />
-            <span>Histogram</span>
-          </button>
+          
 
           <button
             type="button"

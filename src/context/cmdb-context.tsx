@@ -191,16 +191,6 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
     showToast("success", "Persona Switched", `Active session is now ${newSession.name} (${newSession.role})`);
   };
 
-  const handleSetUserRole = (newRole: UserRole) => {
-    setUserRole(newRole);
-    if (session) {
-      const updated: AuthSession = { ...session, role: newRole };
-      setSession(updated);
-      AuthService.setSession(updated);
-    }
-    showToast("info", "Role Switched", `Active role is now ${newRole}`);
-  };
-
   const updateUserProfile = (updates: Partial<User>) => {
     if (!session) return;
     const updated = AuthService.updateUserProfile(session.userId, updates);
@@ -215,32 +205,10 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const canEdit =
-    userRole === "Editor" ||
-    userRole === "CMDB Owner" ||
-    userRole === "Admin" ||
-    userRole === "CMDB Administrator" ||
-    userRole === "CMDB Manager" ||
-    userRole === "Data Steward" ||
-    userRole === "CI Owner" ||
-    userRole === "Break-glass Administrator";
-
-  const canMerge =
-    userRole === "CMDB Owner" ||
-    userRole === "Admin" ||
-    userRole === "CMDB Administrator" ||
-    userRole === "CMDB Manager";
-
-  const canRetire =
-    userRole === "Admin" ||
-    userRole === "CMDB Owner" ||
-    userRole === "CMDB Administrator" ||
-    userRole === "Break-glass Administrator";
-
-  const canAdmin =
-    userRole === "Admin" ||
-    userRole === "CMDB Administrator" ||
-    userRole === "Break-glass Administrator";
+  const canEdit = userRole === "Editor" || userRole === "CMDB Owner" || userRole === "Admin";
+  const canMerge = userRole === "CMDB Owner" || userRole === "Admin";
+  const canRetire = userRole === "Admin" || userRole === "CMDB Owner";
+  const canAdmin = userRole === "Admin";
 
   // Load from localStorage or CMDBService on tenant change
   useEffect(() => {
@@ -1344,7 +1312,7 @@ export function CMDBProvider({ children }: { children: React.ReactNode }) {
         showToast,
         removeToast,
         userRole,
-        setUserRole: handleSetUserRole,
+        setUserRole,
         activeTenant,
         setActiveTenant,
         selectedEnvironment,
